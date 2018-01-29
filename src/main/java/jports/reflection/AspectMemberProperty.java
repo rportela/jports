@@ -1,5 +1,6 @@
 package jports.reflection;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
 /**
@@ -11,7 +12,7 @@ import java.lang.reflect.Method;
  *
  * @param <T>
  */
-public class AspectProperty<T> implements AspectMember<T> {
+public final class AspectMemberProperty<T> implements AspectMemberAccessor<T> {
 
 	/**
 	 * The aspect associated with this property;
@@ -40,7 +41,7 @@ public class AspectProperty<T> implements AspectMember<T> {
 	 * @param getter
 	 * @param setter
 	 */
-	public AspectProperty(Aspect<T, ?> aspect, String name, Method getter, Method setter) {
+	public AspectMemberProperty(Aspect<T, ?> aspect, String name, Method getter, Method setter) {
 		this.aspect = aspect;
 		this.getter = getter;
 		this.setter = setter;
@@ -50,7 +51,7 @@ public class AspectProperty<T> implements AspectMember<T> {
 	/**
 	 * Gets the aspect associated with the getter and setter of this instance;
 	 */
-	public Aspect<T, ?> getAspect() {
+	public final Aspect<T, ?> getAspect() {
 		return this.aspect;
 	}
 
@@ -58,7 +59,7 @@ public class AspectProperty<T> implements AspectMember<T> {
 	 * Gets a value from an entity by invoking the getter method of this aspect
 	 * property;
 	 */
-	public Object getValue(T source) {
+	public final Object getValue(T source) {
 		try {
 			return this.getter.invoke(source);
 		} catch (Exception e) {
@@ -70,7 +71,7 @@ public class AspectProperty<T> implements AspectMember<T> {
 	 * Gets the value from an entity by invoking the setter method of this aspect
 	 * property;
 	 */
-	public void setValue(T target, Object value) {
+	public final void setValue(T target, Object value) {
 		try {
 			this.setter.invoke(target, value);
 		} catch (Exception e) {
@@ -82,14 +83,33 @@ public class AspectProperty<T> implements AspectMember<T> {
 	 * Gets the returned data type of this property -commonly the return type of the
 	 * getter method;
 	 */
-	public Class<?> getDataType() {
+	public final Class<?> getDataType() {
 		return this.getter.getReturnType();
 	}
 
 	/**
 	 * Gets the name of this property;
 	 */
-	public String getName() {
+	public final String getName() {
 		return this.name;
+	}
+
+	/**
+	 * Indicates that this property is read only;
+	 */
+	public final boolean isReadOnly() {
+		return this.setter == null;
+	}
+
+	public <G extends Annotation> G getAnnotation(Class<G> annotationClass) {
+		return this.getter.getAnnotation(annotationClass);
+	}
+
+	public Annotation[] getAnnotations() {
+		return this.getter.getAnnotations();
+	}
+
+	public Annotation[] getDeclaredAnnotations() {
+		return this.getter.getDeclaredAnnotations();
 	}
 }

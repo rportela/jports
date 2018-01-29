@@ -1,57 +1,53 @@
 package jports.reflection;
 
-/**
- * This class represents an aspect member that's usually a wrapper for a Field
- * or a Method. It enables implementers to get and set values onto entities and
- * to have a name;
- * 
- * @author rportela
- *
- * @param <TClass>
- */
-public interface AspectMember<TClass> {
+import java.lang.annotation.Annotation;
 
-	/**
-	 * This aspect member is read only;
-	 * 
-	 * @return
-	 */
-	public boolean isReadOnly();
+public class AspectMember<TClass> implements AspectMemberAccessor<TClass> {
 
-	/**
-	 * Gets the owning aspect of this member;
-	 * 
-	 * @return
-	 */
-	public Aspect<TClass, ?> getAspect();
+	private final AspectMemberAccessor<TClass> accessor;
 
-	/**
-	 * Gets the value of this member from a specific source entity;
-	 * 
-	 * @param source
-	 * @return
-	 */
-	public Object getValue(TClass source);
+	public AspectMember(AspectMemberAccessor<TClass> accessor) {
+		this.accessor = accessor;
+	}
 
-	/**
-	 * Sets the value of this member onto a specific target entity;
-	 * 
-	 * @param target
-	 * @param value
-	 */
-	public void setValue(TClass target, Object value);
+	public boolean isReadOnly() {
+		return this.accessor.isReadOnly();
+	}
 
-	/**
-	 * Gets the data type of this member;
-	 * 
-	 * @return
-	 */
-	public Class<?> getDataType();
+	public Aspect<TClass, ?> getAspect() {
+		return this.accessor.getAspect();
+	}
 
-	/**
-	 * Gets the name of this member;
-	 * 
-	 * @return
-	 */
-	public String getName();
+	public Object getValue(TClass source) {
+		return this.accessor.getValue(source);
+	}
+
+	public void setValue(TClass target, Object value) {
+		this.accessor.setValue(target, value);
+	}
+
+	public Class<?> getDataType() {
+		return this.accessor.getDataType();
+	}
+
+	public String getName() {
+		return this.accessor.getName();
+	}
+
+	@Override
+	public String toString() {
+		return this.accessor.toString();
+	}
+
+	public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
+		return this.accessor.getAnnotation(annotationClass);
+	}
+
+	public Annotation[] getAnnotations() {
+		return this.accessor.getAnnotations();
+	}
+
+	public Annotation[] getDeclaredAnnotations() {
+		return this.accessor.getDeclaredAnnotations();
+	}
 }

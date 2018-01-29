@@ -21,7 +21,7 @@ public interface Column<TRow> {
 	 * 
 	 * @return
 	 */
-	public Class<?> getDatType();
+	public Class<?> getDataType();
 
 	/**
 	 * The column type. This method has been rewritten to make sure that a column

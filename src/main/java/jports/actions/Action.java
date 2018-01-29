@@ -2,6 +2,11 @@ package jports.actions;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.Date;
+import java.util.Map;
+
+import jports.validations.ValidationAspect;
+import jports.validations.ValidationResult;
 
 /**
  * This class represents an action, that is, a specific way of doing things in
@@ -15,7 +20,7 @@ import java.lang.reflect.Type;
  * @param <TParams>
  * @param <TResult>
  */
-public class Action<TParams, TResult> {
+public abstract class Action<TParams, TResult> {
 
 	/**
 	 * Gets the actual type arguments from the generic superclass of the
@@ -78,6 +83,97 @@ public class Action<TParams, TResult> {
 		if (tp instanceof ParameterizedType)
 			tp = ((ParameterizedType) tp).getRawType();
 		return (Class<TResult>) tp;
+	}
+
+	/**
+	 * This method is executed after validation, authentication and the main flow.
+	 * Override this to add custom logging or anything that should happen after the
+	 * desired flow;
+	 * 
+	 * @param execution
+	 */
+	protected void postFlow(ActionExecution<TParams, TResult> execution) {
+		// override to add new functionality;
+	}
+
+	/**
+	 * This method uses a validation aspect to look for annotations and to validate
+	 * the entire parameters class. Override this method to add custom validations
+	 * to your action;
+	 * 
+	 * @param execution
+	 */
+	protected void validate(ActionExecution<TParams, TResult> execution) {
+		Class<TParams> paramsClass = getParamsClass();
+		if (execution.params == null) {
+			if (Void.class.equals(paramsClass))
+				return;
+
+			execution.validation = new ValidationResult(
+					"params",
+					false,
+					"Only void parameters allow nulls. Wrap your primitives or string in a class.");
+			execution.result_type = ActionResultType.VALIDATION_FAILED;
+			return;
+
+		} else {
+			ValidationAspect<TParams> validationAspect = ValidationAspect.getInstance(paramsClass);
+			execution.validation = validationAspect.validate("params", execution.params);
+			if (!execution.validation.isValid)
+				execution.result_type = ActionResultType.VALIDATION_FAILED;
+		}
+	}
+
+	/**
+	 * This method should perform authentication. The default implementations simply
+	 * does nothing. Override this method to add custom authentication to your
+	 * action;
+	 * 
+	 * @param execution
+	 */
+	protected void authenticate(ActionExecution<TParams, TResult> execution) {
+
+	}
+
+	/**
+	 * This is the action body. Override this method to add an implementation to
+	 * your action;
+	 * 
+	 * @param execution
+	 */
+	protected abstract void mainFlow(ActionExecution<TParams, TResult> execution);
+
+	/**
+	 * This method creates an execution and runs the validation, authentication,
+	 * mainFlow and postFlow of this action;
+	 * 
+	 * @param params
+	 * @param headers
+	 * @return
+	 */
+	public synchronized final ActionExecution<TParams, TResult> execute(TParams params, Map<String, Object> headers) {
+		ActionExecution<TParams, TResult> execution = new ActionExecution<TParams, TResult>();
+		execution.headers = headers;
+		execution.name = getClass().toString();
+		try {
+			validate(execution);
+			if (execution.result_type == ActionResultType.NOT_EXECUTED) {
+				authenticate(execution);
+				if (execution.result_type == ActionResultType.NOT_EXECUTED) {
+					mainFlow(execution);
+				}
+			}
+		} catch (Exception e) {
+			execution.exception = e;
+			execution.result_type = ActionResultType.EXCEPTION_RAISED;
+		}
+		execution.execution_end = new Date();
+		postFlow(execution);
+		return execution;
+	}
+
+	public ActionExecution<TParams, TResult> execute(TParams params) {
+		return execute(params, null);
 	}
 
 }

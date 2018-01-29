@@ -19,7 +19,7 @@ public class TableColumn implements Column<TableRow> {
 		return this.name;
 	}
 
-	public Class<?> getDatType() {
+	public Class<?> getDataType() {
 		return Object.class;
 	}
 
@@ -28,7 +28,9 @@ public class TableColumn implements Column<TableRow> {
 	}
 
 	public Object getValue(TableRow row) {
-		return row.values.length >= this.ordinal ? null : row.values[this.ordinal];
+		return row.values.length >= this.ordinal
+				? null
+				: row.values[this.ordinal];
 	}
 
 	public void setValue(TableRow row, Object value) {

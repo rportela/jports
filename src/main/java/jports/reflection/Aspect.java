@@ -7,6 +7,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -22,7 +23,34 @@ import java.util.Map.Entry;
  * @param <TClass>
  * @param <TMember>
  */
-public class Aspect<TClass, TMember extends AspectMember<TClass>> implements AnnotatedType {
+public abstract class Aspect<TClass, TMember extends AspectMember<TClass>> implements AnnotatedType, Iterable<TMember> {
+
+	/**
+	 * Locates a setter based on a name and an expected parameter type;
+	 * 
+	 * @param methods
+	 * @param name
+	 * @param paramType
+	 * @return
+	 */
+	private Method findSetter(Method[] methods, String name, Class<?> paramType) {
+		for (int i = 0; i < methods.length; i++) {
+			Method setter = methods[i];
+			int modifiers = setter.getModifiers();
+			if (!Modifier.isAbstract(modifiers)
+					&& !Modifier.isStatic(modifiers)
+					&& !Modifier.isTransient(modifiers)
+					&& name.equalsIgnoreCase(setter.getName())
+					&& setter.getReturnType().equals(Void.class)) {
+				Class<?>[] parameterTypes = setter.getParameterTypes();
+				if (parameterTypes != null
+						&& parameterTypes.length == 1
+						&& parameterTypes[0].equals(paramType))
+					return setter;
+			}
+		}
+		return null;
+	}
 
 	/**
 	 * Holds a list of members of this class;
@@ -34,10 +62,20 @@ public class Aspect<TClass, TMember extends AspectMember<TClass>> implements Ann
 	 */
 	private final Class<TClass> dataType;
 
+	/**
+	 * Tells the aspect that it should inspect fields;
+	 * 
+	 * @return
+	 */
 	protected boolean canHaveFields() {
 		return true;
 	}
 
+	/**
+	 * Tells the aspect that it should inspect getters and setters as properties;
+	 * 
+	 * @return
+	 */
 	protected boolean canHaveProperties() {
 		return true;
 	}
@@ -53,28 +91,48 @@ public class Aspect<TClass, TMember extends AspectMember<TClass>> implements Ann
 
 		final Field[] fields = dataType.getFields();
 		final Method[] methods = dataType.getMethods();
+		AspectMemberAccessor<TClass> accessor;
 		TMember member;
 		int modifiers;
 
-		this.members = new ArrayList<TMember>(fields.length + methods.length);
+		this.members = new ArrayList<TMember>(fields.length
+				+ methods.length);
 
-		for (int i = 0; i < fields.length; i++) {
-			modifiers = fields[i].getModifiers();
-			if (!Modifier.isStatic(modifiers) && !Modifier.isTransient(modifiers)) {
-				member = process(dataType, fields, fields[i]);
-				if (member != null)
-					members.add(member);
+		if (this.canHaveFields())
+			for (int i = 0; i < fields.length; i++) {
+				modifiers = fields[i].getModifiers();
+				if (!Modifier.isStatic(modifiers)
+						&& !Modifier.isTransient(modifiers)) {
+					accessor = new AspectMemberField<TClass>(this, fields[i]);
+					member = this.visit(accessor);
+					if (member != null)
+						members.add(member);
+				}
 			}
-		}
 
-		for (int i = 0; i < methods.length; i++) {
-			modifiers = fields[i].getModifiers();
-			if (!Modifier.isStatic(modifiers) && !Modifier.isTransient(modifiers) && !Modifier.isAbstract(modifiers)) {
-				member = process(dataType, methods, methods[i]);
-				if (member != null)
-					members.add(member);
+		if (this.canHaveProperties())
+			for (int i = 0; i < methods.length; i++) {
+				Method getter = methods[i];
+				modifiers = getter.getModifiers();
+				if (!Modifier.isStatic(modifiers)
+						&& !Modifier.isTransient(modifiers)
+						&& !Modifier.isAbstract(modifiers)) {
+					String name = getter.getName();
+					if (name.startsWith("get")) {
+						Class<?>[] parameterTypes = getter.getParameterTypes();
+						if (parameterTypes == null
+								|| parameterTypes.length == 0) {
+							name = name.substring(4);
+							Method setter = findSetter(methods, "set"
+									+ name, getter.getReturnType());
+							accessor = new AspectMemberProperty<TClass>(this, name, getter, setter);
+							member = this.visit(accessor);
+							if (member != null)
+								members.add(member);
+						}
+					}
+				}
 			}
-		}
 
 		this.members.trimToSize();
 
@@ -85,28 +143,10 @@ public class Aspect<TClass, TMember extends AspectMember<TClass>> implements Ann
 	 * no member based on the given field should be added to the member list of this
 	 * aspect;
 	 * 
-	 * @param dataType
-	 * @param fields
 	 * @param field
 	 * @return
 	 */
-	protected TMember process(Class<TClass> dataType, Field[] fields, Field field) {
-		return null;
-	}
-
-	/**
-	 * This method allows the implementer to define custom properties and method
-	 * invokers or to return null if no member based on a given method should be
-	 * added to the member list of this aspect;
-	 * 
-	 * @param dataType
-	 * @param methods
-	 * @param method
-	 * @return
-	 */
-	protected TMember process(Class<TClass> dataType, Method[] methods, Method method) {
-		return null;
-	}
+	protected abstract TMember visit(AspectMemberAccessor<TClass> accessor);
 
 	/**
 	 * The expected type of entity in this aspect;
@@ -169,7 +209,9 @@ public class Aspect<TClass, TMember extends AspectMember<TClass>> implements Ann
 	public TMember get(String name) {
 		int index = this.indexOf(name);
 		if (index < 0)
-			throw new RuntimeException(name + " is not a member of " + this.dataType);
+			throw new RuntimeException(name
+					+ " is not a member of "
+					+ this.dataType);
 		else
 			return this.members.get(index);
 	}
@@ -309,6 +351,13 @@ public class Aspect<TClass, TMember extends AspectMember<TClass>> implements Ann
 	 */
 	public Type getType() {
 		return this.dataType.getGenericSuperclass();
+	}
+
+	/**
+	 * Gets an iterator for members of this aspect;
+	 */
+	public Iterator<TMember> iterator() {
+		return this.members.iterator();
 	}
 
 }
