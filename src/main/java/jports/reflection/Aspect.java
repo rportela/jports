@@ -297,7 +297,7 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>> imple
 	 */
 	public TClass fromMap(final Map<String, Object> map) {
 		try {
-			TClass entity = this.dataType.newInstance();
+			TClass entity = this.dataType.getConstructor().newInstance();
 			setValues(entity, map);
 			return entity;
 		} catch (Exception e) {

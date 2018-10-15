@@ -1,5 +1,5 @@
 package jports.text;
 
-public class CsvReader {
+public class CsvReader<TClass> {
 
 }

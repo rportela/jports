@@ -21,7 +21,7 @@ public final class AdapterFactory {
 	/**
 	 * a static map of adapters;
 	 */
-	private static final HashMap<Class<?>, Class<?>> INSTANCES = new HashMap<Class<?>, Class<?>>();
+	private static final HashMap<Class<?>, Class<? extends Adapter<?>>> INSTANCES = new HashMap<>();
 
 	/**
 	 * Populates the static map with factory built adapters;
@@ -41,9 +41,10 @@ public final class AdapterFactory {
 	 * @param adapter
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	public static void register(Adapter<?> adapter) {
 		Class<?> dataType = adapter.getDataType();
-		INSTANCES.put(dataType, adapter.getClass());
+		INSTANCES.put(dataType, (Class<? extends Adapter<?>>) adapter.getClass());
 	}
 
 	/**
@@ -67,6 +68,20 @@ public final class AdapterFactory {
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
+		}
+	}
+
+	public static Adapter<?> createAdapter(final Class<?> claz, Class<?> adapterClass, final String pattern) {
+		if (VoidAdapter.class.equals(adapterClass)) {
+			adapterClass = INSTANCES.get(claz);
+		}
+		try {
+			Object adapter = pattern == null || pattern.isEmpty()
+					? adapterClass.getConstructor().newInstance()
+					: adapterClass.getConstructor(String.class).newInstance(pattern);
+			return (Adapter<?>) adapter;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
 		}
 	}
 }

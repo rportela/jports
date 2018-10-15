@@ -33,7 +33,10 @@ public interface Adapter<T> {
 	 * @param source
 	 * @return
 	 */
-	public String formatObject(Object source);
+	@SuppressWarnings("unchecked")
+	default String formatObject(Object source) {
+		return format((T) source);
+	}
 
 	/**
 	 * Converts a source object to a specific data type;
