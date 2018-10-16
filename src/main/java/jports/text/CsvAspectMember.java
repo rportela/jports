@@ -13,16 +13,9 @@ public class CsvAspectMember<TClass> extends AspectMember<TClass> {
 
 	public CsvAspectMember(AspectMemberAccessor<TClass> accessor, CsvColumn csv, int index) {
 		super(accessor);
-		columnName = csv.name().isEmpty()
-				? accessor.getName()
-				: csv.name();
-		position = csv.position() >= 0
-				? csv.position()
-				: index;
-		adapter = AdapterFactory.createAdapter(
-				accessor.getDataType(),
-				csv.adapter(),
-				csv.pattern());
+		columnName = csv.name().isEmpty() ? accessor.getName() : csv.name();
+		position = csv.position() >= 0 ? csv.position() : index;
+		adapter = AdapterFactory.createAdapter(accessor.getDataType(), csv.adapter(), csv.pattern());
 	}
 
 	public int getPosition() {
