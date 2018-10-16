@@ -1,5 +1,5 @@
 package jports.data;
 
-public class FilterOperation {
-
+public enum FilterOperation {
+	AND, OR
 }
