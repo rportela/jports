@@ -8,8 +8,8 @@ public class DoubleAdapter implements Adapter<Double> {
 	public Double parse(String source) {
 		return source == null
 				|| source.isEmpty()
-						? 0.0
-						: Double.parseDouble(source);
+						? null
+						: Double.valueOf(source);
 	}
 
 	public String format(Double source) {
