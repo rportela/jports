@@ -6,18 +6,27 @@ public class FilterNode implements Filter {
 	public FilterOperation operation;
 	public FilterNode next;
 
-	public FilterNode(Filter filter) {
-		this.filter = filter;
+	public FilterNode(FilterTerm term) {
+		this.filter = term;
 	}
 
-	public FilterNode setOperation(FilterOperation op) {
+	public FilterNode(FilterExpression expression) {
+		this.filter = expression;
+	}
+
+	public final void setNext(FilterOperation op, FilterTerm term) {
 		this.operation = op;
-		return this;
+		this.next = new FilterNode(term);
 	}
 
-	public FilterNode setNext(Filter filter) {
-		this.next = new FilterNode(filter);
-		return this;
+	public final void setNext(FilterOperation op, FilterExpression expression) {
+		this.operation = op;
+		this.next = new FilterNode(expression);
+	}
+
+	@Override
+	public final FilterType getFilterType() {
+		return FilterType.NODE;
 	}
 
 }

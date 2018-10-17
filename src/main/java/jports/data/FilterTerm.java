@@ -16,4 +16,9 @@ public class FilterTerm implements Filter {
 		this(name, FilterComparison.EQUAL_TO, value);
 	}
 
+	@Override
+	public final FilterType getFilterType() {
+		return FilterType.TERM;
+	}
+
 }
