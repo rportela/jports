@@ -1,18 +1,15 @@
 package jports.data;
 
-import java.util.Arrays;
-
 public class TableColumn implements Column<TableRow> {
 
 	public String name;
-	public final int ordinal;
 	public final Table table;
 	public ColumnType columnType;
 
-	protected TableColumn(Table table, int ordinal, String name) {
+	protected TableColumn(Table table, String name, ColumnType columnType) {
 		this.table = table;
-		this.ordinal = ordinal;
 		this.name = name;
+		this.columnType = columnType;
 	}
 
 	public String getName() {
@@ -27,17 +24,14 @@ public class TableColumn implements Column<TableRow> {
 		return this.columnType;
 	}
 
+	@Override
 	public Object getValue(TableRow row) {
-		return row.values.length >= this.ordinal
-				? null
-				: row.values[this.ordinal];
+		return row.get(this.name);
 	}
 
+	@Override
 	public void setValue(TableRow row, Object value) {
-		if (row.values.length <= this.ordinal) {
-			row.values = Arrays.copyOf(row.values, table.getColumnCount());
-		}
-		row.values[this.ordinal] = value;
+		row.set(this.name, value);
 	}
 
 }
