@@ -10,6 +10,11 @@ public class FilterExpression implements Filter {
 		this.last = this.first;
 	}
 
+	public FilterExpression(FilterExpression expression) {
+		this.first = new FilterNode(expression);
+		this.last = this.first;
+	}
+
 	public FilterExpression(String name, FilterComparison comparison, Object value) {
 		this.first = new FilterNode(new FilterTerm(name, comparison, value));
 		this.last = this.first;
@@ -64,4 +69,5 @@ public class FilterExpression implements Filter {
 	public final FilterType getFilterType() {
 		return FilterType.EXPRESSION;
 	}
+
 }
