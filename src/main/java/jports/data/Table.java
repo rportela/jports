@@ -49,6 +49,8 @@ public class Table implements ColumnSchema<TableRow, TableColumn> {
 		switch (filter.getFilterType()) {
 		case EXPRESSION:
 			return createPredicate((FilterExpression) filter);
+		case NODE:
+			return createPredicate((FilterNode) filter);
 		case TERM:
 			return createPredicate((FilterTerm) filter);
 		default:
@@ -58,52 +60,43 @@ public class Table implements ColumnSchema<TableRow, TableColumn> {
 	}
 
 	public Predicate<TableRow> createPredicate(FilterExpression expression) {
+		return createPredicate(expression.first);
+	}
 
+	public Predicate<TableRow> createPredicate(FilterNode node) {
+		return new Predicate<TableRow>() {
+			private final FilterNode n = node;
+			private final Predicate<TableRow> filter = createPredicate(node.filter);
+			private final Predicate<TableRow> next = node.next == null
+					? null
+					: createPredicate(node.next);
+
+			@Override
+			public boolean test(TableRow row) {
+				if (next == null)
+					return filter.test(row);
+				else
+					switch (n.operation) {
+					case AND:
+						return filter.test(row) && next.test(row);
+					case OR:
+						return filter.test(row) || next.test(row);
+					default:
+						throw new RuntimeException("Unknown filter operation " + n.operation);
+					}
+			}
+		};
 	}
 
 	public Predicate<TableRow> createPredicate(FilterTerm term) {
 		return new Predicate<TableRow>() {
-			private final FilterComparison comparison = term.comparison;
-			private final int ordinal = getColumnOrdinal(term.name);
-			private final Object value = term.value;
+			private final String name = term.name;
+			private final Predicate<Object> valuePredicate = term.createValuePredicate();
 
-			@SuppressWarnings({ "unchecked", "rawtypes" })
 			@Override
 			public boolean test(TableRow row) {
-				Object colValue = row.get(ordinal);
-				switch (comparison) {
-				case EQUAL_TO:
-					return value == null
-							? colValue == null
-							: value.equals(colValue);
-				case GRATER_OR_EQUAL:
-					return colValue == null
-							? value == null
-							: ((Comparable) colValue).compareTo(value) >= 0;
-				case GREATER_THAN:
-					return colValue == null
-							? false
-							: ((Comparable) colValue).compareTo(value) > 0;
-				case LIKE:
-					break;
-				case LOWER_OR_EQUAL:
-					return colValue == null
-							? value == null
-							: ((Comparable) colValue).compareTo(value) <= 0;
-				case LOWER_THAN:
-					return colValue == null
-							? false
-							: ((Comparable) colValue).compareTo(value) < 0;
-				case NOT_EQUAL_TO:
-					return t.value == null
-							? colValue != null
-							: !value.equals(colValue);
-				case NOT_LIKE:
-					break;
-				default:
-					throw new RuntimeException("Unknown filter comparison: " + comparison);
-
-				}
+				Object val = row.get(name);
+				return valuePredicate.test(val);
 			}
 		};
 	}

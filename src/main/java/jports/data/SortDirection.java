@@ -1,5 +1,6 @@
 package jports.data;
 
-public class SortDirection {
+public enum SortDirection {
 
+	ASCENDING, DESCENDING
 }
