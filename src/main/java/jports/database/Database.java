@@ -84,27 +84,17 @@ public abstract class Database {
 	}
 
 	/**
-	 * Gets the database specific name prefix like [ or `;
+	 * Creates a new instance of the database command;
 	 * 
 	 * @return
 	 */
-	public abstract String getNamePrefix();
+	public abstract DatabaseCommand createCommand();
 
-	/**
-	 * Gets the database specific name suffix like ] or ´;
-	 * 
-	 * @return
-	 */
-	public abstract String getNameSuffix();
+	public DatabaseInsert insert(String table) {
+		return new DatabaseInsert(this, table);
+	}
 
-	/**
-	 * This class validates names for building SQL statements; Override this method
-	 * to add custom or database specific name validation rules;
-	 * 
-	 * @param name
-	 */
-	public void validateNameOrRaiseException(String name) {
-		if (name.contains("'") || name.contains("--"))
-			throw new RuntimeException("Names cannot contain invalid chars: " + name);
+	public DatabaseDelete delete(String table) {
+		return new DatabaseDelete(this, table);
 	}
 }

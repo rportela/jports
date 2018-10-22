@@ -95,8 +95,8 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>> imple
 		TMember member;
 		int modifiers;
 
-		this.members = new ArrayList<TMember>(fields.length
-				+ methods.length);
+		this.members = new ArrayList<TMember>(
+				fields.length + methods.length);
 
 		if (this.canHaveFields())
 			for (int i = 0; i < fields.length; i++) {

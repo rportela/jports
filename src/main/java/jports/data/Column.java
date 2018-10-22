@@ -14,7 +14,7 @@ public interface Column<TRow> {
 	 * 
 	 * @return
 	 */
-	public String getName();
+	public String getColumnName();
 
 	/**
 	 * The data type of the column;

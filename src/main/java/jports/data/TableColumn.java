@@ -12,7 +12,7 @@ public class TableColumn implements Column<TableRow> {
 		this.columnType = columnType;
 	}
 
-	public String getName() {
+	public String getColumnName() {
 		return this.name;
 	}
 

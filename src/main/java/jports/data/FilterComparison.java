@@ -10,4 +10,5 @@ public enum FilterComparison {
 	LIKE,
 	NOT_LIKE
 
+	
 }

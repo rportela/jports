@@ -1,65 +1,53 @@
 package jports.database;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.Map;
 
-public class DatabaseInsert {
+import jports.data.Insert;
+
+public class DatabaseInsert extends Insert<String> {
 
 	public final Database database;
 
-	public final String table;
-
-	public final HashMap<String, Object> values = new LinkedHashMap<>();
-
-	public final HashMap<String, Object> generatedKeys = new LinkedHashMap<>();
-
 	public DatabaseInsert(Database database, String table) {
+		super(table);
 		this.database = database;
-		this.table = table;
 	}
 
-	public String createCommandText() {
-		database.validateNameOrRaiseException(table);
-		StringBuilder sqlBuilder = new StringBuilder(512);
-		StringBuilder valueBuilder = new StringBuilder(255);
-		String namePrefix = database.getNamePrefix();
-		String nameSuffix = database.getNameSuffix();
-		boolean prependComma = false;
+	public DatabaseCommand createCommand() {
+		return database.createCommand()
+				.appendSql("INSERT INTO ")
+				.appendName(getTarget())
+				.appendSql(" (")
+				.appendNames(getValues().keySet())
+				.appendSql(") VALUES (")
+				.appendValues(getValues().values())
+				.appendSql(")");
+	}
 
-		sqlBuilder.append("INSERT INTO ");
-		sqlBuilder.append(namePrefix);
-		sqlBuilder.append(table);
-		sqlBuilder.append(nameSuffix);
-		sqlBuilder.append(" (");
+	public void execute(Connection conn) throws SQLException {
+		createCommand().execute(conn);
+	}
 
-		valueBuilder.append(") VALUES (");
-		for (String key : values.keySet()) {
-
-			database.validateNameOrRaiseException(key);
-
-			if (prependComma) {
-				sqlBuilder.append(", ");
-				valueBuilder.append(", ");
-			} else {
-				prependComma = true;
-			}
-
-			sqlBuilder.append(namePrefix);
-			sqlBuilder.append(key);
-			sqlBuilder.append(nameSuffix);
-			valueBuilder.append("?");
+	public void execute() {
+		try {
+			createCommand().execute();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
 		}
-		valueBuilder.append(")");
-		sqlBuilder.append(valueBuilder.toString());
-		return sqlBuilder.toString();
 	}
 
-	public void execute(Connection connection, boolean getGeneratedKeys) {
-		this.generatedKeys.clear();
-
+	public Map<String, Object> executeWithGeneratedKeys(Connection conn) throws SQLException {
+		return createCommand().executeWithGeneratedKeys(conn);
 	}
 
-	public void execute(Connection connection) {
-		execute(connection, true);
+	public Map<String, Object> executeWithGeneratedKeys() {
+		try {
+			return createCommand().executeWithGeneratedKeys();
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
 	}
+
 }
