@@ -37,15 +37,13 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>> imple
 		for (int i = 0; i < methods.length; i++) {
 			Method setter = methods[i];
 			int modifiers = setter.getModifiers();
-			if (!Modifier.isAbstract(modifiers)
-					&& !Modifier.isStatic(modifiers)
-					&& !Modifier.isTransient(modifiers)
-					&& name.equalsIgnoreCase(setter.getName())
-					&& setter.getReturnType().equals(Void.class)) {
+			if (!Modifier.isAbstract(modifiers) &&
+					!Modifier.isStatic(modifiers) &&
+					!Modifier.isTransient(modifiers) &&
+					name.equalsIgnoreCase(setter.getName()) &&
+					setter.getReturnType().equals(Void.class)) {
 				Class<?>[] parameterTypes = setter.getParameterTypes();
-				if (parameterTypes != null
-						&& parameterTypes.length == 1
-						&& parameterTypes[0].equals(paramType))
+				if (parameterTypes != null && parameterTypes.length == 1 && parameterTypes[0].equals(paramType))
 					return setter;
 			}
 		}
@@ -55,12 +53,12 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>> imple
 	/**
 	 * Holds a list of members of this class;
 	 */
-	private final ArrayList<TMember> members;
+	protected final ArrayList<TMember> members;
 
 	/**
 	 * The actual class definition;
 	 */
-	private final Class<TClass> dataType;
+	protected final Class<TClass> dataType;
 
 	/**
 	 * Tells the aspect that it should inspect fields;
@@ -95,14 +93,13 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>> imple
 		TMember member;
 		int modifiers;
 
-		this.members = new ArrayList<TMember>(
-				fields.length + methods.length);
+		this.members = new ArrayList<TMember>(fields.length + methods.length);
 
 		if (this.canHaveFields())
 			for (int i = 0; i < fields.length; i++) {
 				modifiers = fields[i].getModifiers();
-				if (!Modifier.isStatic(modifiers)
-						&& !Modifier.isTransient(modifiers)) {
+				if (!Modifier.isStatic(modifiers) &&
+						!Modifier.isTransient(modifiers)) {
 					accessor = new AspectMemberField<TClass>(this, fields[i]);
 					member = this.visit(accessor);
 					if (member != null)
@@ -114,17 +111,15 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>> imple
 			for (int i = 0; i < methods.length; i++) {
 				Method getter = methods[i];
 				modifiers = getter.getModifiers();
-				if (!Modifier.isStatic(modifiers)
-						&& !Modifier.isTransient(modifiers)
-						&& !Modifier.isAbstract(modifiers)) {
+				if (!Modifier.isStatic(modifiers) &&
+						!Modifier.isTransient(modifiers) &&
+						!Modifier.isAbstract(modifiers)) {
 					String name = getter.getName();
 					if (name.startsWith("get")) {
 						Class<?>[] parameterTypes = getter.getParameterTypes();
-						if (parameterTypes == null
-								|| parameterTypes.length == 0) {
+						if (parameterTypes == null || parameterTypes.length == 0) {
 							name = name.substring(4);
-							Method setter = findSetter(methods, "set"
-									+ name, getter.getReturnType());
+							Method setter = findSetter(methods, "set" + name, getter.getReturnType());
 							accessor = new AspectMemberProperty<TClass>(this, name, getter, setter);
 							member = this.visit(accessor);
 							if (member != null)
@@ -209,9 +204,7 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>> imple
 	public TMember get(String name) {
 		int index = this.indexOf(name);
 		if (index < 0)
-			throw new RuntimeException(name
-					+ " is not a member of "
-					+ this.dataType);
+			throw new RuntimeException(name + " is not a member of " + this.dataType);
 		else
 			return this.members.get(index);
 	}

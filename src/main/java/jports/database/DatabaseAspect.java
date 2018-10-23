@@ -10,9 +10,7 @@ public class DatabaseAspect<TClass> extends Aspect<TClass, DatabaseAspectMember<
 	protected DatabaseAspect(Class<TClass> dataType) {
 		super(dataType);
 		DatabaseObject anno = dataType.getAnnotation(DatabaseObject.class);
-		this.objectName = anno.value().isEmpty()
-				? dataType.getSimpleName()
-				: anno.value();
+		this.objectName = anno.value().isEmpty() ? dataType.getSimpleName() : anno.value();
 	}
 
 	public String getObjectName() {
@@ -21,8 +19,8 @@ public class DatabaseAspect<TClass> extends Aspect<TClass, DatabaseAspectMember<
 
 	@Override
 	protected DatabaseAspectMember<TClass> visit(AspectMemberAccessor<TClass> accessor) {
-		// TODO Auto-generated method stub
-		return null;
+		DatabaseColumn col = accessor.getAnnotation(DatabaseColumn.class);
+		return col == null ? null : new DatabaseAspectMember<>(accessor, col);
 	}
 
 }

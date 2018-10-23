@@ -90,10 +90,22 @@ public abstract class Database {
 	 */
 	public abstract DatabaseCommand createCommand();
 
+	/**
+	 * Creates a new database insert command wrapper;
+	 * 
+	 * @param table
+	 * @return
+	 */
 	public DatabaseInsert insert(String table) {
 		return new DatabaseInsert(this, table);
 	}
 
+	/**
+	 * Creates a new database delete command wrapper;
+	 * 
+	 * @param table
+	 * @return
+	 */
 	public DatabaseDelete delete(String table) {
 		return new DatabaseDelete(this, table);
 	}

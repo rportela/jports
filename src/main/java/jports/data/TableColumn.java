@@ -1,6 +1,6 @@
 package jports.data;
 
-public class TableColumn implements Column<TableRow> {
+public class TableColumn implements Column {
 
 	public String name;
 	public final Table table;
@@ -22,16 +22,6 @@ public class TableColumn implements Column<TableRow> {
 
 	public ColumnType getColumnType() {
 		return this.columnType;
-	}
-
-	@Override
-	public Object getValue(TableRow row) {
-		return row.get(this.name);
-	}
-
-	@Override
-	public void setValue(TableRow row, Object value) {
-		row.set(this.name, value);
 	}
 
 }

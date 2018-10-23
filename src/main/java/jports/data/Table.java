@@ -1,21 +1,32 @@
 package jports.data;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import jports.adapters.Adapter;
 
-public class Table implements ColumnSchema<TableRow, TableColumn> {
+public class Table implements ColumnSchema<TableColumn> {
 
 	private final ArrayList<TableColumn> columns = new ArrayList<>();
 	private final ArrayList<TableRow> rows = new ArrayList<>();
+	private String name;
+
+	public Table setName(String name) {
+		this.name = name;
+		return this;
+	}
 
 	public int getColumnCount() {
 		return columns.size();
@@ -96,6 +107,45 @@ public class Table implements ColumnSchema<TableRow, TableColumn> {
 		return column;
 	}
 
+	@Override
+	public TableColumn getColumn(String name) {
+		int ordinal = getColumnOrdinal(name);
+		if (ordinal < 0)
+			throw new RuntimeException("Column " + name + " was not found on this table: " + this);
+		else
+			return getColumn(ordinal);
+	}
+
+	@Override
+	public TableColumn getIdentity() {
+		return columns
+				.stream()
+				.filter(c -> c.columnType == ColumnType.IDENTITY)
+				.findFirst()
+				.get();
+	}
+
+	@Override
+	public List<TableColumn> getUniqueColumns() {
+		return columns
+				.stream()
+				.filter(c -> c.columnType == ColumnType.UNIQUE)
+				.collect(Collectors.toList());
+	}
+
+	@Override
+	public List<TableColumn> getCompositeKey() {
+		return columns
+				.stream()
+				.filter(c -> c.columnType == ColumnType.COMPOSITE_KEY)
+				.collect(Collectors.toList());
+	}
+
+	@Override
+	public String getName() {
+		return this.name;
+	}
+
 	public TableDelete delete() {
 		return new TableDelete(this);
 	}
@@ -134,9 +184,9 @@ public class Table implements ColumnSchema<TableRow, TableColumn> {
 		return new Predicate<TableRow>() {
 			private final FilterNode n = node;
 			private final Predicate<TableRow> filter = createPredicate(node.filter);
-			private final Predicate<TableRow> next = node.next == null
-					? null
-					: createPredicate(node.next);
+			private final Predicate<TableRow> next = node.next == null ?
+					null :
+					createPredicate(node.next);
 
 			@Override
 			public boolean test(TableRow row) {
@@ -181,9 +231,9 @@ public class Table implements ColumnSchema<TableRow, TableColumn> {
 				public int compare(TableRow arg0, TableRow arg1) {
 					Object a = arg0.get(ordinal);
 					Object b = arg1.get(ordinal);
-					return a == null
-							? 0
-							: ((Comparable) a).compareTo(b);
+					return a == null ?
+							0 :
+							((Comparable) a).compareTo(b);
 				}
 			};
 		case DESCENDING:
@@ -196,9 +246,9 @@ public class Table implements ColumnSchema<TableRow, TableColumn> {
 				public int compare(TableRow arg0, TableRow arg1) {
 					Object a = arg0.get(ordinal);
 					Object b = arg1.get(ordinal);
-					return a == null
-							? 0
-							: -((Comparable) a).compareTo(b);
+					return a == null ?
+							0 :
+							-((Comparable) a).compareTo(b);
 				}
 			};
 		default:
@@ -213,19 +263,17 @@ public class Table implements ColumnSchema<TableRow, TableColumn> {
 			String line;
 			columns.clear();
 			rows.clear();
+			boolean hasQualifier = commentQualifier != null && !commentQualifier.isEmpty();
 			while ((line = reader.readLine()) != null) {
 				if (line.isEmpty())
 					continue;
-				if (commentQualifier != null && line.startsWith(commentQualifier))
+				if (hasQualifier && line.startsWith(commentQualifier))
 					continue;
 				if (firstRowsHasNames) {
 					firstRowsHasNames = false;
 					String[] colNames = line.split(separator);
 					for (int i = 0; i < colNames.length; i++) {
-						this.columns.add(new TableColumn(
-								this,
-								colNames[i],
-								ColumnType.REGULAR));
+						this.columns.add(new TableColumn(this, colNames[i], ColumnType.REGULAR));
 					}
 				} else {
 					this.addRow((Object[]) line.split(separator));
@@ -233,4 +281,29 @@ public class Table implements ColumnSchema<TableRow, TableColumn> {
 			}
 		}
 	}
+
+	public void loadCsv(InputStream is, Charset charset, String separator) throws IOException {
+		loadCsv(is, charset, separator, true, null);
+	}
+
+	public void loadCsv(File file, Charset charset, String separator) throws FileNotFoundException, IOException {
+		try (FileInputStream fis = new FileInputStream(file)) {
+			try {
+				loadCsv(fis, charset, separator);
+			} finally {
+				fis.close();
+			}
+		}
+	}
+
+	public void loadCsv(URL url, Charset charset, String separator) throws IOException {
+		try (InputStream uis = url.openStream()) {
+			try {
+				loadCsv(uis, charset, separator);
+			} finally {
+				uis.close();
+			}
+		}
+	}
+
 }

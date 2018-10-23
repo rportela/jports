@@ -1,13 +1,12 @@
 package jports.data;
 
 /**
- * A column abstraction that can read and write values to a row;
+ * A super simple column abstraction;
  * 
  * @author rportela
  *
- * @param <TRow>
  */
-public interface Column<TRow> {
+public interface Column {
 
 	/**
 	 * The name of the column; If in an aspect this is the name of the member;
@@ -25,25 +24,10 @@ public interface Column<TRow> {
 
 	/**
 	 * The column type. This method has been rewritten to make sure that a column
-	 * has only one column type;
+	 * has only one column type that simplifies developer understanding;
 	 * 
 	 * @return
 	 */
 	public ColumnType getColumnType();
 
-	/**
-	 * Gets the value of this column from a specific row;
-	 * 
-	 * @param row
-	 * @return
-	 */
-	public Object getValue(TRow row);
-
-	/**
-	 * Sets the value of this column to a specific row;
-	 * 
-	 * @param row
-	 * @param value
-	 */
-	public void setValue(TRow row, Object value);
 }
