@@ -162,6 +162,7 @@ public abstract class Action<TParams, TResult> {
 				if (execution.result_type == ActionResultType.NOT_EXECUTED) {
 					mainFlow(execution);
 				}
+
 			}
 		} catch (Exception e) {
 			execution.exception = e;
@@ -172,6 +173,12 @@ public abstract class Action<TParams, TResult> {
 		return execution;
 	}
 
+	/**
+	 * Executes the action with the given parameters and no headers;
+	 * 
+	 * @param params
+	 * @return
+	 */
 	public ActionExecution<TParams, TResult> execute(TParams params) {
 		return execute(params, null);
 	}

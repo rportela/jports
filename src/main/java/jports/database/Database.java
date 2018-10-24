@@ -109,4 +109,14 @@ public abstract class Database {
 	public DatabaseDelete delete(String table) {
 		return new DatabaseDelete(this, table);
 	}
+
+	/**
+	 * Creates a new database update command wrapper;
+	 * 
+	 * @param table
+	 * @return
+	 */
+	public DatabaseUpdate update(String table) {
+		return new DatabaseUpdate(this, table);
+	}
 }

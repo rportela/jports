@@ -6,6 +6,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class HttpClient {
 
@@ -34,5 +36,20 @@ public class HttpClient {
 	public HttpClient setHeader(String name, String value) {
 		this.headers.put(name, value);
 		return this;
+	}
+
+	public Map<String, String> getHeaders() {
+		return this.headers;
+	}
+
+	public List<HttpCookie> getCookies() {
+		return this.cookies;
+	}
+
+	public HttpCookie getCookie(String name) {
+		for (int i = 0; i < cookies.size(); i++)
+			if (name.equalsIgnoreCase(cookies.get(i).getName()))
+				return cookies.get(i);
+		return null;
 	}
 }

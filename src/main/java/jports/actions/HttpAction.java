@@ -14,7 +14,16 @@ public class HttpAction {
 	public boolean parse() {
 
 		String content_type = request.getContentType();
+		String method = request.getMethod();
 
+		if (isJsonContentType(content_type))
+			parser = new HttpActionParserForJson();
+		else if (isXmlContentType(content_type))
+			parser = new HttpActionParserForXml();
+		else if (isMultipart(content_type))
+			parser = new HttpActionParserForMultipart();
+		else
+			parser = new HttpActionParserForParameters();
 	}
 
 	public static final boolean isJsonContentType(String content_type) {
@@ -35,6 +44,10 @@ public class HttpAction {
 		return false;
 	}
 
+	public static final boolean isMultipart(String content_type) {
+		return content_type != null && content_type.startsWith("multipart/form-data");
+	}
+
 	public static final String[] JSON_CONTENT_TYPES = new String[] {
 			"application/json",
 			"application/x-javascript",
@@ -47,4 +60,5 @@ public class HttpAction {
 			"text/xml",
 			"application/xml"
 	};
+
 }
