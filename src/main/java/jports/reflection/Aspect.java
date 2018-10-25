@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Stream;
 
 /**
  * This class represents an uniform way of interacting with entities in this
@@ -78,39 +79,25 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>> imple
 		return true;
 	}
 
-	/**
-	 * Constructs a new aspect based on a given Class.
-	 * 
-	 * @param dataType
-	 */
-	protected Aspect(Class<TClass> dataType) {
-
-		this.dataType = dataType;
-
-		final Field[] fields = dataType.getFields();
-		final Method[] methods = dataType.getMethods();
-		AspectMemberAccessor<TClass> accessor;
-		TMember member;
-		int modifiers;
-
-		this.members = new ArrayList<TMember>(fields.length + methods.length);
-
+	protected void createFieldMembers(Field[] fields) {
 		if (this.canHaveFields())
 			for (int i = 0; i < fields.length; i++) {
-				modifiers = fields[i].getModifiers();
+				int modifiers = fields[i].getModifiers();
 				if (!Modifier.isStatic(modifiers) &&
 						!Modifier.isTransient(modifiers)) {
-					accessor = new AspectMemberField<TClass>(this, fields[i]);
-					member = this.visit(accessor);
+					AspectMemberField<TClass> accessor = new AspectMemberField<TClass>(this, fields[i]);
+					TMember member = this.visit(accessor);
 					if (member != null)
 						members.add(member);
 				}
 			}
+	}
 
+	protected void createPropertyMembers(Method[] methods) {
 		if (this.canHaveProperties())
 			for (int i = 0; i < methods.length; i++) {
 				Method getter = methods[i];
-				modifiers = getter.getModifiers();
+				int modifiers = getter.getModifiers();
 				if (!Modifier.isStatic(modifiers) &&
 						!Modifier.isTransient(modifiers) &&
 						!Modifier.isAbstract(modifiers)) {
@@ -120,17 +107,33 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>> imple
 						if (parameterTypes == null || parameterTypes.length == 0) {
 							name = name.substring(4);
 							Method setter = findSetter(methods, "set" + name, getter.getReturnType());
-							accessor = new AspectMemberProperty<TClass>(this, name, getter, setter);
-							member = this.visit(accessor);
+							AspectMemberProperty<TClass> accessor = new AspectMemberProperty<TClass>(
+									this,
+									name,
+									getter,
+									setter);
+							TMember member = this.visit(accessor);
 							if (member != null)
 								members.add(member);
 						}
 					}
 				}
 			}
+	}
 
+	/**
+	 * Constructs a new aspect based on a given Class.
+	 * 
+	 * @param dataType
+	 */
+	protected Aspect(Class<TClass> dataType) {
+		this.dataType = dataType;
+		final Field[] fields = dataType.getFields();
+		final Method[] methods = dataType.getMethods();
+		this.members = new ArrayList<TMember>(fields.length + methods.length);
+		createFieldMembers(fields);
+		createPropertyMembers(methods);
 		this.members.trimToSize();
-
 	}
 
 	/**
@@ -351,6 +354,15 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>> imple
 	 */
 	public Iterator<TMember> iterator() {
 		return this.members.iterator();
+	}
+
+	/**
+	 * Streams the members of this aspect;
+	 * 
+	 * @return
+	 */
+	public Stream<TMember> stream() {
+		return this.members.stream();
 	}
 
 }

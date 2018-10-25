@@ -9,13 +9,13 @@ package jports.data;
  */
 public interface Storage<T> {
 
-	public void save(T entity);
+	public int save(T entity);
 
-	public void insert(T entity);
+	public int insert(T entity);
 
-	public void delete(T entity);
+	public int delete(T entity);
 
-	public void update(T entity);
+	public int update(T entity);
 
 	public Select<T> select();
 }

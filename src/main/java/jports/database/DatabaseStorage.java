@@ -1,5 +1,8 @@
 package jports.database;
 
+import java.util.List;
+
+import jports.data.ColumnType;
 import jports.data.FilterTerm;
 import jports.data.Select;
 import jports.data.Storage;
@@ -14,37 +17,45 @@ public class DatabaseStorage<T> implements Storage<T> {
 		this.aspect = new DatabaseAspect<>(claz);
 	}
 
-	private FilterTerm createIdentityFilter(T entity) {
-		// Sanity check
-		if (entity == null)
-			return null;
+	private DatabaseUpdate beginUpdate(T entity) {
 
-		// Does it have an identity column?
-		DatabaseAspectMember<T> identity = aspect.getIdentity();
-		if (identity == null)
-			return null;
-
-		// Is the identity value good?
-		Object id = identity.getValue(entity);
-		if (id == null)
-			return null;
-		else if (Number.class.isAssignableFrom(id.getClass()) && ((Number) id).longValue() == 0L)
-			return null;
-		else if (id instanceof String && ((String) id).isEmpty())
-			return null;
-		else
-			return new FilterTerm(identity.getColumnName(), id);
 	}
 
 	private DatabaseUpdate createUpdateOnIdentityFor(T entity) {
-		FilterTerm idTerm = createIdentityFilter(entity);
+		FilterTerm idTerm = aspect.createIdentityFilter(entity);
 		if (idTerm != null) {
-
+			return 
 		}
 	}
 
-	private DatabaseUpdate createUpdateFor(T entity) {
+	private DatabaseUpdate createUpdateByColumn(T entity, DatabaseAspectMember<T> column, Object value) {
+		DatabaseUpdate update = this.database.update(aspect.getObjectName());
+		for (DatabaseAspectMember<T> dam : aspect) {
+			if (column.equals(dam))
+				continue;
+			if (dam.getColumnType() != ColumnType.IDENTITY) {
+				String name = dam.getColumnName();
+				Object colValue = dam.getValue(entity);
+				update.set(name, colValue);
+			}
+		}
+		update.where(column.getColumnName(), value);
+		return update;
+	}
 
+	private DatabaseUpdate createUpdateByCompositeKey(T entity) {
+		DatabaseUpdate update = this.database.update(aspect.getObjectName());
+		for (DatabaseAspectMember<T> dam : aspect) {
+			if (column.equals(dam))
+				continue;
+			if (dam.getColumnType() != ColumnType.IDENTITY) {
+				String name = dam.getColumnName();
+				Object value = dam.getValue(entity);
+				update.set(name, value);
+			}
+		}
+		update.where(column.getColumnName(), value);
+		return update;
 	}
 
 	@Override
@@ -59,14 +70,54 @@ public class DatabaseStorage<T> implements Storage<T> {
 	}
 
 	@Override
-	public void delete(T entity) {
-		// TODO Auto-generated method stub
+	public int delete(T entity) {
+		DatabaseAspectMember<T> identity = aspect.getIdentity();
+		if (identity != null) {
+			Object id = identity.getValue(entity);
+			if (id != null &&
+					!((id instanceof Number) && ((Number) id).longValue() == 0L)) {
+				return database
+						.delete(aspect.getObjectName())
+						.where(identity.getColumnName(), id)
+						.execute();
+			}
+		}
+
+		for (DatabaseAspectMember<T> unique : aspect.getUniqueColumns()) {
+			Object uniqueValue = unique.getValue(entity);
+			if (uniqueValue != null) {
+				int uniqueResult = database
+						.delete(aspect.getObjectName())
+						.where(unique.getColumnName(), uniqueValue)
+						.execute();
+
+				if (uniqueResult != 0)
+					return uniqueResult;
+			}
+		}
+
+		List<DatabaseAspectMember<T>> compositeKey = aspect.getCompositeKey();
+		if (!compositeKey.isEmpty()) {
+			DatabaseDelete delete = database.delete(aspect.getObjectName());
+			for (DatabaseAspectMember<T> ck : compositeKey) {
+				delete.andWhere(ck.getColumnName(), ck.getValue(entity));
+			}
+			return delete.execute();
+		} else
+			return 0;
 
 	}
 
 	@Override
-	public void update(T entity) {
-		// TODO Auto-generated method stub
+	public int update(T entity) {
+		DatabaseAspectMember<T> identity = aspect.getIdentity();
+		if (identity != null) {
+			Object id = identity.getValue(entity);
+			if (id != null &&
+					!((id instanceof Number) && ((Number) id).longValue() == 0L)) {
+				return createUpdateByColumn(entity, identity, id).execute();
+			}
+		}
 
 	}
 

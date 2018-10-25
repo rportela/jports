@@ -66,24 +66,31 @@ public class ListStorage<T> implements Storage<T> {
 	}
 
 	@Override
-	public void save(T entity) {
+	public int save(T entity) {
 		if (!doUpdate(entity))
 			list.add(entity);
+		return 1;
+
 	}
 
 	@Override
-	public void insert(T entity) {
+	public int insert(T entity) {
 		this.list.add(entity);
+		return 1;
 	}
 
 	@Override
-	public void delete(T entity) {
-		this.list.remove(entity);
+	public int delete(T entity) {
+		return this.list.remove(entity)
+				? 1
+				: 0;
 	}
 
 	@Override
-	public void update(T entity) {
-		doUpdate(entity);
+	public int update(T entity) {
+		return doUpdate(entity)
+				? 1
+				: 0;
 	}
 
 	@Override
