@@ -2,7 +2,9 @@ package jports.reflection;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedType;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
@@ -60,6 +62,11 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>> imple
 	 * The actual class definition;
 	 */
 	protected final Class<TClass> dataType;
+
+	/**
+	 * The default constructor with no paramters;
+	 */
+	protected final Constructor<TClass> constructor;
 
 	/**
 	 * Tells the aspect that it should inspect fields;
@@ -134,6 +141,11 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>> imple
 		createFieldMembers(fields);
 		createPropertyMembers(methods);
 		this.members.trimToSize();
+		try {
+			this.constructor = dataType.getConstructor();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	/**
@@ -365,4 +377,16 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>> imple
 		return this.members.stream();
 	}
 
+	/**
+	 * Creates a new instance of the underlying data type;
+	 * 
+	 * @return
+	 */
+	public TClass newInstance() {
+		try {
+			return constructor.newInstance();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
 }

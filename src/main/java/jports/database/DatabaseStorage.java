@@ -12,9 +12,13 @@ public class DatabaseStorage<T> implements Storage<T> {
 	DatabaseAspect<T> aspect;
 	Database database;
 
-	public DatabaseStorage(Database database, Class<T> claz) {
+	public DatabaseStorage(Database database, DatabaseAspect<T> aspect) {
 		this.database = database;
-		this.aspect = new DatabaseAspect<>(claz);
+		this.aspect = aspect;
+	}
+
+	public DatabaseStorage(Database database, Class<T> dataType) {
+		this(database, new DatabaseAspect<>(dataType));
 	}
 
 	private DatabaseUpdate beginUpdate(T entity) {
@@ -64,9 +68,13 @@ public class DatabaseStorage<T> implements Storage<T> {
 	}
 
 	@Override
-	public void insert(T entity) {
-		// TODO Auto-generated method stub
-
+	public int insert(T entity) {
+		DatabaseInsert insert = database.insert(aspect.getObjectName());
+		for (DatabaseAspectMember<T> member : aspect) {
+			if (member.getColumnType() != ColumnType.IDENTITY)
+				insert.add(member.getColumnName(), member.getValue(entity));
+		}
+		return insert.exec
 	}
 
 	@Override

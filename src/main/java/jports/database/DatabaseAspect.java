@@ -1,98 +1,39 @@
 package jports.database;
 
-import java.util.HashMap;
-
+import jports.data.ColumnType;
 import jports.data.DataAspect;
-import jports.data.FilterTerm;
+import jports.data.DataAspectMember;
 import jports.reflection.AspectMemberAccessor;
 
-/**
- * This class represents a database aspect. An aspect that can map fields and
- * properties to database columns;
- * 
- * @author rportela
- *
- * @param <TClass>
- */
-public class DatabaseAspect<TClass> extends DataAspect<TClass, DatabaseAspectMember<TClass>> {
+public class DatabaseAspect<T> extends DataAspect<T, DataAspectMember<T>> {
 
-	/**
-	 * The database object name;
-	 */
-	private final String objectName;
+	private String database_object;
 
-	/**
-	 * Creates a new instance of the database aspect;
-	 * 
-	 * @param dataType
-	 */
-	private DatabaseAspect(Class<TClass> dataType) {
+	public DatabaseAspect(Class<T> dataType) {
 		super(dataType);
-		DatabaseObject anno = dataType.getAnnotation(DatabaseObject.class);
-		this.objectName = anno.value().isEmpty()
+
+		DatabaseObject dbo = dataType.getAnnotation(DatabaseObject.class);
+		database_object = dbo == null || dbo.value().isEmpty()
 				? dataType.getSimpleName()
-				: anno.value();
+				: dbo.value();
 	}
 
-	/**
-	 * Gets the object name. Usually a table;
-	 * 
-	 * @return
-	 */
-	public String getObjectName() {
-		return objectName;
-	}
-
-	/**
-	 * Creates database aspect members if they are correctly annotated;
-	 */
 	@Override
-	protected DatabaseAspectMember<TClass> visit(AspectMemberAccessor<TClass> accessor) {
+	protected DataAspectMember<T> visit(AspectMemberAccessor<T> accessor) {
+		if (accessor.getAnnotation(DatabaseIgnore.class) != null)
+			return null;
 		DatabaseColumn col = accessor.getAnnotation(DatabaseColumn.class);
 		return col == null
-				? null
-				: new DatabaseAspectMember<>(accessor, col);
+				? new DataAspectMember<>(accessor, ColumnType.REGULAR, accessor.getName())
+				: new DataAspectMember<>(accessor, col.type(), col.name());
 	}
 
-	/**
-	 * Creates an identity filter for queries;
-	 * 
-	 * @param entity
-	 * @return
-	 */
-	public FilterTerm createIdentityFilter(final TClass entity) {
-		// Does it have an identity column?
-		DatabaseAspectMember<TClass> identity = getIdentity();
-		if (identity == null)
-			return null;
-
-		// Is the identity value good?
-		Object id = identity.getValue(entity);
-		if (id == null)
-			return null;
-		else if (Number.class.isAssignableFrom(id.getClass()) && ((Number) id).longValue() == 0L)
-			return null;
-		else if (id instanceof String && ((String) id).isEmpty())
-			return null;
-		else
-			return new FilterTerm(identity.getColumnName(), id);
+	public String getDatabaseObject() {
+		return this.database_object;
 	}
 
-	/**
-	 * The static map of database aspect instances to cache their instantiation;
-	 */
-	private static final HashMap<Class<?>, DatabaseAspect<?>> INSTANCES = new HashMap<>();
-
-	/*
-	 * Gets a specific database aspect instance by a class definition;
-	 */
-	@SuppressWarnings("unchecked")
-	public static synchronized final <T> DatabaseAspect<T> getInstance(final Class<T> claz) {
-		DatabaseAspect<T> aspect = (DatabaseAspect<T>) INSTANCES.get(claz);
-		if (aspect == null) {
-			aspect = new DatabaseAspect<>(claz);
-			INSTANCES.put(claz, aspect);
-		}
-		return aspect;
+	public void setDatabaseObject(String value) {
+		this.database_object = value;
 	}
+
 }

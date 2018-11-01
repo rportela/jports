@@ -1,29 +1,90 @@
 package jports.actions;
 
+import java.io.IOException;
+import java.util.Enumeration;
+import java.util.LinkedHashMap;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 public class HttpAction {
 
-	public String name;
-	public HttpServletRequest request;
-	public HttpServletResponse response;
-	public HttpActionParser parser;
-	public HttpActionWriter writer;
+	private String name;
+	private HttpServletRequest request;
+	private HttpServletResponse response;
 
-	public boolean parse() {
+	public HttpAction setName(String name) {
+		this.name = name;
+		return this;
+	}
 
+	public HttpAction setRequest(HttpServletRequest request) {
+		this.request = request;
+		return this;
+	}
+
+	public HttpAction setResponse(HttpServletResponse response) {
+		this.response = response;
+		return this;
+	}
+
+	private HttpActionParser getParser() {
 		String content_type = request.getContentType();
-		String method = request.getMethod();
-
 		if (isJsonContentType(content_type))
-			parser = new HttpActionParserForJson();
+			return new HttpActionParserForJson();
 		else if (isXmlContentType(content_type))
-			parser = new HttpActionParserForXml();
+			return new HttpActionParserForXml();
 		else if (isMultipart(content_type))
-			parser = new HttpActionParserForMultipart();
+			return new HttpActionParserForMultipart();
 		else
-			parser = new HttpActionParserForParameters();
+			return new HttpActionParserForParameters();
+	}
+
+	@SuppressWarnings("unchecked")
+	public <TParams, TResult> ActionExecution<TParams, TResult> execute() {
+
+		HttpActionParser parser = getParser();
+		Action<TParams, TResult> action = null;
+		try {
+			action = (Action<TParams, TResult>) parser.instantiate(name);
+		} catch (Exception e) {
+			try {
+				response.sendError(404, e.getMessage());
+			} catch (IOException ignore) {
+				ignore.printStackTrace();
+			}
+			return null;
+		}
+
+		ActionExecution<TParams, TResult> execution = new ActionExecution<>();
+		execution.headers = new LinkedHashMap<String, Object>();
+		Enumeration<String> names = request.getHeaderNames();
+		while (names.hasMoreElements()) {
+			String name = names.nextElement();
+			String value = request.getHeader(name);
+			execution.headers.put(name, value);
+		}
+
+		try {
+			execution.params = parser.parseParams(action.getParamsClass(), request);
+			action.execute(execution);
+		} catch (Exception e) {
+			execution.result_type = ActionResultType.EXCEPTION_RAISED;
+			execution.exception = e;
+		}
+
+		HttpActionWriter<TParams, TResult> writer = execution.result_type == ActionResultType.SUCCESS
+				? action.getHttpWriter()
+				: new HttpActionWriterForJson<>();
+
+		try {
+			writer.write(execution, response);
+		} catch (Exception ignore) {
+			ignore.printStackTrace();
+		}
+
+		return execution;
+
 	}
 
 	public static final boolean isJsonContentType(String content_type) {

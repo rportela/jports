@@ -143,17 +143,7 @@ public abstract class Action<TParams, TResult> {
 	 */
 	protected abstract void mainFlow(ActionExecution<TParams, TResult> execution);
 
-	/**
-	 * This method creates an execution and runs the validation, authentication,
-	 * mainFlow and postFlow of this action;
-	 * 
-	 * @param params
-	 * @param headers
-	 * @return
-	 */
-	public synchronized final ActionExecution<TParams, TResult> execute(TParams params, Map<String, Object> headers) {
-		ActionExecution<TParams, TResult> execution = new ActionExecution<TParams, TResult>();
-		execution.headers = headers;
+	public synchronized final void execute(ActionExecution<TParams, TResult> execution) {
 		execution.name = getClass().toString();
 		try {
 			validate(execution);
@@ -170,6 +160,21 @@ public abstract class Action<TParams, TResult> {
 		}
 		execution.execution_end = new Date();
 		postFlow(execution);
+
+	}
+
+	/**
+	 * This method creates an execution and runs the validation, authentication,
+	 * mainFlow and postFlow of this action;
+	 * 
+	 * @param params
+	 * @param headers
+	 * @return
+	 */
+	public synchronized final ActionExecution<TParams, TResult> execute(TParams params, Map<String, Object> headers) {
+		ActionExecution<TParams, TResult> execution = new ActionExecution<TParams, TResult>();
+		execution.headers = headers;
+		execute(execution);
 		return execution;
 	}
 
@@ -181,6 +186,16 @@ public abstract class Action<TParams, TResult> {
 	 */
 	public ActionExecution<TParams, TResult> execute(TParams params) {
 		return execute(params, null);
+	}
+
+	/**
+	 * Gets the default JSON action writer. Override this method to provide binary,
+	 * text or html serialization options;
+	 * 
+	 * @return
+	 */
+	public HttpActionWriter<TParams, TResult> getHttpWriter() {
+		return new HttpActionWriterForJson<>();
 	}
 
 }
