@@ -1,32 +1,43 @@
 package jports.data;
 
-import java.util.Map.Entry;
+import java.util.ArrayList;
 import java.util.stream.Stream;
 
 import jports.Incrementer;
 
-public class TableUpdate extends Update<Table> {
+public class TableUpdate extends Update {
+
+	private final Table table;
 
 	public TableUpdate(Table target) {
-		super(target);
+		this.table = target;
 	}
 
 	@Override
 	public int execute() {
 		final Incrementer inc = new Incrementer();
-		Stream<TableRow> stream = getTarget().getRows().parallelStream();
-		FilterExpression expression = getFilter();
+		final ArrayList<Integer> ordinals = new ArrayList<>(size());
+		final ArrayList<Object> values = new ArrayList<>(size());
+		final FilterExpression expression = getFilter();
+
+		Stream<TableRow> stream = table.getRows().parallelStream();
+
 		if (expression != null) {
-			stream = stream.filter(getTarget().createPredicate(expression));
+			stream = stream.filter(table.createPredicate(expression));
 		}
-		stream.forEach(row -> {
-			for (Entry<String, Object> e : this.getValues().entrySet()) {
-				String name = e.getKey();
-				Object v = e.getValue();
-				row.set(name, v);
-			}
-			inc.increment();
+
+		getValues().entrySet().stream().forEach(entry -> {
+			ordinals.add(table.getColumnOrdinal(entry.getKey()));
+			values.add(entry.getValue());
 		});
+
+		stream.forEach(
+				row -> {
+					for (int i = 0; i < ordinals.size(); i++)
+						row.set(ordinals.get(i), values.get(i));
+					inc.increment();
+				});
+
 		return inc.value;
 	}
 

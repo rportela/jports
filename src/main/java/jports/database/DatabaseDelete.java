@@ -6,20 +6,21 @@ import java.sql.SQLException;
 import jports.data.Delete;
 import jports.data.FilterExpression;
 
-public class DatabaseDelete extends Delete<String> {
+public class DatabaseDelete extends Delete {
 
-	public final Database database;
+	private final Database database;
+	private final String target;
 
 	public DatabaseDelete(Database database, String target) {
-		super(target);
 		this.database = database;
+		this.target = target;
 	}
 
 	public DatabaseCommand createDeleteCommand() {
 		DatabaseCommand command = database
 				.createCommand()
 				.appendSql("DELETE FROM ")
-				.appendName(getTarget());
+				.appendName(target);
 		FilterExpression filter = getFilter();
 		return filter == null
 				? command

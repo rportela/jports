@@ -2,7 +2,13 @@ package jports.data;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Predicate;
+
+import jports.data.DataAspect;
+import jports.data.DataStorage;
+import jports.data.Delete;
+import jports.data.Insert;
+import jports.data.Select;
+import jports.data.Update;
 
 /**
  * A list that stores specific types of objects;
@@ -11,92 +17,52 @@ import java.util.function.Predicate;
  *
  * @param <T>
  */
-public class ListStorage<T> implements Storage<T> {
+public class ListStorage<T> extends DataStorage<T> {
 
 	private List<T> list;
 	private ListAspect<T> aspect;
 
-	public ListStorage(Class<T> claz) {
+	protected ListStorage<T> setList(List<T> newList) {
+		this.list = newList;
+		return this;
+	}
+
+	public ListStorage(Class<T> claz, List<T> list) {
 		this.aspect = new ListAspect<>(claz);
-		this.list = new ArrayList<>();
+		this.list = list;
 	}
 
-	private boolean doUpdate(T entity) {
-		DataAspectMember<T> identity = aspect.getIdentity();
-		if (identity != null) {
-			Object id = identity.getValue(entity);
-			if (id != null) {
-				for (int i = 0; i < list.size(); i++) {
-					T other = list.get(i);
-					Object otherid = identity.getValue(other);
-					if (id.equals(otherid)) {
-						list.set(i, entity);
-						return true;
-					}
-				}
-			}
-		}
-		for (DataAspectMember<T> uniqueMember : aspect.getUniqueColumns()) {
-			Object uniqueValue = uniqueMember.getValue(entity);
-			if (uniqueValue != null) {
-				for (int i = 0; i < list.size(); i++) {
-					T other = list.get(i);
-					Object otherid = uniqueMember.getValue(other);
-					if (uniqueValue.equals(otherid)) {
-						list.set(i, entity);
-						return true;
-					}
-				}
-			}
-		}
+	public ListStorage(Class<T> claz) {
+		this(claz, new ArrayList<>());
+	}
 
-		List<DataAspectMember<T>> compositeKey = aspect.getCompositeKey();
-		if (!compositeKey.isEmpty()) {
-			Predicate<T> predicate = aspect.createCompositeFilterFor(entity);
-			for (int i = 0; i < list.size(); i++) {
-				T other = list.get(i);
-				if (predicate.test(other)) {
-					list.set(i, entity);
-					return true;
-				}
-			}
-		}
-
-		return false;
+	public List<T> all() {
+		return this.list;
 	}
 
 	@Override
-	public int save(T entity) {
-		if (!doUpdate(entity))
-			list.add(entity);
-		return 1;
-
+	public Insert createInsert() {
+		return new ListInsert<>(this);
 	}
 
 	@Override
-	public int insert(T entity) {
-		this.list.add(entity);
-		return 1;
+	public Delete createDelete() {
+		return new ListDelete<>(this);
 	}
 
 	@Override
-	public int delete(T entity) {
-		return this.list.remove(entity)
-				? 1
-				: 0;
-	}
-
-	@Override
-	public int update(T entity) {
-		return doUpdate(entity)
-				? 1
-				: 0;
+	public Update createUpdate() {
+		return new ListUpdate<>(this);
 	}
 
 	@Override
 	public Select<T> select() {
-		// TODO Auto-generated method stub
-		return null;
+		return new ListSelect<T>(this);
+	}
+
+	@Override
+	public DataAspect<T, ?> getAspect() {
+		return aspect;
 	}
 
 }

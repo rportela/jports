@@ -6,19 +6,20 @@ import java.util.Map;
 
 import jports.data.Insert;
 
-public class DatabaseInsert extends Insert<String> {
+public class DatabaseInsert extends Insert {
 
-	public final Database database;
+	private final Database database;
+	private final String target;
 
 	public DatabaseInsert(Database database, String table) {
-		super(table);
+		this.target = table;
 		this.database = database;
 	}
 
 	public DatabaseCommand createCommand() {
 		return database.createCommand()
 				.appendSql("INSERT INTO ")
-				.appendName(getTarget())
+				.appendName(target)
 				.appendSql(" (")
 				.appendNames(getValues().keySet())
 				.appendSql(") VALUES (")
@@ -26,13 +27,13 @@ public class DatabaseInsert extends Insert<String> {
 				.appendSql(")");
 	}
 
-	public void execute(Connection conn) throws SQLException {
-		createCommand().execute(conn);
+	public int execute(Connection conn) throws SQLException {
+		return createCommand().executeNonQuery(conn);
 	}
 
-	public void execute() {
+	public int execute() {
 		try {
-			createCommand().execute();
+			return createCommand().executeNonQuery();
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}

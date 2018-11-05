@@ -1,22 +1,21 @@
 package jports.database;
 
 import java.util.List;
-import java.util.Map;
 
 import jports.data.Select;
 
-public class DatabaseSelect extends Select<Map<String, Object>> {
+public class DatabaseSelectClass<T> extends Select<T> {
 
-	private final Database database;
-	private final String objectName;
+	private Database database;
+	private DatabaseAspect<T> aspect;
 
-	public DatabaseSelect(Database database, String objectName) {
+	public DatabaseSelectClass(Database database, DatabaseAspect<T> aspect) {
 		this.database = database;
-		this.objectName = objectName;
+		this.aspect = aspect;
 	}
 
 	@Override
-	public List<Map<String, Object>> toList() {
+	public List<T> toList() {
 		// TODO Auto-generated method stub
 		return null;
 	}

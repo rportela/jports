@@ -8,13 +8,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ResultSetAdapterToMapList implements ResultSetAdapter<List<Map<String, Object>>> {
+public class ResultSetToMapList implements ResultSetAdapter<List<Map<String, Object>>> {
 
 	@Override
 	public List<Map<String, Object>> process(ResultSet resultset) throws SQLException {
-		ResultSetMetaData meta = resultset.getMetaData();
-		ArrayList<Map<String, Object>> list = new ArrayList<>(100);
-		int colCount = meta.getColumnCount();
+		final ResultSetMetaData meta = resultset.getMetaData();
+		final ArrayList<Map<String, Object>> list = new ArrayList<>(100);
+		final int colCount = meta.getColumnCount();
 		while (resultset.next()) {
 			HashMap<String, Object> map = new HashMap<>(colCount);
 			for (int i = 1; i <= colCount; i++) {

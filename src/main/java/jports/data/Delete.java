@@ -1,27 +1,29 @@
 package jports.data;
 
-public abstract class Delete<Target> extends Filterable<Delete<Target>> {
+/**
+ * This is a blueprint of a delete command that can remove items from a backing
+ * storage;
+ * 
+ * @author rportela
+ *
+ * @param <Target>
+ */
+public abstract class Delete extends Filterable<Delete> {
 
-	private Target target;
-
-	public Delete(Target target) {
-		this.target = target;
-	}
-
-	public Delete<Target> setTarget(Target value) {
-		this.target = value;
-		return this;
-	}
-
-	public Target getTarget() {
-		return this.target;
-	}
-
+	/**
+	 * Gets the reference to this instance for method chaining;
+	 */
 	@Override
-	protected Delete<Target> getThis() {
+	protected Delete getThis() {
 		return this;
 	}
 
+	/**
+	 * Actually executes the delete command and returns the number of records
+	 * affected;
+	 * 
+	 * @return
+	 */
 	public abstract int execute();
 
 }

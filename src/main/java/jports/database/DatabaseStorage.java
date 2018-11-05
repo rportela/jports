@@ -1,16 +1,24 @@
 package jports.database;
 
-import java.util.List;
-
-import jports.data.ColumnType;
-import jports.data.FilterTerm;
+import jports.data.DataAspect;
+import jports.data.DataStorage;
+import jports.data.Delete;
+import jports.data.Insert;
 import jports.data.Select;
-import jports.data.Storage;
+import jports.data.Update;
 
-public class DatabaseStorage<T> implements Storage<T> {
+/**
+ * This class wraps a data aspect and uses database commands to perform inserts,
+ * updates, deletes and selects.
+ * 
+ * @author rportela
+ *
+ * @param <T>
+ */
+public class DatabaseStorage<T> extends DataStorage<T> {
 
-	DatabaseAspect<T> aspect;
 	Database database;
+	DatabaseAspect<T> aspect;
 
 	public DatabaseStorage(Database database, DatabaseAspect<T> aspect) {
 		this.database = database;
@@ -21,118 +29,29 @@ public class DatabaseStorage<T> implements Storage<T> {
 		this(database, new DatabaseAspect<>(dataType));
 	}
 
-	private DatabaseUpdate beginUpdate(T entity) {
-
-	}
-
-	private DatabaseUpdate createUpdateOnIdentityFor(T entity) {
-		FilterTerm idTerm = aspect.createIdentityFilter(entity);
-		if (idTerm != null) {
-			return 
-		}
-	}
-
-	private DatabaseUpdate createUpdateByColumn(T entity, DatabaseAspectMember<T> column, Object value) {
-		DatabaseUpdate update = this.database.update(aspect.getObjectName());
-		for (DatabaseAspectMember<T> dam : aspect) {
-			if (column.equals(dam))
-				continue;
-			if (dam.getColumnType() != ColumnType.IDENTITY) {
-				String name = dam.getColumnName();
-				Object colValue = dam.getValue(entity);
-				update.set(name, colValue);
-			}
-		}
-		update.where(column.getColumnName(), value);
-		return update;
-	}
-
-	private DatabaseUpdate createUpdateByCompositeKey(T entity) {
-		DatabaseUpdate update = this.database.update(aspect.getObjectName());
-		for (DatabaseAspectMember<T> dam : aspect) {
-			if (column.equals(dam))
-				continue;
-			if (dam.getColumnType() != ColumnType.IDENTITY) {
-				String name = dam.getColumnName();
-				Object value = dam.getValue(entity);
-				update.set(name, value);
-			}
-		}
-		update.where(column.getColumnName(), value);
-		return update;
+	@Override
+	public Insert createInsert() {
+		return database.insert(aspect.getDatabaseObject());
 	}
 
 	@Override
-	public void save(final T entity) {
-
+	public Delete createDelete() {
+		return database.delete(aspect.getDatabaseObject());
 	}
 
 	@Override
-	public int insert(T entity) {
-		DatabaseInsert insert = database.insert(aspect.getObjectName());
-		for (DatabaseAspectMember<T> member : aspect) {
-			if (member.getColumnType() != ColumnType.IDENTITY)
-				insert.add(member.getColumnName(), member.getValue(entity));
-		}
-		return insert.exec
-	}
-
-	@Override
-	public int delete(T entity) {
-		DatabaseAspectMember<T> identity = aspect.getIdentity();
-		if (identity != null) {
-			Object id = identity.getValue(entity);
-			if (id != null &&
-					!((id instanceof Number) && ((Number) id).longValue() == 0L)) {
-				return database
-						.delete(aspect.getObjectName())
-						.where(identity.getColumnName(), id)
-						.execute();
-			}
-		}
-
-		for (DatabaseAspectMember<T> unique : aspect.getUniqueColumns()) {
-			Object uniqueValue = unique.getValue(entity);
-			if (uniqueValue != null) {
-				int uniqueResult = database
-						.delete(aspect.getObjectName())
-						.where(unique.getColumnName(), uniqueValue)
-						.execute();
-
-				if (uniqueResult != 0)
-					return uniqueResult;
-			}
-		}
-
-		List<DatabaseAspectMember<T>> compositeKey = aspect.getCompositeKey();
-		if (!compositeKey.isEmpty()) {
-			DatabaseDelete delete = database.delete(aspect.getObjectName());
-			for (DatabaseAspectMember<T> ck : compositeKey) {
-				delete.andWhere(ck.getColumnName(), ck.getValue(entity));
-			}
-			return delete.execute();
-		} else
-			return 0;
-
-	}
-
-	@Override
-	public int update(T entity) {
-		DatabaseAspectMember<T> identity = aspect.getIdentity();
-		if (identity != null) {
-			Object id = identity.getValue(entity);
-			if (id != null &&
-					!((id instanceof Number) && ((Number) id).longValue() == 0L)) {
-				return createUpdateByColumn(entity, identity, id).execute();
-			}
-		}
-
+	public Update createUpdate() {
+		return database.update(aspect.getDatabaseObject());
 	}
 
 	@Override
 	public Select<T> select() {
-		// TODO Auto-generated method stub
-		return null;
+		return new DatabaseSelectClass<T>(database, aspect);
+	}
+
+	@Override
+	public DataAspect<T, ?> getAspect() {
+		return aspect;
 	}
 
 }

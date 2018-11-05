@@ -119,4 +119,15 @@ public abstract class Database {
 	public DatabaseUpdate update(String table) {
 		return new DatabaseUpdate(this, table);
 	}
+
+	/**
+	 * Creates a new database select wrapper that turns result sets into lists of
+	 * maps;
+	 * 
+	 * @param objectName
+	 * @return
+	 */
+	public DatabaseSelect select(String objectName) {
+		return new DatabaseSelect(this, objectName);
+	}
 }

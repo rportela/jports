@@ -3,10 +3,10 @@ package jports.database;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class ResultSetAdapterToScalar implements ResultSetAdapter<Object> {
+public class ResultSetToScalar implements ResultSetAdapter<Object> {
 
 	@Override
-	public Object process(ResultSet resultset) throws SQLException {
+	public Object process(final ResultSet resultset) throws SQLException {
 		return resultset.next()
 				? resultset.getObject(1)
 				: null;

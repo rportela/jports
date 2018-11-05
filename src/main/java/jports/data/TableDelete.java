@@ -5,15 +5,16 @@ import java.util.function.Predicate;
 
 import jports.Incrementer;
 
-public class TableDelete extends Delete<Table> {
+public class TableDelete extends Delete {
+
+	private final Table table;
 
 	public TableDelete(Table target) {
-		super(target);
+		this.table = target;
 	}
 
 	@Override
 	public int execute() {
-		Table table = getTarget();
 		List<TableRow> rows = table.getRows();
 		Incrementer inc = new Incrementer();
 		FilterExpression filter = getFilter();

@@ -1,7 +1,8 @@
 package jports.data;
 
 /**
- * A super simple column abstraction;
+ * A super simple column abstraction; This interface holds the column name, the
+ * column type and an expected data type;
  * 
  * @author rportela
  *

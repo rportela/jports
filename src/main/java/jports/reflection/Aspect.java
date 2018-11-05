@@ -4,13 +4,13 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Stream;
@@ -19,14 +19,18 @@ import java.util.stream.Stream;
  * This class represents an uniform way of interacting with entities in this
  * framework; It easily allows to get and set values to entities based on the
  * member names. It also provides helpful methods to translating entities to and
- * from Maps. It's more useful as a lazy loaded singleton;
+ * from Maps. It's more useful as a lazy loaded singleton since mapping of the
+ * fields and methods can be expensive;
  * 
  * @author rportela
  *
  * @param <TClass>
  * @param <TMember>
  */
-public abstract class Aspect<TClass, TMember extends AspectMember<TClass>> implements AnnotatedType, Iterable<TMember> {
+public abstract class Aspect<TClass, TMember extends AspectMember<TClass>>
+		implements
+		AnnotatedType,
+		Iterable<TMember> {
 
 	/**
 	 * Locates a setter based on a name and an expected parameter type;
@@ -36,7 +40,7 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>> imple
 	 * @param paramType
 	 * @return
 	 */
-	private Method findSetter(Method[] methods, String name, Class<?> paramType) {
+	protected Method findSetter(Method[] methods, String name, Class<?> paramType) {
 		for (int i = 0; i < methods.length; i++) {
 			Method setter = methods[i];
 			int modifiers = setter.getModifiers();
@@ -56,17 +60,17 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>> imple
 	/**
 	 * Holds a list of members of this class;
 	 */
-	protected final ArrayList<TMember> members;
+	private final ArrayList<TMember> members;
 
 	/**
 	 * The actual class definition;
 	 */
-	protected final Class<TClass> dataType;
+	private final Class<TClass> dataType;
 
 	/**
 	 * The default constructor with no paramters;
 	 */
-	protected final Constructor<TClass> constructor;
+	private final Constructor<TClass> constructor;
 
 	/**
 	 * Tells the aspect that it should inspect fields;
@@ -86,7 +90,13 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>> imple
 		return true;
 	}
 
-	protected void createFieldMembers(Field[] fields) {
+	/**
+	 * This methods creates fields members and add them to the list of members in
+	 * this aspect;
+	 * 
+	 * @param fields
+	 */
+	protected void createFieldMembers(List<TMember> target, Field[] fields) {
 		if (this.canHaveFields())
 			for (int i = 0; i < fields.length; i++) {
 				int modifiers = fields[i].getModifiers();
@@ -95,12 +105,19 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>> imple
 					AspectMemberField<TClass> accessor = new AspectMemberField<TClass>(this, fields[i]);
 					TMember member = this.visit(accessor);
 					if (member != null)
-						members.add(member);
+						target.add(member);
 				}
 			}
 	}
 
-	protected void createPropertyMembers(Method[] methods) {
+	/**
+	 * This method creates property members by finding the getter and setter methods
+	 * and add them to this aspect;
+	 * 
+	 * @param target
+	 * @param methods
+	 */
+	protected void createPropertyMembers(List<TMember> target, Method[] methods) {
 		if (this.canHaveProperties())
 			for (int i = 0; i < methods.length; i++) {
 				Method getter = methods[i];
@@ -121,7 +138,7 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>> imple
 									setter);
 							TMember member = this.visit(accessor);
 							if (member != null)
-								members.add(member);
+								target.add(member);
 						}
 					}
 				}
@@ -138,8 +155,8 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>> imple
 		final Field[] fields = dataType.getFields();
 		final Method[] methods = dataType.getMethods();
 		this.members = new ArrayList<TMember>(fields.length + methods.length);
-		createFieldMembers(fields);
-		createPropertyMembers(methods);
+		createFieldMembers(members, fields);
+		createPropertyMembers(members, methods);
 		this.members.trimToSize();
 		try {
 			this.constructor = dataType.getConstructor();
@@ -172,7 +189,7 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>> imple
 	 * 
 	 * @return
 	 */
-	public String getName() {
+	public final String getName() {
 		return this.dataType.getSimpleName();
 	}
 
@@ -181,7 +198,7 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>> imple
 	 * 
 	 * @return
 	 */
-	public int size() {
+	public final int size() {
 		return this.members.size();
 	}
 
@@ -191,7 +208,7 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>> imple
 	 * @param index
 	 * @return
 	 */
-	public TMember get(int index) {
+	public final TMember get(int index) {
 		return this.members.get(index);
 	}
 
@@ -202,7 +219,7 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>> imple
 	 * @param name
 	 * @return
 	 */
-	public int indexOf(String name) {
+	public synchronized int indexOf(final String name) {
 		if (name != null)
 			for (int i = 0; i < this.members.size(); i++)
 				if (name.equalsIgnoreCase(members.get(i).getName()))
@@ -216,8 +233,8 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>> imple
 	 * @param name
 	 * @return
 	 */
-	public TMember get(String name) {
-		int index = this.indexOf(name);
+	public final TMember get(final String name) {
+		final int index = this.indexOf(name);
 		if (index < 0)
 			throw new RuntimeException(name + " is not a member of " + this.dataType);
 		else
@@ -232,7 +249,7 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>> imple
 	 * @param index
 	 * @return
 	 */
-	public Object getValue(TClass source, int index) {
+	public synchronized Object getValue(final TClass source, final int index) {
 		return this.members.get(index).getValue(source);
 	}
 
@@ -244,7 +261,7 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>> imple
 	 * @param name
 	 * @return
 	 */
-	public Object getValue(TClass source, String name) {
+	public synchronized Object getValue(final TClass source, final String name) {
 		return this.get(name).getValue(source);
 	}
 
@@ -256,7 +273,7 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>> imple
 	 * @param index
 	 * @param value
 	 */
-	public void setValue(TClass target, int index, Object value) {
+	public synchronized void setValue(final TClass target, final int index, final Object value) {
 		this.members.get(index).setValue(target, value);
 	}
 
@@ -267,7 +284,7 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>> imple
 	 * @param name
 	 * @param value
 	 */
-	public void setValue(TClass target, String name, Object value) {
+	public synchronized void setValue(final TClass target, final String name, final Object value) {
 		this.get(name).setValue(target, value);
 	}
 
@@ -278,7 +295,7 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>> imple
 	 * @param source
 	 * @param target
 	 */
-	public void getValues(TClass source, Map<String, Object> target) {
+	public synchronized void getValues(final TClass source, final Map<String, Object> target) {
 		for (TMember member : this.members)
 			target.put(member.getName(), member.getValue(source));
 	}
@@ -289,7 +306,7 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>> imple
 	 * @param entity
 	 * @return
 	 */
-	public Map<String, Object> toMap(final TClass entity) {
+	public synchronized Map<String, Object> toMap(final TClass entity) {
 		final LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>();
 		getValues(entity, map);
 		return map;
@@ -303,7 +320,7 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>> imple
 	 * @param map
 	 * @return
 	 */
-	public TClass fromMap(final Map<String, Object> map) {
+	public synchronized final TClass fromMap(final Map<String, Object> map) {
 		try {
 			TClass entity = this.dataType.getConstructor().newInstance();
 			setValues(entity, map);
@@ -320,7 +337,7 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>> imple
 	 * @param target
 	 * @param values
 	 */
-	public void setValues(final TClass target, final Map<String, Object> values) {
+	public synchronized final void setValues(final TClass target, final Map<String, Object> values) {
 		for (Entry<String, Object> entry : values.entrySet()) {
 			get(entry.getKey()).setValue(target, entry.getValue());
 		}
@@ -330,7 +347,7 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>> imple
 	 * Returns this element's annotation for the specified type if such an
 	 * annotation is present, else null.
 	 */
-	public final <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
+	public final <T extends Annotation> T getAnnotation(final Class<T> annotationClass) {
 		return this.dataType.getAnnotation(annotationClass);
 	}
 
@@ -375,6 +392,15 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>> imple
 	 */
 	public Stream<TMember> stream() {
 		return this.members.stream();
+	}
+
+	/**
+	 * Gets a list of all members in this aspect;
+	 * 
+	 * @return
+	 */
+	public List<TMember> getMembers() {
+		return this.members;
 	}
 
 	/**

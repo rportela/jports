@@ -3,37 +3,59 @@ package jports.data;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public abstract class Insert<Target> {
+/**
+ * This is a blueprint for an abstract insert command that
+ * 
+ * @author rportela
+ *
+ */
+public abstract class Insert {
 
-	private Target target;
-	private final LinkedHashMap<String, Object> values;
+	private final LinkedHashMap<String, Object> values = new LinkedHashMap<>();
 
-	public Insert(Target target) {
-		this.target = target;
-		this.values = new LinkedHashMap<>();
-	}
-
-	public Insert<Target> add(String name, Object value) {
+	/**
+	 * Adds a specific name value pair to the insert command;
+	 * 
+	 * @param name
+	 * @param value
+	 * @return
+	 */
+	public Insert add(String name, Object value) {
 		this.values.put(name, value);
 		return this;
 	}
 
+	/**
+	 * Gets the expected value of a specific column in the insert command;
+	 * 
+	 * @param name
+	 * @return
+	 */
 	public Object get(String name) {
 		return this.values.get(name);
 	}
 
+	/**
+	 * Gets a map of the column names and values in the insert command;
+	 * 
+	 * @return
+	 */
 	public Map<String, Object> getValues() {
 		return this.values;
 	}
 
-	public Target getTarget() {
-		return this.target;
-	}
+	/**
+	 * Actually executes the command and returns the number of records affected;
+	 * 
+	 * @return
+	 */
+	public abstract int execute();
 
-	public Insert<Target> setTarget(Target value) {
-		this.target = value;
-		return this;
-	}
-
-	public abstract void execute();
+	/**
+	 * Executes the command and returns a map of the generated keys and their
+	 * values;
+	 * 
+	 * @return
+	 */
+	public abstract Map<String, Object> executeWithGeneratedKeys();
 }

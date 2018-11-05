@@ -6,12 +6,13 @@ import java.util.Map.Entry;
 import jports.data.FilterExpression;
 import jports.data.Update;
 
-public class DatabaseUpdate extends Update<String> {
+public class DatabaseUpdate extends Update {
 
 	private final Database database;
+	private final String target;
 
 	public DatabaseUpdate(Database database, String target) {
-		super(target);
+		this.target = target;
 		this.database = database;
 	}
 
@@ -19,7 +20,7 @@ public class DatabaseUpdate extends Update<String> {
 	public int execute() {
 		DatabaseCommand command = database.createCommand()
 				.appendSql("UPDATE ")
-				.appendName(getTarget())
+				.appendName(target)
 				.appendSql(" SET ");
 
 		// appends the values;
