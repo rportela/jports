@@ -9,13 +9,21 @@ import jports.data.DataAspectMember;
 public class ResultSetToClass<T> implements ResultSetAdapter<T> {
 
 	private final DatabaseAspect<T> aspect;
+	private final int offset;
+
+	public ResultSetToClass(DatabaseAspect<T> aspect, int offset) {
+		this.aspect = aspect;
+		this.offset = offset;
+	}
 
 	public ResultSetToClass(DatabaseAspect<T> aspect) {
-		this.aspect = aspect;
+		this(aspect, 0);
 	}
 
 	@Override
 	public T process(final ResultSet resultset) throws SQLException {
+		for (int i = 0; i < offset && resultset.next(); i++)
+			;
 		if (!resultset.next())
 			return null;
 		final T entity = aspect.newInstance();

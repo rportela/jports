@@ -7,7 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 import jports.adapters.AdapterAspect;
 import jports.adapters.AdapterAspectMember;
 
-public class HttpActionParserForParameters implements HttpActionParser {
+public class HttpActionParamParserForParameters implements HttpActionParamParser {
 
 	public <T> T parseParams(Class<T> paramsClass, HttpServletRequest request) throws Exception {
 

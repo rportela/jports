@@ -15,7 +15,7 @@ import jports.validations.ValidationResult;
  * @param <TParams>
  * @param <TResult>
  */
-public class ActionExecution<TParams, TResult> {
+public class ActionExecution<TParams, TResult> implements Runnable {
 
 	/**
 	 * The name of the action that was executed;
@@ -78,4 +78,25 @@ public class ActionExecution<TParams, TResult> {
 	 */
 	public String fail_message;
 
+	/**
+	 * This method will run the Use case if it hasn't already been run using the
+	 * configures values in this instance;
+	 */
+	@SuppressWarnings("unchecked")
+	public void run() {
+		if (result_type == ActionResultType.NOT_EXECUTED) {
+			try {
+				((Class<? extends Action<TParams, TResult>>) Class
+						.forName(name))
+								.getConstructor()
+								.newInstance()
+								.execute(this);
+
+			} catch (Exception e) {
+				this.exception = e;
+				this.result_type = ActionResultType.EXCEPTION_RAISED;
+				this.execution_end = new Date();
+			}
+		}
+	}
 }

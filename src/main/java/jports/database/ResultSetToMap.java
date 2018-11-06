@@ -7,9 +7,21 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ResultSetToMap implements ResultSetAdapter<Map<String, Object>> {
+	private final int offset;
+
+	public ResultSetToMap(int offset, int limit) {
+		this.offset = offset;
+	}
+
+	public ResultSetToMap() {
+		this(0, 0);
+	}
 
 	@Override
 	public Map<String, Object> process(final ResultSet resultset) throws SQLException {
+		// skip offset;
+		for (int i = 0; i < offset && resultset.next(); i++)
+			;
 		if (!resultset.next())
 			return null;
 		final ResultSetMetaData metaData = resultset.getMetaData();

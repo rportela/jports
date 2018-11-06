@@ -143,8 +143,15 @@ public abstract class Action<TParams, TResult> {
 	 */
 	protected abstract void mainFlow(ActionExecution<TParams, TResult> execution);
 
+	/**
+	 * Actually executes the use case using values set in que execution wrapper;
+	 * 
+	 * @param execution
+	 */
 	public synchronized final void execute(ActionExecution<TParams, TResult> execution) {
-		execution.name = getClass().toString();
+		if (execution.name == null) {
+			execution.name = getClass().toString();
+		}
 		try {
 			validate(execution);
 			if (execution.result_type == ActionResultType.NOT_EXECUTED) {
@@ -160,7 +167,6 @@ public abstract class Action<TParams, TResult> {
 		}
 		execution.execution_end = new Date();
 		postFlow(execution);
-
 	}
 
 	/**

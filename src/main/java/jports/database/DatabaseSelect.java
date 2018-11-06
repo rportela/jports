@@ -1,5 +1,7 @@
 package jports.database;
 
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -9,28 +11,117 @@ public class DatabaseSelect extends Select<Map<String, Object>> {
 
 	private final Database database;
 	private final String objectName;
+	private final ArrayList<String> columns = new ArrayList<>();
 
 	public DatabaseSelect(Database database, String objectName) {
 		this.database = database;
 		this.objectName = objectName;
 	}
 
+	public DatabaseSelect addColumn(String name) {
+		this.columns.add(name);
+		return this;
+	}
+
+	public DatabaseSelect addColumns(String... names) {
+		for (int i = 0; i < names.length; i++)
+			columns.add(names[i]);
+		return this;
+	}
+
 	@Override
 	public List<Map<String, Object>> toList() {
-		// TODO Auto-generated method stub
-		return null;
+		try {
+			DatabaseCommand command = database
+					.createCommand()
+					.appendSql("SELECT ")
+					.appendTop(getLimit());
+
+			if (columns.isEmpty()) {
+				command.appendSql("*");
+			} else
+				command.appendNames(columns);
+
+			return command.appendSql(" FROM ")
+					.appendName(objectName)
+					.appendWhere(getFilter())
+					.appendOrderBy(getSort())
+					.appendOffset(getOffset())
+					.appendLimit(getLimit())
+					.executeQuery(new ResultSetToMapList(
+							command.acceptsOffset() ?
+									0 :
+									getOffset(),
+							command.acceptsLimit() ?
+									0 :
+									getLimit()));
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
 	public long count() {
-		// TODO Auto-generated method stub
-		return 0;
+		try {
+			Object obj = database.createCommand()
+					.appendSql("SELECT COUNT(*) FROM ")
+					.appendName(objectName)
+					.appendWhere(getFilter())
+					.executeQuery(r -> r.getObject(1));
+			return obj == null ?
+					0L :
+					((Number) obj).longValue();
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
 	public boolean exists() {
-		// TODO Auto-generated method stub
-		return false;
+		try {
+			Object obj = database.createCommand()
+					.appendSql("SELECT 1 WHERE EXISTS (SELECT * FROM ")
+					.appendName(objectName)
+					.appendWhere(getFilter())
+					.appendSql(")")
+					.executeQuery(r -> r.getObject(1));
+			return obj == null ?
+					false :
+					((Number) obj).intValue() == 1;
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+
+	}
+
+	@Override
+	public Map<String, Object> first() {
+		try {
+			DatabaseCommand command = database
+					.createCommand()
+					.appendSql("SELECT ")
+					.appendTop(1);
+
+			if (columns.isEmpty()) {
+				command.appendSql("*");
+			} else
+				command.appendNames(columns);
+
+			return command.appendSql(" FROM ")
+					.appendName(objectName)
+					.appendWhere(getFilter())
+					.appendOrderBy(getSort())
+					.appendLimit(1)
+					.executeQuery(new ResultSetToMap(
+							command.acceptsOffset() ?
+									0 :
+									getOffset(),
+							command.acceptsLimit() ?
+									0 :
+									getLimit()));
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 }

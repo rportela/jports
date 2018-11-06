@@ -17,6 +17,8 @@ import jports.data.FilterExpression;
 import jports.data.FilterNode;
 import jports.data.FilterOperation;
 import jports.data.FilterTerm;
+import jports.data.Sort;
+import jports.data.SortNode;
 
 /**
  * This class unites useful methods for creating database SQL commands;
@@ -85,6 +87,14 @@ public abstract class DatabaseCommand {
 		}
 	}
 
+	/**
+	 * Executes an INSERT, UPDATE or DELETE and returns the number of records
+	 * affected;
+	 * 
+	 * @param conn
+	 * @return
+	 * @throws SQLException
+	 */
 	public int executeNonQuery(Connection conn) throws SQLException {
 		Statement stmt = conn.createStatement();
 		try {
@@ -94,6 +104,13 @@ public abstract class DatabaseCommand {
 		}
 	}
 
+	/**
+	 * Executes an INSERT, UPDATE or DELETE and returns the number of records
+	 * affected;
+	 * 
+	 * @return
+	 * @throws SQLException
+	 */
 	public int executeNonQuery() throws SQLException {
 		Connection conn = database.getConnection();
 		try {
@@ -104,6 +121,53 @@ public abstract class DatabaseCommand {
 
 	}
 
+	/**
+	 * Executes a query and adapts the result set to a specific data type;
+	 * 
+	 * @param conn
+	 * @param adapter
+	 * @return
+	 * @throws SQLException
+	 */
+	public <T> T executeQuery(Connection conn, ResultSetAdapter<T> adapter) throws SQLException {
+		Statement stmt = conn.createStatement();
+		try {
+			ResultSet resultSet = stmt.executeQuery(toString());
+			try {
+				return adapter.process(resultSet);
+			} finally {
+				resultSet.close();
+			}
+		} finally {
+			stmt.close();
+		}
+	}
+
+	/**
+	 * Executes a query and adapts the result set to a specific data type;
+	 * 
+	 * @param adapter
+	 * @return
+	 * @throws SQLException
+	 */
+	public <T> T executeQuery(ResultSetAdapter<T> adapter) throws SQLException {
+		Connection conn = database.getConnection();
+		try {
+			return executeQuery(conn, adapter);
+		} finally {
+			conn.close();
+		}
+
+	}
+
+	/**
+	 * Executes what possibly is an INSERT statement and returns a map containing
+	 * the generated keys;
+	 * 
+	 * @param conn
+	 * @return
+	 * @throws SQLException
+	 */
 	public Map<String, Object> executeWithGeneratedKeys(Connection conn) throws SQLException {
 		Statement stmt = conn.createStatement();
 		try {
@@ -129,6 +193,13 @@ public abstract class DatabaseCommand {
 		}
 	}
 
+	/**
+	 * Executes what possibly is an INSERT statement and returns a map containing
+	 * the generated keys;
+	 * 
+	 * @return
+	 * @throws SQLException
+	 */
 	public Map<String, Object> executeWithGeneratedKeys() throws SQLException {
 		Connection conn = database.getConnection();
 		try {
@@ -302,9 +373,9 @@ public abstract class DatabaseCommand {
 	 * @return
 	 */
 	public DatabaseCommand appendBoolean(Boolean value) {
-		text.append(value
-				? "TRUE"
-				: "FALSE");
+		text.append(value ?
+				"TRUE" :
+				"FALSE");
 		return this;
 	}
 
@@ -493,6 +564,125 @@ public abstract class DatabaseCommand {
 			op = node.operation;
 		}
 		text.append(")");
+		return this;
+	}
+
+	/**
+	 * Appends a WHERE clause if the given filter is not null. Just returns an
+	 * instance to "self" otherwise;
+	 * 
+	 * @param filter
+	 * @return
+	 */
+	public DatabaseCommand appendWhere(Filter filter) {
+		if (filter == null)
+			return this;
+
+		text.append(" WHERE ");
+		return appendFilter(filter);
+	}
+
+	/**
+	 * Appends an ORDER BY clause if the given sort expression is not null. It just
+	 * returns an instance to "self" otherwise;
+	 * 
+	 * @param sort
+	 * @return
+	 */
+	public DatabaseCommand appendOrderBy(Sort sort) {
+		if (sort == null)
+			return this;
+
+		text.append(" ORDER BY ");
+		boolean prependComma = false;
+		for (SortNode node = sort.first; node != null; node = node.next) {
+			if (prependComma)
+				text.append(", ");
+			else
+				prependComma = true;
+
+			appendName(node.name);
+			switch (node.direction) {
+			case ASCENDING:
+				break;
+			case DESCENDING:
+				text.append(" DESC");
+				break;
+			default:
+				throw new RuntimeException("Unknown sort direction: " + node.direction + " -> " + sort);
+			}
+		}
+		return this;
+	}
+
+	/**
+	 * This method indicates that the underlying database accepts the TOP statement;
+	 * 
+	 * @return
+	 */
+	public boolean acceptsTop() {
+		return false;
+	}
+
+	/**
+	 * This method indicates that the underlying database accepts the OFFSET
+	 * statement;
+	 * 
+	 * @return
+	 */
+	public boolean acceptsOffset() {
+		return false;
+	}
+
+	/**
+	 * This method indicates that the underlying database accepts the LIMIT
+	 * statement;
+	 * 
+	 * @return
+	 */
+	public boolean acceptsLimit() {
+		return false;
+	}
+
+	/**
+	 * This method was added for compatibility with SQL server TOP statement. The
+	 * "acceptsTop" is checked and the statement is added to the underlying command
+	 * text;
+	 * 
+	 * @param top
+	 * @return
+	 */
+	public DatabaseCommand appendTop(int top) {
+		if (top > 0 && acceptsTop())
+			this.text.append("TOP " + top);
+		return this;
+	}
+
+	/**
+	 * This method was added for compatibility with postgres and mysql OFFSET
+	 * statement. The "acceptsOffset" is checked and the OFFSET statement is added
+	 * to the underlying command text;
+	 * 
+	 * @param offset
+	 * @return
+	 */
+	public DatabaseCommand appendOffset(int offset) {
+		if (offset > 0 && acceptsOffset())
+			this.text.append(" OFFSET " + offset);
+		return this;
+	}
+
+	/**
+	 * This method was added for compatibility with postgres and mysql LIMIT
+	 * statement. The "accepltsLimit" is checked and the LIMIT statement is added to
+	 * the underlying command text;
+	 * 
+	 * @param limit
+	 * @return
+	 */
+	public DatabaseCommand appendLimit(int limit) {
+		if (limit > 0 && acceptsLimit())
+			this.text.append(" LIMIT " + limit);
 		return this;
 	}
 

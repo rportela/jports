@@ -28,22 +28,22 @@ public class HttpAction {
 		return this;
 	}
 
-	private HttpActionParser getParser() {
+	private HttpActionParamParser getParser() {
 		String content_type = request.getContentType();
 		if (isJsonContentType(content_type))
-			return new HttpActionParserForJson();
+			return new HttpActionParamParserForJson();
 		else if (isXmlContentType(content_type))
-			return new HttpActionParserForXml();
+			return new HttpActionParamParserForXml();
 		else if (isMultipart(content_type))
-			return new HttpActionParserForMultipart();
+			return new HttpActionParamParserForMultipart();
 		else
-			return new HttpActionParserForParameters();
+			return new HttpActionParamParserForParameters();
 	}
 
 	@SuppressWarnings("unchecked")
 	public <TParams, TResult> ActionExecution<TParams, TResult> execute() {
 
-		HttpActionParser parser = getParser();
+		
 		Action<TParams, TResult> action = null;
 		try {
 			action = (Action<TParams, TResult>) parser.instantiate(name);
@@ -55,6 +55,8 @@ public class HttpAction {
 			}
 			return null;
 		}
+		
+		HttpActionParamParser parser = getParser();
 
 		ActionExecution<TParams, TResult> execution = new ActionExecution<>();
 		execution.headers = new LinkedHashMap<String, Object>();
@@ -73,9 +75,9 @@ public class HttpAction {
 			execution.exception = e;
 		}
 
-		HttpActionWriter<TParams, TResult> writer = execution.result_type == ActionResultType.SUCCESS
-				? action.getHttpWriter()
-				: new HttpActionWriterForJson<>();
+		HttpActionWriter<TParams, TResult> writer = execution.result_type == ActionResultType.SUCCESS ?
+				action.getHttpWriter() :
+				new HttpActionWriterForJson<>();
 
 		try {
 			writer.write(execution, response);
