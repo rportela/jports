@@ -145,13 +145,17 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>>
 			}
 	}
 
+	protected Class<TClass> intializeDataType(Class<TClass> dataType) {
+		return dataType;
+	}
+
 	/**
 	 * Constructs a new aspect based on a given Class.
 	 * 
 	 * @param dataType
 	 */
 	protected Aspect(Class<TClass> dataType) {
-		this.dataType = dataType;
+		this.dataType = intializeDataType(dataType);
 		final Field[] fields = dataType.getFields();
 		final Method[] methods = dataType.getMethods();
 		this.members = new ArrayList<TMember>(fields.length + methods.length);

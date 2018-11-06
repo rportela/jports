@@ -25,32 +25,82 @@ import jports.reflection.AspectMemberAccessor;
  */
 public class CsvAspect<TClass> extends Aspect<TClass, CsvAspectMember<TClass>> {
 
-	public final String default_separator;
-	public final Charset default_charset;
-	public final String default_commentQualifier;
-	public final int default_capacity;
-	public final boolean first_row_has_names;
+	private String separator;
+	private Charset charset;
+	private String commentQualifier;
+	private int capacity;
+	private boolean firstRowHasNames;
 
 	public CsvAspect(Class<TClass> claz) {
 		super(claz);
 
 		CsvTable table = claz.getAnnotation(CsvTable.class);
 		if (table == null) {
-			this.default_separator = ",";
-			this.default_charset = Charset.defaultCharset();
-			this.default_commentQualifier = null;
-			this.default_capacity = 100;
-			this.first_row_has_names = true;
+			this.separator = ",";
+			this.charset = Charset.defaultCharset();
+			this.commentQualifier = null;
+			this.capacity = 100;
+			this.firstRowHasNames = true;
 		} else {
-			this.default_separator = table.separator();
-			this.default_commentQualifier = table.commentQualifier();
-			this.default_charset = table.charset().isEmpty()
+			this.separator = table.separator();
+			this.commentQualifier = table.commentQualifier();
+			this.charset = table.charset().isEmpty()
 					? Charset.defaultCharset()
 					: Charset.forName(table.charset());
-			this.default_capacity = table.capacity();
-			this.first_row_has_names = table.firstRowHasNames();
+			this.capacity = table.capacity();
+			this.firstRowHasNames = table.firstRowHasNames();
 		}
 
+	}
+
+	public String getSeparator() {
+		return this.separator;
+	}
+
+	public CsvAspect<TClass> setSeparator(String separator) {
+		this.separator = separator;
+		return this;
+	}
+
+	public Charset getCharset() {
+		return this.charset;
+	}
+
+	public CsvAspect<TClass> setCharset(Charset charset) {
+		this.charset = charset;
+		return this;
+	}
+
+	public CsvAspect<TClass> setCharset(String charsetName) {
+		this.charset = Charset.forName(charsetName);
+		return this;
+	}
+
+	public String getCommentQualifier() {
+		return this.commentQualifier;
+	}
+
+	public CsvAspect<TClass> setCommentQualifier(String commentQualifier) {
+		this.commentQualifier = commentQualifier;
+		return this;
+	}
+
+	public int getCapacity() {
+		return this.capacity;
+	}
+
+	public CsvAspect<TClass> setCapacity(int capacity) {
+		this.capacity = capacity;
+		return this;
+	}
+
+	public boolean firstRowHasNames() {
+		return this.firstRowHasNames;
+	}
+
+	public CsvAspect<TClass> firstRowHasNames(boolean value) {
+		this.firstRowHasNames = value;
+		return this;
 	}
 
 	@Override
@@ -63,10 +113,6 @@ public class CsvAspect<TClass> extends Aspect<TClass, CsvAspectMember<TClass>> {
 
 	public void parse(
 			InputStream source,
-			Charset charset,
-			String separator,
-			boolean firstRowHasNames,
-			String commentQualifier,
 			List<TClass> target) {
 		String line;
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(source, charset))) {
@@ -94,157 +140,16 @@ public class CsvAspect<TClass> extends Aspect<TClass, CsvAspectMember<TClass>> {
 		}
 	}
 
-	public List<TClass> parse(
-			InputStream source,
-			Charset charset,
-			String separator,
-			boolean firstRowHasNames,
-			int initialCapacity,
-			String commentQualifier) {
-
-		List<TClass> list = new ArrayList<>(initialCapacity);
-		parse(
-				source,
-				charset,
-				separator,
-				firstRowHasNames,
-				commentQualifier,
-				list);
-		return list;
-	}
-
-	public List<TClass> parse(InputStream source, Charset charset, String separator, boolean firstRowHasNames) {
-		return parse(source, charset, separator, firstRowHasNames, default_capacity, default_commentQualifier);
-	}
-
-	public List<TClass> parse(InputStream source, Charset charset, String separator) {
-		return parse(source, charset, separator, first_row_has_names, default_capacity, default_commentQualifier);
-	}
-
-	public List<TClass> parse(InputStream source, Charset charset) {
-		return parse(
-				source,
-				charset,
-				default_separator,
-				first_row_has_names,
-				default_capacity,
-				default_commentQualifier);
-	}
-
 	public List<TClass> parse(InputStream source) {
-		return parse(
-				source,
-				default_charset,
-				default_separator,
-				first_row_has_names,
-				default_capacity,
-				default_commentQualifier);
-	}
-
-	public List<TClass> parse(File file, Charset charset, String separator, boolean firstRowHasNames)
-			throws IOException {
-		FileInputStream fis = new FileInputStream(file);
-		try {
-			return parse(
-					fis,
-					charset,
-					separator,
-					firstRowHasNames,
-					default_capacity,
-					default_commentQualifier);
-		} finally {
-			fis.close();
-		}
-	}
-
-	public List<TClass> parse(File file, Charset charset, String separator) throws IOException {
-		FileInputStream fis = new FileInputStream(file);
-		try {
-			return parse(
-					fis,
-					charset,
-					separator,
-					first_row_has_names,
-					default_capacity,
-					default_commentQualifier);
-		} finally {
-			fis.close();
-		}
-
-	}
-
-	public List<TClass> parse(File file, Charset charset) throws IOException {
-		FileInputStream fis = new FileInputStream(file);
-		try {
-			return parse(
-					fis,
-					charset,
-					default_separator,
-					first_row_has_names,
-					default_capacity,
-					default_commentQualifier);
-		} finally {
-			fis.close();
-		}
+		List<TClass> list = new ArrayList<>(capacity);
+		parse(source, list);
+		return list;
 	}
 
 	public List<TClass> parse(File file) throws IOException {
 		FileInputStream fis = new FileInputStream(file);
 		try {
-			return parse(
-					fis,
-					default_charset,
-					default_separator,
-					first_row_has_names,
-					default_capacity,
-					default_commentQualifier);
-		} finally {
-			fis.close();
-		}
-	}
-
-	public List<TClass> parse(URL url, Charset charset, String separator, boolean firstRowHasNames)
-			throws IOException {
-		InputStream fis = url.openStream();
-		try {
-			return parse(
-					fis,
-					charset,
-					separator,
-					firstRowHasNames,
-					default_capacity,
-					default_commentQualifier);
-		} finally {
-			fis.close();
-		}
-	}
-
-	public List<TClass> parse(URL url, Charset charset, String separator) throws IOException {
-		InputStream fis = url.openStream();
-		try {
-			return parse(
-					fis,
-					charset,
-					separator,
-					first_row_has_names,
-					default_capacity,
-					default_commentQualifier);
-		} finally {
-			fis.close();
-		}
-
-	}
-
-	public List<TClass> parse(URL url, Charset charset) throws IOException {
-		InputStream fis = url.openStream();
-		try {
-			return parse(
-					fis,
-					charset,
-					default_separator,
-					first_row_has_names,
-					default_capacity,
-					default_commentQualifier);
+			return parse(fis);
 		} finally {
 			fis.close();
 		}
@@ -253,13 +158,7 @@ public class CsvAspect<TClass> extends Aspect<TClass, CsvAspectMember<TClass>> {
 	public List<TClass> parse(URL url) throws IOException {
 		InputStream fis = url.openStream();
 		try {
-			return parse(
-					fis,
-					default_charset,
-					default_separator,
-					first_row_has_names,
-					default_capacity,
-					default_commentQualifier);
+			return parse(fis);
 		} finally {
 			fis.close();
 		}
