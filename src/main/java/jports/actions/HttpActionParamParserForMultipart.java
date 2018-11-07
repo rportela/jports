@@ -7,17 +7,28 @@ import java.nio.charset.Charset;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.Part;
 
+/**
+ * This class wraps the parser for enctype multipart/form-data, that may include
+ * file parts to be processed by an action;
+ * 
+ * @author rportela
+ *
+ */
 public class HttpActionParamParserForMultipart implements HttpActionParamParser {
 
+	/**
+	 * Parses the HTTP request as enctype multipart/form-data into expected Action
+	 * parameters base on the params Class;
+	 */
 	@Override
 	public <T> T parseParams(Class<T> paramsClass, HttpServletRequest request) throws Exception {
 
 		String encoding = request.getCharacterEncoding();
 
 		Charset charset = Charset.forName(
-				encoding == null || encoding.isEmpty() ?
-						"UTF-8" :
-						encoding);
+				encoding == null || encoding.isEmpty()
+						? "UTF-8"
+						: encoding);
 
 		T target = paramsClass.getConstructor().newInstance();
 		Field[] fields = paramsClass.getFields();
@@ -40,7 +51,6 @@ public class HttpActionParamParserForMultipart implements HttpActionParamParser 
 			} catch (Exception e) {
 				throw new RuntimeException(
 						String.join(
-								" ",
 								"Unable to set value to field",
 								paramsClass.getSimpleName() + "." + field.getName(),
 								"(" + field.getType() + ")",

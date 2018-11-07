@@ -12,18 +12,38 @@ import java.util.UUID;
  */
 public class RequiredValidation extends AbstractValidation {
 
+	/**
+	 * Creates a new instance of the required validation using a specific error
+	 * message;
+	 * 
+	 * @param message
+	 */
 	public RequiredValidation(String message) {
 		super(message);
 	}
 
+	/**
+	 * Creates a new instance of the required validation using the defautl error
+	 * message;
+	 * 
+	 */
 	public RequiredValidation() {
 		super("Required");
 	}
 
+	/**
+	 * Creates a new instance of the required validation using annotated values on
+	 * the Required annotation;
+	 * 
+	 * @param annotation
+	 */
 	public RequiredValidation(Required annotation) {
 		super(annotation.value());
 	}
 
+	/**
+	 * Validates an input object;
+	 */
 	@Override
 	public boolean isValid(Object value) {
 		if (value == null)
