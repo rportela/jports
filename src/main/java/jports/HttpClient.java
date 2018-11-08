@@ -308,6 +308,7 @@ public class HttpClient {
 		processContentType();
 		processResponseCookies();
 		processRedirects();
+		payload = null;
 		return this;
 	}
 

@@ -19,7 +19,7 @@ public class TableDelete extends Delete {
 		Incrementer inc = new Incrementer();
 		FilterExpression filter = getFilter();
 		if (filter == null) {
-			inc.value = rows.size();
+			inc.setValue(rows.size());
 			rows.clear();
 		} else {
 			Predicate<TableRow> predicate = table.createPredicate(filter);
@@ -32,7 +32,7 @@ public class TableDelete extends Delete {
 				}
 			}
 		}
-		return inc.value;
+		return inc.getValue();
 	}
 
 }

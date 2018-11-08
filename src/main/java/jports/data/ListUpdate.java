@@ -39,7 +39,7 @@ public class ListUpdate<T> extends Update {
 			}
 			inc.increment();
 		});
-		return inc.value;
+		return inc.getValue();
 	}
 
 }

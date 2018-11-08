@@ -44,9 +44,9 @@ public class CsvAspect<TClass> extends Aspect<TClass, CsvAspectMember<TClass>> {
 		} else {
 			this.separator = table.separator();
 			this.commentQualifier = table.commentQualifier();
-			this.charset = table.charset().isEmpty()
-					? Charset.defaultCharset()
-					: Charset.forName(table.charset());
+			this.charset = table.charset().isEmpty() ?
+					Charset.defaultCharset() :
+					Charset.forName(table.charset());
 			this.capacity = table.capacity();
 			this.firstRowHasNames = table.firstRowHasNames();
 		}
@@ -106,17 +106,18 @@ public class CsvAspect<TClass> extends Aspect<TClass, CsvAspectMember<TClass>> {
 	@Override
 	protected CsvAspectMember<TClass> visit(AspectMemberAccessor<TClass> accessor) {
 		CsvColumn csv = accessor.getAnnotation(CsvColumn.class);
-		return csv == null
-				? null
-				: new CsvAspectMember<>(accessor, csv, super.size());
+		return csv == null ?
+				null :
+				new CsvAspectMember<>(accessor, csv, super.size());
 	}
 
 	public void parse(
 			InputStream source,
 			List<TClass> target) {
 		String line;
-		try (BufferedReader reader = new BufferedReader(new InputStreamReader(source, charset))) {
+		try {
 			Constructor<TClass> constructor = super.getDataType().getConstructor();
+			BufferedReader reader = new BufferedReader(new InputStreamReader(source, charset));
 			while ((line = reader.readLine()) != null) {
 				if (line.isEmpty())
 					continue;
@@ -138,6 +139,7 @@ public class CsvAspect<TClass> extends Aspect<TClass, CsvAspectMember<TClass>> {
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+
 	}
 
 	public List<TClass> parse(InputStream source) {

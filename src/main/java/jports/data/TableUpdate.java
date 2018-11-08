@@ -38,7 +38,7 @@ public class TableUpdate extends Update {
 					inc.increment();
 				});
 
-		return inc.value;
+		return inc.getValue();
 	}
 
 }
