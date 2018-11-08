@@ -13,8 +13,12 @@ public class CsvAspectMember<TClass> extends AspectMember<TClass> {
 
 	public CsvAspectMember(AspectMemberAccessor<TClass> accessor, CsvColumn csv, int index) {
 		super(accessor);
-		columnName = csv.name().isEmpty() ? accessor.getName() : csv.name();
-		position = csv.position() >= 0 ? csv.position() : index;
+		columnName = csv.name().isEmpty()
+				? accessor.getName()
+				: csv.name();
+		position = csv.position() >= 0
+				? csv.position()
+				: index;
 		adapter = AdapterFactory.createAdapter(accessor.getDataType(), csv.adapter(), csv.pattern());
 	}
 
@@ -43,11 +47,12 @@ public class CsvAspectMember<TClass> extends AspectMember<TClass> {
 	}
 
 	public void setPositionFrom(String[] colNames) {
-		position = -1;
-		for (int i = 0; i < colNames.length && position < 0; i++) {
+		int pos = -1;
+		for (int i = 0; i < colNames.length && pos < 0; i++) {
 			if (colNames[i].equalsIgnoreCase(columnName))
-				position = i;
+				pos = i;
 		}
+		this.position = pos;
 	}
 
 }

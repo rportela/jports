@@ -31,6 +31,8 @@ public final class AdapterFactory {
 		INSTANCES.put(Double.TYPE, DoubleAdapter.class);
 		INSTANCES.put(String.class, StringAdapter.class);
 		INSTANCES.put(Number.class, NumberAdapter.class);
+		INSTANCES.put(Integer.class, IntegerAdapter.class);
+		INSTANCES.put(Integer.TYPE, IntegerAdapter.class);
 	}
 
 	/**
@@ -72,7 +74,7 @@ public final class AdapterFactory {
 	}
 
 	public static Adapter<?> createAdapter(final Class<?> claz, Class<?> adapterClass, final String pattern) {
-		if (VoidAdapter.class.equals(adapterClass)) {
+		if (VoidAdapter.class.equals(adapterClass) || adapterClass == null) {
 			adapterClass = INSTANCES.get(claz);
 		}
 		try {
