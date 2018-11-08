@@ -170,9 +170,9 @@ public class HttpAction {
 			ActionExecution<TParams, TResult> execution = action.execute(
 					parseParams(action.getParamsClass()),
 					copyHeaders());
-			HttpActionWriter<TParams, TResult> writer = execution.result_type == ActionResultType.SUCCESS
-					? action.getHttpWriter()
-					: new HttpActionWriterForJson<>();
+			HttpActionWriter<TParams, TResult> writer = execution.result_type == ActionResultType.SUCCESS ?
+					action.getHttpWriter() :
+					new HttpActionWriterForJson<>();
 			writer.write(execution, response);
 			return execution;
 		} catch (Exception e) {
