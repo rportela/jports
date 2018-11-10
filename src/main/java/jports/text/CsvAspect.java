@@ -115,6 +115,7 @@ public class CsvAspect<TClass> extends Aspect<TClass, CsvAspectMember<TClass>> {
 			final InputStream source,
 			final List<TClass> target) {
 		String line;
+		boolean frowhasnames = this.firstRowHasNames;
 		try {
 			Constructor<TClass> constructor = super.getDataType().getConstructor();
 			BufferedReader reader = new BufferedReader(new InputStreamReader(source, charset));
@@ -123,8 +124,8 @@ public class CsvAspect<TClass> extends Aspect<TClass, CsvAspectMember<TClass>> {
 					continue;
 				if (commentQualifier != null && !commentQualifier.isEmpty() && line.startsWith(commentQualifier))
 					continue;
-				if (firstRowHasNames) {
-					firstRowHasNames = false;
+				if (frowhasnames) {
+					frowhasnames = false;
 					String[] names = line.split(separator);
 					for (CsvAspectMember<?> member : this)
 						member.setPositionFrom(names);

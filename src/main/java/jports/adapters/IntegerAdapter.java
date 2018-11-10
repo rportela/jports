@@ -6,7 +6,7 @@ public class IntegerAdapter implements Adapter<Integer> {
 	public Integer parse(String source) {
 		return source == null || source.isEmpty()
 				? null
-				: Integer.valueOf(source);
+				: ((Number) Double.valueOf(source)).intValue();
 	}
 
 	@Override
