@@ -1,6 +1,7 @@
 package jports.adapters;
 
 import java.lang.reflect.Constructor;
+import java.util.Date;
 import java.util.HashMap;
 
 /**
@@ -27,12 +28,20 @@ public final class AdapterFactory {
 	 * Populates the static map with factory built adapters;
 	 */
 	static {
+		INSTANCES.put(Boolean.class, BooleanAdapter.class);
+		INSTANCES.put(Boolean.TYPE, BooleanAdapter.class);
 		INSTANCES.put(Double.class, DoubleAdapter.class);
 		INSTANCES.put(Double.TYPE, DoubleAdapter.class);
-		INSTANCES.put(String.class, StringAdapter.class);
-		INSTANCES.put(Number.class, NumberAdapter.class);
+		// INSTANCES.put(Float.class, FloatAdapter.class);
+		// INSTANCES.put(Float.TYPE, FloatAdapter.class);
+		// NSTANCES.put(Long.class, LongAdapter.class);
+		// INSTANCES.put(Long.TYPE, LongAdapter.class);
 		INSTANCES.put(Integer.class, IntegerAdapter.class);
 		INSTANCES.put(Integer.TYPE, IntegerAdapter.class);
+
+		INSTANCES.put(String.class, StringAdapter.class);
+		INSTANCES.put(Number.class, NumberAdapter.class);
+		INSTANCES.put(Date.class, DateAdapter.class);
 	}
 
 	/**

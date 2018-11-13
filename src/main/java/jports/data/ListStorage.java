@@ -56,6 +56,11 @@ public class ListStorage<T> extends DataStorage<T> {
 	}
 
 	@Override
+	public Upsert createUpsert() {
+		return new ListUpsert<>(this);
+	}
+
+	@Override
 	public Select<T> select() {
 		return new ListSelect<T>(this);
 	}

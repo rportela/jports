@@ -129,7 +129,7 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>>
 					if (name.startsWith("get")) {
 						Class<?>[] parameterTypes = getter.getParameterTypes();
 						if (parameterTypes == null || parameterTypes.length == 0) {
-							name = name.substring(4);
+							name = name.substring(3);
 							Method setter = findSetter(methods, "set" + name, getter.getReturnType());
 							AspectMemberProperty<TClass> accessor = new AspectMemberProperty<TClass>(
 									this,

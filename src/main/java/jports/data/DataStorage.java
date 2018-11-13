@@ -51,6 +51,14 @@ public abstract class DataStorage<T> implements Storage<T> {
 	public abstract Select<T> select();
 
 	/**
+	 * When implemented should create an upsert command capable of detecting
+	 * conflicts on the insert command and doing an update instead;
+	 * 
+	 * @return
+	 */
+	public abstract Upsert createUpsert();
+
+	/**
 	 * This method attempts to update an entity if no records were affected, it
 	 * inserts the entity; This method returns the number of records affected by the
 	 * update or by the insert command;

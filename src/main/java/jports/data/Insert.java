@@ -4,7 +4,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * This is a blueprint for an abstract insert command that
+ * This is a blueprint for an abstract insert command that can either do a
+ * simple execution or return the generated keys from the data store;
  * 
  * @author rportela
  *

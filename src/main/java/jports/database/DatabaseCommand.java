@@ -9,7 +9,9 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 
 import jports.data.Filter;
@@ -294,6 +296,27 @@ public abstract class DatabaseCommand {
 	}
 
 	/**
+	 * Appends a list of names joined by a comma or an asterisk if the list is
+	 * empty;
+	 * 
+	 * @param names
+	 * @return
+	 */
+	public DatabaseCommand appendNamesOrAsterisk(List<String> names) {
+		if (names.isEmpty()) {
+			text.append("*");
+			return this;
+		} else {
+			appendName(names.get(0));
+			for (int i = 1; i < names.size(); i++) {
+				text.append(", ");
+				appendName(names.get(i));
+			}
+			return this;
+		}
+	}
+
+	/**
 	 * Appends a number to the underlying command text;
 	 * 
 	 * @param value
@@ -373,9 +396,9 @@ public abstract class DatabaseCommand {
 	 * @return
 	 */
 	public DatabaseCommand appendBoolean(Boolean value) {
-		text.append(value ?
-				"TRUE" :
-				"FALSE");
+		text.append(value
+				? "TRUE"
+				: "FALSE");
 		return this;
 	}
 
@@ -686,4 +709,97 @@ public abstract class DatabaseCommand {
 		return this;
 	}
 
+	/**
+	 * This method takes a map and appends a name=value sql command text;
+	 * 
+	 * @param values
+	 * @return
+	 */
+	public DatabaseCommand appendNameValue(Map<String, Object> values) {
+		boolean prependComma = false;
+		for (Entry<String, Object> entry : values.entrySet()) {
+			if (prependComma)
+				text.append(", ");
+			else
+				prependComma = true;
+
+			appendName(entry.getKey());
+			text.append('=');
+			appendValue(entry.getValue());
+		}
+		return this;
+	}
+
+	/**
+	 * This method appends a SELECT statement to the underlying SQL command text;
+	 * 
+	 * @param objectName
+	 * @param columns
+	 * @param where
+	 * @param orderBy
+	 * @param offset
+	 * @param limit
+	 * @return
+	 */
+	public DatabaseCommand appendSelect(String objectName, List<String> columns, Filter where, Sort orderBy, int offset,
+			int limit) {
+		return appendSql("SELECT ")
+				.appendTop(offset + limit)
+				.appendNamesOrAsterisk(columns)
+				.appendSql(" FROM ")
+				.appendName(objectName)
+				.appendWhere(where)
+				.appendOrderBy(orderBy)
+				.appendOffset(offset)
+				.appendLimit(limit)
+				.appendSql(";");
+	}
+
+	/**
+	 * This method appends a DELETE statement to the underlying SQL command text;
+	 * 
+	 * @param tableName
+	 * @param where
+	 * @return
+	 */
+	public DatabaseCommand appendDelete(String tableName, Filter where) {
+		return appendSql("DELETE FROM ")
+				.appendName(tableName)
+				.appendWhere(where)
+				.appendSql(";");
+	}
+
+	/**
+	 * This method appends an UPDATE statement to the underlying SQL command text;
+	 * 
+	 * @param tableName
+	 * @param values
+	 * @param where
+	 * @return
+	 */
+	public DatabaseCommand appendUpdate(String tableName, Map<String, Object> values, Filter where) {
+		return appendSql("UPDATE ")
+				.appendName(tableName)
+				.appendSql(" SET ")
+				.appendNameValue(values)
+				.appendWhere(where)
+				.appendSql(";");
+	}
+
+	/**
+	 * This method appends an INSERT statement to the underlying SQL command text;
+	 * 
+	 * @param tableName
+	 * @param values
+	 * @return
+	 */
+	public DatabaseCommand appendInsert(String tableName, Map<String, Object> values) {
+		return appendSql("INSERT INTO ")
+				.appendName(tableName)
+				.appendSql(" (")
+				.appendNames(values.keySet())
+				.appendSql(") VALUES (")
+				.appendValues(values.values())
+				.appendSql(");");
+	}
 }

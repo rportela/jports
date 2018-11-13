@@ -6,6 +6,7 @@ import jports.data.Delete;
 import jports.data.Insert;
 import jports.data.Select;
 import jports.data.Update;
+import jports.data.Upsert;
 
 /**
  * This class wraps a data aspect and uses database commands to perform inserts,
@@ -17,8 +18,8 @@ import jports.data.Update;
  */
 public class DatabaseStorage<T> extends DataStorage<T> {
 
-	Database database;
-	DatabaseAspect<T> aspect;
+	private final Database database;
+	private final DatabaseAspect<T> aspect;
 
 	public DatabaseStorage(Database database, DatabaseAspect<T> aspect) {
 		this.database = database;
@@ -42,6 +43,11 @@ public class DatabaseStorage<T> extends DataStorage<T> {
 	@Override
 	public Update createUpdate() {
 		return database.update(aspect.getDatabaseObject());
+	}
+
+	@Override
+	public Upsert createUpsert() {
+		return new DatabaseUpsert(database, aspect.getDatabaseObject());
 	}
 
 	@Override

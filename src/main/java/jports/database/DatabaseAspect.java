@@ -1,6 +1,5 @@
 package jports.database;
 
-import jports.data.ColumnType;
 import jports.data.DataAspect;
 import jports.data.DataAspectMember;
 import jports.reflection.AspectMemberAccessor;
@@ -20,11 +19,9 @@ public class DatabaseAspect<T> extends DataAspect<T, DataAspectMember<T>> {
 
 	@Override
 	protected DataAspectMember<T> visit(AspectMemberAccessor<T> accessor) {
-		if (accessor.getAnnotation(DatabaseIgnore.class) != null)
-			return null;
 		DatabaseColumn col = accessor.getAnnotation(DatabaseColumn.class);
 		return col == null
-				? new DataAspectMember<>(accessor, ColumnType.REGULAR, accessor.getName())
+				? null
 				: new DataAspectMember<>(accessor, col.type(), col.name());
 	}
 

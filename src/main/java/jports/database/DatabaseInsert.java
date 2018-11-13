@@ -16,36 +16,41 @@ public class DatabaseInsert extends Insert {
 		this.database = database;
 	}
 
-	public DatabaseCommand createCommand() {
-		return database.createCommand()
-				.appendSql("INSERT INTO ")
-				.appendName(target)
-				.appendSql(" (")
-				.appendNames(getValues().keySet())
-				.appendSql(") VALUES (")
-				.appendValues(getValues().values())
-				.appendSql(")");
+	public int execute(Connection connection) throws SQLException {
+		return database
+				.createCommand()
+				.appendInsert(target, getValues())
+				.executeNonQuery(connection);
 	}
 
-	public int execute(Connection conn) throws SQLException {
-		return createCommand().executeNonQuery(conn);
-	}
-
+	@Override
 	public int execute() {
-		try {
-			return createCommand().executeNonQuery();
-		} catch (Exception e) {
+		try (final Connection connection = database.getConnection()) {
+			try {
+				return execute(connection);
+			} finally {
+				connection.close();
+			}
+		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
 	public Map<String, Object> executeWithGeneratedKeys(Connection conn) throws SQLException {
-		return createCommand().executeWithGeneratedKeys(conn);
+		return database
+				.createCommand()
+				.appendInsert(target, getValues())
+				.executeWithGeneratedKeys(conn);
+
 	}
 
 	public Map<String, Object> executeWithGeneratedKeys() {
-		try {
-			return createCommand().executeWithGeneratedKeys();
+		try (final Connection connection = database.getConnection()) {
+			try {
+				return executeWithGeneratedKeys(connection);
+			} finally {
+				connection.close();
+			}
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}

@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 import jports.data.Delete;
-import jports.data.FilterExpression;
 
 public class DatabaseDelete extends Delete {
 
@@ -16,27 +15,21 @@ public class DatabaseDelete extends Delete {
 		this.target = target;
 	}
 
-	public DatabaseCommand createDeleteCommand() {
-		DatabaseCommand command = database
-				.createCommand()
-				.appendSql("DELETE FROM ")
-				.appendName(target);
-		FilterExpression filter = getFilter();
-		return filter == null
-				? command
-				: command
-						.appendSql(" WHERE ")
-						.appendFilterExpression(filter);
-	}
-
 	public int execute(Connection connection) throws SQLException {
-		return createDeleteCommand().executeNonQuery(connection);
+		return database
+				.createCommand()
+				.appendDelete(target, getFilter())
+				.executeNonQuery(connection);
 	}
 
 	@Override
 	public int execute() {
-		try {
-			return createDeleteCommand().executeNonQuery();
+		try (final Connection connection = database.getConnection()) {
+			try {
+				return execute(connection);
+			} finally {
+				connection.close();
+			}
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
 		}
