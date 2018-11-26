@@ -1,6 +1,7 @@
 package jports.database;
 
-import java.sql.Connection;
+import java.io.Closeable;
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -28,20 +29,20 @@ import jports.data.SortNode;
  * @author rportela
  *
  */
-public abstract class DatabaseCommand {
+public abstract class DatabaseCommand implements AutoCloseable, Closeable {
 
 	/**
 	 * The database that this command belong to;
 	 */
-	private final Database database;
+	private final Statement statement;
 
 	/**
 	 * Creates a new instance of the database command;
 	 * 
 	 * @param database
 	 */
-	public DatabaseCommand(Database database) {
-		this.database = database;
+	public DatabaseCommand(Statement statement) {
+		this.statement = statement;
 	}
 
 	/**
@@ -58,52 +59,26 @@ public abstract class DatabaseCommand {
 	}
 
 	/**
-	 * Executes the command against a database connection;
-	 * 
-	 * @param conn
-	 * @return
-	 * @throws SQLException
+	 * Closes the underlying SQL statement;
 	 */
-	public boolean execute(Connection conn) throws SQLException {
-		Statement stmt = conn.createStatement();
+	@Override
+	public void close() throws IOException {
 		try {
-			return stmt.execute(toString());
-		} finally {
-			stmt.close();
+			this.statement.close();
+		} catch (SQLException e) {
+			throw new IOException(e);
 		}
-
 	}
 
 	/**
-	 * Executes the command using the database passed in the command's constructor;
+	 * Executes the command;
 	 * 
 	 * @return
 	 * @throws SQLException
 	 */
 	public boolean execute() throws SQLException {
-		Connection conn = database.getConnection();
-		try {
-			return execute(conn);
-		} finally {
-			conn.close();
-		}
-	}
+		return statement.execute(toString());
 
-	/**
-	 * Executes an INSERT, UPDATE or DELETE and returns the number of records
-	 * affected;
-	 * 
-	 * @param conn
-	 * @return
-	 * @throws SQLException
-	 */
-	public int executeNonQuery(Connection conn) throws SQLException {
-		Statement stmt = conn.createStatement();
-		try {
-			return stmt.executeUpdate(toString());
-		} finally {
-			stmt.close();
-		}
 	}
 
 	/**
@@ -114,35 +89,7 @@ public abstract class DatabaseCommand {
 	 * @throws SQLException
 	 */
 	public int executeNonQuery() throws SQLException {
-		Connection conn = database.getConnection();
-		try {
-			return executeNonQuery(conn);
-		} finally {
-			conn.close();
-		}
-
-	}
-
-	/**
-	 * Executes a query and adapts the result set to a specific data type;
-	 * 
-	 * @param conn
-	 * @param adapter
-	 * @return
-	 * @throws SQLException
-	 */
-	public <T> T executeQuery(Connection conn, ResultSetAdapter<T> adapter) throws SQLException {
-		Statement stmt = conn.createStatement();
-		try {
-			ResultSet resultSet = stmt.executeQuery(toString());
-			try {
-				return adapter.process(resultSet);
-			} finally {
-				resultSet.close();
-			}
-		} finally {
-			stmt.close();
-		}
+		return statement.executeUpdate(toString());
 	}
 
 	/**
@@ -153,46 +100,13 @@ public abstract class DatabaseCommand {
 	 * @throws SQLException
 	 */
 	public <T> T executeQuery(ResultSetAdapter<T> adapter) throws SQLException {
-		Connection conn = database.getConnection();
+		ResultSet resultSet = statement.executeQuery(toString());
 		try {
-			return executeQuery(conn, adapter);
+			return adapter.process(resultSet);
 		} finally {
-			conn.close();
+			resultSet.close();
 		}
 
-	}
-
-	/**
-	 * Executes what possibly is an INSERT statement and returns a map containing
-	 * the generated keys;
-	 * 
-	 * @param conn
-	 * @return
-	 * @throws SQLException
-	 */
-	public Map<String, Object> executeWithGeneratedKeys(Connection conn) throws SQLException {
-		Statement stmt = conn.createStatement();
-		try {
-			stmt.execute(toString(), Statement.RETURN_GENERATED_KEYS);
-			ResultSet rs = stmt.getGeneratedKeys();
-			try {
-				if (!rs.next())
-					return null;
-				ResultSetMetaData meta = rs.getMetaData();
-				LinkedHashMap<String, Object> gks = new LinkedHashMap<>();
-				int count = meta.getColumnCount();
-				for (int i = 1; i <= count; i++) {
-					String name = meta.getColumnLabel(i);
-					Object value = rs.getObject(i);
-					gks.put(name, value);
-				}
-				return gks;
-			} finally {
-				rs.close();
-			}
-		} finally {
-			stmt.close();
-		}
 	}
 
 	/**
@@ -203,13 +117,41 @@ public abstract class DatabaseCommand {
 	 * @throws SQLException
 	 */
 	public Map<String, Object> executeWithGeneratedKeys() throws SQLException {
-		Connection conn = database.getConnection();
+		statement.execute(toString(), Statement.RETURN_GENERATED_KEYS);
+		ResultSet rs = statement.getGeneratedKeys();
 		try {
-			return executeWithGeneratedKeys(conn);
+			if (!rs.next())
+				return null;
+			ResultSetMetaData meta = rs.getMetaData();
+			LinkedHashMap<String, Object> gks = new LinkedHashMap<>();
+			int count = meta.getColumnCount();
+			for (int i = 1; i <= count; i++) {
+				String name = meta.getColumnLabel(i);
+				Object value = rs.getObject(i);
+				gks.put(name, value);
+			}
+			return gks;
 		} finally {
-			conn.close();
+			rs.close();
 		}
+	}
 
+	/**
+	 * Executes the query and returns the first column of the first row in the
+	 * result set;
+	 * 
+	 * @return
+	 * @throws SQLException
+	 */
+	public Object executeScalar() throws SQLException {
+		ResultSet rs = statement.executeQuery(text.toString());
+		try {
+			return rs.next()
+					? rs.getObject(1)
+					: null;
+		} finally {
+			rs.close();
+		}
 	}
 
 	/**
@@ -504,6 +446,70 @@ public abstract class DatabaseCommand {
 		}
 	}
 
+	public DatabaseCommand appendEqualTo(String name, Object value) {
+		appendName(name);
+		if (value == null)
+			text.append(" IS NULL");
+		else {
+			text.append(" = ");
+			appendValue(value);
+		}
+		return this;
+	}
+
+	public DatabaseCommand appendNotEqualTo(String name, Object value) {
+		appendName(name);
+		if (value == null)
+			text.append(" IS NOT NULL");
+		else {
+			text.append(" != ");
+			appendValue(value);
+		}
+		return this;
+	}
+
+	public DatabaseCommand appendGreaterOrEqual(String name, Object value) {
+		appendName(name);
+		text.append(" >= ");
+		appendValue(value);
+		return this;
+	}
+
+	public DatabaseCommand appendGreaterThan(String name, Object value) {
+		appendName(name);
+		text.append(" > ");
+		appendValue(value);
+		return this;
+	}
+
+	public DatabaseCommand appendLowerOrEqual(String name, Object value) {
+		appendName(name);
+		text.append(" <= ");
+		appendValue(value);
+		return this;
+	}
+
+	public DatabaseCommand appendLowerThan(String name, Object value) {
+		appendName(name);
+		text.append(" < ");
+		appendValue(value);
+		return this;
+	}
+
+	public DatabaseCommand appendLike(String name, Object value) {
+		appendName(name);
+		text.append(" LIKE ");
+		appendValue(value);
+		return this;
+	}
+
+	public DatabaseCommand appendNotLike(String name, Object value) {
+		appendName(name);
+		text.append(" NOT LIKE ");
+		appendValue(value);
+		return this;
+	}
+
 	/**
 	 * Appends a filter term to the underlying command text;
 	 * 
@@ -511,54 +517,36 @@ public abstract class DatabaseCommand {
 	 * @return
 	 */
 	public DatabaseCommand appendFilterTerm(FilterTerm term) {
-
-		appendName(term.name);
 		switch (term.comparison) {
 		case EQUAL_TO:
-			if (term.value == null)
-				text.append(" IS NULL");
-			else {
-				text.append(" = ");
-				appendValue(term.value);
-			}
-			break;
+			return appendEqualTo(term.name, term.value);
+
 		case GRATER_OR_EQUAL:
-			text.append(" >= ");
-			appendValue(term.value);
-			break;
+			return appendGreaterOrEqual(term.name, term.value);
+
 		case GREATER_THAN:
-			text.append(" > ");
-			appendValue(term.value);
-			break;
+			return appendGreaterThan(term.name, term.value);
+
 		case LIKE:
-			text.append(" LIKE ");
-			appendValue(term.value);
-			break;
+			return appendLike(term.name, term.value);
+
 		case LOWER_OR_EQUAL:
-			text.append(" <= ");
-			appendValue(term.value);
-			break;
+			return appendLowerOrEqual(term.name, term.value);
+
 		case LOWER_THAN:
-			text.append(" < ");
-			appendValue(term.value);
-			break;
+			return appendLowerThan(term.name, term.value);
+
 		case NOT_EQUAL_TO:
-			if (term.value == null) {
-				text.append(" IS NOT NULL");
-			} else {
-				text.append(" != ");
-				appendValue(term.value);
-			}
-			break;
+			return appendNotEqualTo(term.name, term.value);
+
 		case NOT_LIKE:
-			text.append(" NOT LIKE ");
-			appendValue(term.value);
-			break;
+			return appendNotLike(term.name, term.value);
+
 		default:
 			throw new RuntimeException("Unexpected filter comparison: " + term.comparison);
 
 		}
-		return this;
+
 	}
 
 	/**

@@ -6,21 +6,21 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ResultSetToClassList<T> implements ResultSetAdapter<List<T>> {
+public class ResultSetToObjectList<T> implements ResultSetAdapter<List<T>> {
 
 	private final DatabaseAspect<T> aspect;
 	private final int offset;
 	private final int limit;
 
-	public ResultSetToClassList(DatabaseAspect<T> aspect, int offset, int limit) {
+	public ResultSetToObjectList(DatabaseAspect<T> aspect, int offset, int limit) {
 		this.aspect = aspect;
 		this.offset = offset;
-		this.limit = limit <= 0 ?
-				Integer.MAX_VALUE :
-				limit;
+		this.limit = limit <= 0
+				? Integer.MAX_VALUE
+				: limit;
 	}
 
-	public ResultSetToClassList(DatabaseAspect<T> aspect) {
+	public ResultSetToObjectList(DatabaseAspect<T> aspect) {
 		this(aspect, 0, 0);
 	}
 
@@ -31,7 +31,7 @@ public class ResultSetToClassList<T> implements ResultSetAdapter<List<T>> {
 		final int colCount = metaData.getColumnCount();
 		final ArrayList<Integer> indices = new ArrayList<>(Math.max(colCount, aspect.size()));
 		final ArrayList<T> list = new ArrayList<>(100);
-		for (int i = 1; i < colCount; i++) {
+		for (int i = 1; i <= colCount; i++) {
 			String name = metaData.getColumnLabel(i);
 			int ordinal = aspect.getColumnOrdinal(name);
 			indices.add(ordinal);
@@ -39,7 +39,7 @@ public class ResultSetToClassList<T> implements ResultSetAdapter<List<T>> {
 		// skip offset
 		for (int i = 0; i < offset && resultset.next(); i++)
 			;
-		while ((counter++ < limit) && resultset.next()) {
+		while ((counter++ <= limit) && resultset.next()) {
 			T entity = aspect.newInstance();
 			for (int i = 0; i < colCount; i++) {
 				int ordinal = indices.get(i);
@@ -50,6 +50,7 @@ public class ResultSetToClassList<T> implements ResultSetAdapter<List<T>> {
 					}
 				}
 			}
+			list.add(entity);
 		}
 		return list;
 	}

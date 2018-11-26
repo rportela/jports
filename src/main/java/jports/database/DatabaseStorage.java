@@ -27,7 +27,7 @@ public class DatabaseStorage<T> extends DataStorage<T> {
 	}
 
 	public DatabaseStorage(Database database, Class<T> dataType) {
-		this(database, new DatabaseAspect<>(dataType));
+		this(database, DatabaseAspect.getInstance(dataType));
 	}
 
 	@Override
@@ -52,7 +52,7 @@ public class DatabaseStorage<T> extends DataStorage<T> {
 
 	@Override
 	public Select<T> select() {
-		return new DatabaseSelectClass<T>(database, aspect);
+		return new DatabaseSelectObject<T>(database, aspect);
 	}
 
 	@Override

@@ -1,9 +1,7 @@
 package jports.database;
 
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 import javax.sql.DataSource;
 
@@ -129,7 +127,7 @@ public abstract class Database {
 	 * @param objectName
 	 * @return
 	 */
-	public DatabaseSelect select(String objectName) {
-		return new DatabaseSelect(this, objectName);
+	public DatabaseSelectRow select(String objectName) {
+		return new DatabaseSelectRow(this, objectName);
 	}
 }

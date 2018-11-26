@@ -1,5 +1,7 @@
 package jports.database;
 
+import java.util.HashMap;
+
 import jports.data.DataAspect;
 import jports.data.DataAspectMember;
 import jports.reflection.AspectMemberAccessor;
@@ -8,7 +10,7 @@ public class DatabaseAspect<T> extends DataAspect<T, DataAspectMember<T>> {
 
 	private String database_object;
 
-	public DatabaseAspect(Class<T> dataType) {
+	private DatabaseAspect(Class<T> dataType) {
 		super(dataType);
 
 		DatabaseObject dbo = dataType.getAnnotation(DatabaseObject.class);
@@ -33,4 +35,18 @@ public class DatabaseAspect<T> extends DataAspect<T, DataAspectMember<T>> {
 		this.database_object = value;
 	}
 
+	private static final HashMap<Class<?>, DatabaseAspect<?>> INSTANCES;
+	static {
+		INSTANCES = new HashMap<>();
+	}
+
+	@SuppressWarnings("unchecked")
+	public static synchronized final <T> DatabaseAspect<T> getInstance(Class<T> dataType) {
+		DatabaseAspect<T> aspect = (DatabaseAspect<T>) INSTANCES.get(dataType);
+		if (aspect == null) {
+			aspect = new DatabaseAspect<>(dataType);
+			INSTANCES.put(dataType, aspect);
+		}
+		return aspect;
+	}
 }

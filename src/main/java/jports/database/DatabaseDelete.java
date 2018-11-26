@@ -1,5 +1,6 @@
 package jports.database;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -15,23 +16,20 @@ public class DatabaseDelete extends Delete {
 		this.target = target;
 	}
 
-	public int execute(Connection connection) throws SQLException {
-		return database
-				.createCommand()
-				.appendDelete(target, getFilter())
-				.executeNonQuery(connection);
-	}
-
-	@Override
 	public int execute() {
-		try (final Connection connection = database.getConnection()) {
-			try {
-				return execute(connection);
-			} finally {
-				connection.close();
-			}
+		DatabaseCommand command = database.createCommand();
+		try {
+			return command
+					.appendDelete(target, getFilter())
+					.executeNonQuery();
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
+		} finally {
+			try {
+				command.close();
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
 		}
 	}
 

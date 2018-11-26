@@ -7,10 +7,14 @@ import java.nio.charset.Charset;
 import javax.servlet.http.HttpServletResponse;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 public class HttpActionWriterForJson<TParams, TResult> implements HttpActionWriter<TParams, TResult> {
 
-	private static final Gson GSON = new Gson();
+	private static final Gson GSON = new GsonBuilder()
+			.setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+			.create();
+
 	private static final Charset UTF8 = Charset.forName("UTF-8");
 
 	@Override
