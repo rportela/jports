@@ -180,6 +180,7 @@ public abstract class Action<TParams, TResult> {
 	public synchronized final ActionExecution<TParams, TResult> execute(TParams params, Map<String, Object> headers) {
 		ActionExecution<TParams, TResult> execution = new ActionExecution<TParams, TResult>();
 		execution.headers = headers;
+		execution.params = params;
 		execute(execution);
 		return execution;
 	}

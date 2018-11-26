@@ -2,10 +2,12 @@ package jports.actions;
 
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.text.DateFormat;
 
 import javax.servlet.http.HttpServletRequest;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 /**
  * This class can parse JSON from an HTTP request into an expected action
@@ -16,7 +18,10 @@ import com.google.gson.Gson;
  */
 public class HttpActionParamParserForJson implements HttpActionParamParser {
 
-	private static Gson GSON = new Gson();
+	private static Gson GSON = new GsonBuilder()
+			.setDateFormat(DateFormat.FULL, DateFormat.FULL)
+			.create();
+
 	private static Charset UTF8 = Charset.forName("UTF-8");
 
 	/**

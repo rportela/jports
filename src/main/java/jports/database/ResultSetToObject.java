@@ -6,17 +6,17 @@ import java.sql.SQLException;
 
 import jports.data.DataAspectMember;
 
-public class ResultSetToClass<T> implements ResultSetAdapter<T> {
+public class ResultSetToObject<T> implements ResultSetAdapter<T> {
 
 	private final DatabaseAspect<T> aspect;
 	private final int offset;
 
-	public ResultSetToClass(DatabaseAspect<T> aspect, int offset) {
+	public ResultSetToObject(DatabaseAspect<T> aspect, int offset) {
 		this.aspect = aspect;
 		this.offset = offset;
 	}
 
-	public ResultSetToClass(DatabaseAspect<T> aspect) {
+	public ResultSetToObject(DatabaseAspect<T> aspect) {
 		this(aspect, 0);
 	}
 

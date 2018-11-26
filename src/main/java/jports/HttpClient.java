@@ -183,7 +183,8 @@ public class HttpClient {
 	 * @param payload
 	 * @return
 	 */
-	public HttpClient setPayload(byte[] payload) {
+	public HttpClient setPayload(String contentType, byte[] payload) {
+		this.requestHeaders.put("Content-Type", contentType);
 		this.payload = payload;
 		return this;
 	}
@@ -198,7 +199,6 @@ public class HttpClient {
 	 * @throws UnsupportedEncodingException
 	 */
 	public HttpClient setPayload(Map<String, String> form) throws UnsupportedEncodingException {
-		requestHeaders.put("Content-Type", "application/x-www-form-urlencoded");
 		String charsetName = charset.name();
 		StringBuilder postBuilder = new StringBuilder(1024);
 		boolean prepend_amp = false;
@@ -216,8 +216,10 @@ public class HttpClient {
 				postBuilder.append(URLEncoder.encode(value, charsetName));
 			}
 		}
-		this.payload = postBuilder.toString().getBytes(charset);
-		return this;
+
+		return setPayload(
+				"application/x-www-form-urlencoded",
+				postBuilder.toString().getBytes(charset));
 	}
 
 	/**
@@ -260,9 +262,9 @@ public class HttpClient {
 	 * @return
 	 */
 	public List<String> getResponseHeader(String name) {
-		return this.responseHeaders == null ?
-				null :
-				this.responseHeaders.get(name);
+		return this.responseHeaders == null
+				? null
+				: this.responseHeaders.get(name);
 	}
 
 	/**
@@ -272,9 +274,9 @@ public class HttpClient {
 	 * @return
 	 */
 	public Set<String> getResponseHeaderNames() {
-		return this.responseHeaders == null ?
-				null :
-				this.responseHeaders.keySet();
+		return this.responseHeaders == null
+				? null
+				: this.responseHeaders.keySet();
 	}
 
 	/**

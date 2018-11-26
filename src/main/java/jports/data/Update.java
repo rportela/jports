@@ -77,6 +77,7 @@ public abstract class Update extends Filterable<Update> {
 	 * Executes the command and returns the number of records affected by it;
 	 * 
 	 * @return
+	 * @throws Exception
 	 */
 	public abstract int execute();
 

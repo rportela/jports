@@ -45,14 +45,14 @@ public class DateAdapter implements Adapter<Date> {
 		if (source == null)
 			return null;
 		Class<?> dataType = source.getClass();
-		if (dataType.equals(Date.class))
+		if (source instanceof Date)
 			return (Date) source;
-		else if (Number.class.isAssignableFrom(dataType))
-			return new Date(((Number) source).longValue());
-		else if (dataType.equals(Long.TYPE))
-			return new Date((long) source);
 		else if (source instanceof Calendar)
 			return ((Calendar) source).getTime();
+		else if (dataType.equals(Long.TYPE))
+			return new Date((long) source);
+		else if (Number.class.isAssignableFrom(dataType))
+			return new Date(((Number) source).longValue());
 		else if (source instanceof String)
 			return parse((String) source);
 		else

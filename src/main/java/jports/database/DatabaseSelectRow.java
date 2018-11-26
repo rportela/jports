@@ -7,23 +7,23 @@ import java.util.Map;
 
 import jports.data.Select;
 
-public class DatabaseSelect extends Select<Map<String, Object>> {
+public class DatabaseSelectRow extends Select<Map<String, Object>> {
 
 	private final Database database;
 	private final String objectName;
 	private final ArrayList<String> columns = new ArrayList<>();
 
-	public DatabaseSelect(Database database, String objectName) {
+	public DatabaseSelectRow(Database database, String objectName) {
 		this.database = database;
 		this.objectName = objectName;
 	}
 
-	public DatabaseSelect addColumn(String name) {
+	public DatabaseSelectRow addColumn(String name) {
 		this.columns.add(name);
 		return this;
 	}
 
-	public DatabaseSelect addColumns(String... names) {
+	public DatabaseSelectRow addColumns(String... names) {
 		for (int i = 0; i < names.length; i++)
 			columns.add(names[i]);
 		return this;

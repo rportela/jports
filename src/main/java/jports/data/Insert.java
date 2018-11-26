@@ -49,6 +49,7 @@ public abstract class Insert {
 	 * Actually executes the command and returns the number of records affected;
 	 * 
 	 * @return
+	 * @throws Exception
 	 */
 	public abstract int execute();
 
@@ -57,6 +58,7 @@ public abstract class Insert {
 	 * values;
 	 * 
 	 * @return
+	 * @throws Exception
 	 */
 	public abstract Map<String, Object> executeWithGeneratedKeys();
 }

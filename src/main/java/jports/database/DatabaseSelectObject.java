@@ -6,12 +6,12 @@ import java.util.stream.Collectors;
 
 import jports.data.Select;
 
-public class DatabaseSelectClass<T> extends Select<T> {
+public class DatabaseSelectObject<T> extends Select<T> {
 
 	private Database database;
 	private DatabaseAspect<T> aspect;
 
-	public DatabaseSelectClass(Database database, DatabaseAspect<T> aspect) {
+	public DatabaseSelectObject(Database database, DatabaseAspect<T> aspect) {
 		this.database = database;
 		this.aspect = aspect;
 	}
@@ -37,7 +37,7 @@ public class DatabaseSelectClass<T> extends Select<T> {
 					.appendLimit(getLimit());
 
 			return command.executeQuery(
-					new ResultSetToClassList<>(
+					new ResultSetToObjectList<>(
 							aspect,
 							command.acceptsOffset() ?
 									0 :
@@ -105,7 +105,7 @@ public class DatabaseSelectClass<T> extends Select<T> {
 					.appendLimit(1);
 
 			return command.executeQuery(
-					new ResultSetToClass<>(
+					new ResultSetToObject<>(
 							aspect,
 							command.acceptsOffset() ?
 									0 :
