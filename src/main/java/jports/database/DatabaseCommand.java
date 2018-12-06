@@ -1,15 +1,9 @@
 package jports.database;
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -29,20 +23,20 @@ import jports.data.SortNode;
  * @author rportela
  *
  */
-public abstract class DatabaseCommand implements AutoCloseable, Closeable {
+public abstract class DatabaseCommand {
 
 	/**
 	 * The database that this command belong to;
 	 */
-	private final Statement statement;
+	private final Database database;;
 
 	/**
 	 * Creates a new instance of the database command;
 	 * 
 	 * @param database
 	 */
-	public DatabaseCommand(Statement statement) {
-		this.statement = statement;
+	public DatabaseCommand(Database database) {
+		this.database = database;
 	}
 
 	/**
@@ -59,25 +53,18 @@ public abstract class DatabaseCommand implements AutoCloseable, Closeable {
 	}
 
 	/**
-	 * Closes the underlying SQL statement;
-	 */
-	@Override
-	public void close() throws IOException {
-		try {
-			this.statement.close();
-		} catch (SQLException e) {
-			throw new IOException(e);
-		}
-	}
-
-	/**
 	 * Executes the command;
 	 * 
 	 * @return
 	 * @throws SQLException
 	 */
 	public boolean execute() throws SQLException {
-		return statement.execute(toString());
+		DatabaseConnection conn = database.getConnection();
+		try {
+			return conn.execute(text.toString());
+		} finally {
+			conn.close();
+		}
 
 	}
 
@@ -89,7 +76,13 @@ public abstract class DatabaseCommand implements AutoCloseable, Closeable {
 	 * @throws SQLException
 	 */
 	public int executeNonQuery() throws SQLException {
-		return statement.executeUpdate(toString());
+		DatabaseConnection conn = database.getConnection();
+		try {
+			return conn.executeNonQuery(text.toString());
+		} finally {
+			conn.close();
+		}
+
 	}
 
 	/**
@@ -100,13 +93,12 @@ public abstract class DatabaseCommand implements AutoCloseable, Closeable {
 	 * @throws SQLException
 	 */
 	public <T> T executeQuery(ResultSetAdapter<T> adapter) throws SQLException {
-		ResultSet resultSet = statement.executeQuery(toString());
+		DatabaseConnection conn = database.getConnection();
 		try {
-			return adapter.process(resultSet);
+			return conn.executeQuery(text.toString(), adapter);
 		} finally {
-			resultSet.close();
+			conn.close();
 		}
-
 	}
 
 	/**
@@ -117,22 +109,11 @@ public abstract class DatabaseCommand implements AutoCloseable, Closeable {
 	 * @throws SQLException
 	 */
 	public Map<String, Object> executeWithGeneratedKeys() throws SQLException {
-		statement.execute(toString(), Statement.RETURN_GENERATED_KEYS);
-		ResultSet rs = statement.getGeneratedKeys();
+		DatabaseConnection conn = database.getConnection();
 		try {
-			if (!rs.next())
-				return null;
-			ResultSetMetaData meta = rs.getMetaData();
-			LinkedHashMap<String, Object> gks = new LinkedHashMap<>();
-			int count = meta.getColumnCount();
-			for (int i = 1; i <= count; i++) {
-				String name = meta.getColumnLabel(i);
-				Object value = rs.getObject(i);
-				gks.put(name, value);
-			}
-			return gks;
+			return conn.executeWithGeneratedKeys(text.toString());
 		} finally {
-			rs.close();
+			conn.close();
 		}
 	}
 
@@ -144,13 +125,11 @@ public abstract class DatabaseCommand implements AutoCloseable, Closeable {
 	 * @throws SQLException
 	 */
 	public Object executeScalar() throws SQLException {
-		ResultSet rs = statement.executeQuery(text.toString());
+		DatabaseConnection conn = database.getConnection();
 		try {
-			return rs.next()
-					? rs.getObject(1)
-					: null;
+			return conn.executeScalar(text.toString());
 		} finally {
-			rs.close();
+			conn.close();
 		}
 	}
 

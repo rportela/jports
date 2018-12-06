@@ -1,13 +1,12 @@
 package jports.database.postgres;
 
-import java.sql.Statement;
-
+import jports.database.Database;
 import jports.database.DatabaseCommand;
 
 public class PostgresCommand extends DatabaseCommand {
 
-	public PostgresCommand(Statement statement) {
-		super(statement);
+	public PostgresCommand(Database database) {
+		super(database);
 	}
 
 	@Override

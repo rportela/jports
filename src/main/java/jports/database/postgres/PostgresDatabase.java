@@ -1,7 +1,5 @@
 package jports.database.postgres;
 
-import java.sql.SQLException;
-
 import jports.database.Database;
 import jports.database.DatabaseCommand;
 
@@ -18,11 +16,7 @@ public class PostgresDatabase extends Database {
 
 	@Override
 	public DatabaseCommand createCommand() {
-		try {
-			return new PostgresCommand(getConnection().createStatement());
-		} catch (SQLException e) {
-			throw new RuntimeException(e);
-		}
+		return new PostgresCommand(this);
 	}
 
 }

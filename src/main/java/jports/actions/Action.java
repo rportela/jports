@@ -5,6 +5,8 @@ import java.lang.reflect.Type;
 import java.util.Date;
 import java.util.Map;
 
+import com.google.gson.GsonBuilder;
+
 import jports.validations.ValidationAspect;
 import jports.validations.ValidationResult;
 
@@ -103,7 +105,7 @@ public abstract class Action<TParams, TResult> {
 	 * 
 	 * @param execution
 	 */
-	protected void validate(ActionExecution<TParams, TResult> execution) {
+	protected void validate(ActionExecution<TParams, TResult> execution) throws Exception {
 		Class<TParams> paramsClass = getParamsClass();
 		if (execution.params == null) {
 			if (Void.class.equals(paramsClass))
@@ -131,7 +133,7 @@ public abstract class Action<TParams, TResult> {
 	 * 
 	 * @param execution
 	 */
-	protected void authenticate(ActionExecution<TParams, TResult> execution) {
+	protected void authenticate(ActionExecution<TParams, TResult> execution) throws Exception {
 
 	}
 
@@ -140,15 +142,16 @@ public abstract class Action<TParams, TResult> {
 	 * your action;
 	 * 
 	 * @param execution
+	 * @throws Exception
 	 */
-	protected abstract void mainFlow(ActionExecution<TParams, TResult> execution);
+	protected abstract void mainFlow(ActionExecution<TParams, TResult> execution) throws Exception;
 
 	/**
 	 * Actually executes the use case using values set in que execution wrapper;
 	 * 
 	 * @param execution
 	 */
-	public synchronized final void execute(ActionExecution<TParams, TResult> execution) {
+	private synchronized final void execute(ActionExecution<TParams, TResult> execution) {
 		if (execution.name == null) {
 			execution.name = getClass().toString();
 		}
@@ -203,6 +206,19 @@ public abstract class Action<TParams, TResult> {
 	 */
 	public HttpActionWriter<TParams, TResult> getHttpWriter() {
 		return new HttpActionWriterForJson<>();
+	}
+
+	/**
+	 * Executes an action with void parameters and write the output to System.out;
+	 * 
+	 * @param action
+	 */
+	public static void run(Action<Void, ?> action) {
+		ActionExecution<Void, ?> execution = action.execute((Void) null);
+		new GsonBuilder()
+				.setPrettyPrinting()
+				.create()
+				.toJson(execution, System.out);
 	}
 
 }

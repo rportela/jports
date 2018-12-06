@@ -11,7 +11,7 @@ import com.google.gson.GsonBuilder;
 
 public class HttpActionWriterForJson<TParams, TResult> implements HttpActionWriter<TParams, TResult> {
 
-	private static final Gson GSON = new GsonBuilder()
+	public static final Gson GSON = new GsonBuilder()
 			.setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
 			.create();
 
