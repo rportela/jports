@@ -42,6 +42,11 @@ public abstract class Upsert {
 		return this.keys.contains(key);
 	}
 
-	public abstract int execute();
+	public Upsert clear() {
+		this.values.clear();
+		return this;
+	}
+
+	public abstract void execute();
 
 }

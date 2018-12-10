@@ -2,6 +2,7 @@ package jports.database.postgres;
 
 import jports.database.Database;
 import jports.database.DatabaseCommand;
+import jports.database.DatabaseUpsert;
 
 public class PostgresDatabase extends Database {
 
@@ -17,6 +18,11 @@ public class PostgresDatabase extends Database {
 	@Override
 	public DatabaseCommand createCommand() {
 		return new PostgresCommand(this);
+	}
+
+	@Override
+	public DatabaseUpsert upsert(String target) {
+		return new PostgresUpsert(this, target);
 	}
 
 }

@@ -20,6 +20,10 @@ public class Incrementer {
 		value++;
 	}
 
+	public void increment(final int inc) {
+		this.value += inc;
+	}
+
 	/**
 	 * Gets the value wrapped by this incrementer;
 	 * 

@@ -301,7 +301,7 @@ public abstract class DataStorage<T> implements Storage<T> {
 		if (id == null)
 			return 0;
 		if (Number.class.isAssignableFrom(identity.getDataType()) &&
-				((Number) id).intValue() == 0L)
+				((Number) id).longValue() == 0L)
 			return 0;
 		else
 			return updateByMember(identity, id, entity);
@@ -387,7 +387,7 @@ public abstract class DataStorage<T> implements Storage<T> {
 		if (attemptWasMade)
 			return 0;
 		else {
-			throw new RuntimeException("Unable to find filters to delete " + entity
+			throw new RuntimeException("Unable to find filters to update " + entity
 					+ ". Please try to annotate members as identity, unique or composite key "
 					+ "and pass an argument that have one those values set.");
 		}

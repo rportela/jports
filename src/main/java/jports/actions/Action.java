@@ -221,4 +221,17 @@ public abstract class Action<TParams, TResult> {
 				.toJson(execution, System.out);
 	}
 
+	/**
+	 * Executes an action with void parameters and write the output to System.out;
+	 * 
+	 * @param action
+	 */
+	public static <T> void run(Action<T, ?> action, T parameters) {
+		ActionExecution<T, ?> execution = action.execute(parameters);
+		new GsonBuilder()
+				.setPrettyPrinting()
+				.create()
+				.toJson(execution, System.out);
+	}
+
 }

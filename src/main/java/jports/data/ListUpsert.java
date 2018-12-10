@@ -11,7 +11,7 @@ public class ListUpsert<T> extends Upsert {
 	}
 
 	@Override
-	public int execute() {
+	public void execute() {
 		Update update = storage.createUpdate();
 		for (Entry<String, Object> entry : getValues().entrySet()) {
 			if (!containsKey(entry.getKey()))
@@ -25,9 +25,9 @@ public class ListUpsert<T> extends Upsert {
 			for (Entry<String, Object> entry : getValues().entrySet()) {
 				insert.add(entry.getKey(), entry.getValue());
 			}
-			result = insert.execute();
+			insert.execute();
 		}
-		return result;
+
 	}
 
 }

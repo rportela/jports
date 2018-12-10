@@ -38,6 +38,7 @@ public abstract class Database implements AutoCloseable, Closeable {
 		this.jdbcUrl = jdbcUrl;
 		this.username = username;
 		this.password = password;
+
 		this.pool = new LinkedList<>();
 	}
 
@@ -90,6 +91,16 @@ public abstract class Database implements AutoCloseable, Closeable {
 	}
 
 	/**
+	 * Creates a new database upsert command;
+	 * 
+	 * @param target
+	 * @return
+	 */
+	public DatabaseUpsert upsert(String target) {
+		return new DatabaseUpsert(this, target);
+	}
+
+	/**
 	 * Gets a pooled wrapped connection that will return itself to the connection
 	 * pool when closed;
 	 * 
@@ -97,9 +108,13 @@ public abstract class Database implements AutoCloseable, Closeable {
 	 * @throws SQLException
 	 */
 	public synchronized DatabaseConnection getConnection() throws SQLException {
-		DatabaseConnection conn = pool.isEmpty()
-				? null
-				: pool.removeFirst();
+		DatabaseConnection conn;
+		synchronized (pool) {
+			conn = pool.isEmpty()
+					? null
+					: pool.removeFirst();
+		}
+
 		if (conn == null) {
 			conn = new DatabaseConnection(this, DriverManager.getConnection(jdbcUrl, username, password));
 		}

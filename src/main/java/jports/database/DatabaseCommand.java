@@ -718,8 +718,7 @@ public abstract class DatabaseCommand {
 				.appendWhere(where)
 				.appendOrderBy(orderBy)
 				.appendOffset(offset)
-				.appendLimit(limit)
-				.appendSql(";");
+				.appendLimit(limit);
 	}
 
 	/**
@@ -732,8 +731,7 @@ public abstract class DatabaseCommand {
 	public DatabaseCommand appendDelete(String tableName, Filter where) {
 		return appendSql("DELETE FROM ")
 				.appendName(tableName)
-				.appendWhere(where)
-				.appendSql(";");
+				.appendWhere(where);
 	}
 
 	/**
@@ -749,8 +747,8 @@ public abstract class DatabaseCommand {
 				.appendName(tableName)
 				.appendSql(" SET ")
 				.appendNameValue(values)
-				.appendWhere(where)
-				.appendSql(";");
+				.appendWhere(where);
+
 	}
 
 	/**
@@ -767,6 +765,6 @@ public abstract class DatabaseCommand {
 				.appendNames(values.keySet())
 				.appendSql(") VALUES (")
 				.appendValues(values.values())
-				.appendSql(");");
+				.appendSql(")");
 	}
 }
