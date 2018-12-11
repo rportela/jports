@@ -34,8 +34,8 @@ public final class AdapterFactory {
 		INSTANCES.put(Double.TYPE, DoubleAdapter.class);
 		// INSTANCES.put(Float.class, FloatAdapter.class);
 		// INSTANCES.put(Float.TYPE, FloatAdapter.class);
-		// NSTANCES.put(Long.class, LongAdapter.class);
-		// INSTANCES.put(Long.TYPE, LongAdapter.class);
+		INSTANCES.put(Long.class, LongAdapter.class);
+		INSTANCES.put(Long.TYPE, LongAdapter.class);
 		INSTANCES.put(Integer.class, IntegerAdapter.class);
 		INSTANCES.put(Integer.TYPE, IntegerAdapter.class);
 

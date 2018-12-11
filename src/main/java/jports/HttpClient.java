@@ -60,7 +60,7 @@ public class HttpClient {
 	public HttpClient() {
 		requestHeaders.put("Cache-Control", "no-cache");
 		requestHeaders.put("User-Agent", "JPorts Http Client 2.0");
-		requestHeaders.put("Connection", "close");
+		requestHeaders.put("Connection", "keep-alive");
 	}
 
 	/**
@@ -519,12 +519,19 @@ public class HttpClient {
 	public String getResponseText() throws IOException {
 		try (InputStreamReader reader = new InputStreamReader(getInputStream(), charset)) {
 			StringBuilder builder = new StringBuilder(4096);
-			char[] buffer = new char[4096];
-			int read;
-			while ((read = reader.read(buffer)) >= 0) {
-				builder.append(buffer, 0, read);
+			try {
+				char[] buffer = new char[4096];
+				int read;
+				while ((read = reader.read(buffer)) >= 0) {
+					builder.append(buffer, 0, read);
+				}
+			} finally {
+				try {
+					reader.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
-			reader.close();
 			return builder.toString();
 		}
 	}
@@ -537,7 +544,8 @@ public class HttpClient {
 	 * @throws JsonSyntaxException
 	 * @throws IOException
 	 */
-	public <T> T getResponseJson(Class<T> classOfT) throws JsonSyntaxException, IOException {
+	public <T> T getResponseJson(Class<T> classOfT) throws JsonSyntaxException,
+			IOException {
 		return GSON.fromJson(getResponseText(), classOfT);
 	}
 
@@ -550,7 +558,8 @@ public class HttpClient {
 	 * @throws JsonSyntaxException
 	 * @throws IOException
 	 */
-	public <T> T getResponseJson(Type ofType) throws JsonSyntaxException, IOException {
+	public <T> T getResponseJson(Type ofType) throws JsonSyntaxException,
+			IOException {
 		return GSON.fromJson(getResponseText(), ofType);
 	}
 
@@ -563,7 +572,8 @@ public class HttpClient {
 	 * @throws IOException
 	 */
 	@SuppressWarnings("unchecked")
-	public Map<String, Object> getResponseJson() throws JsonSyntaxException, IOException {
+	public Map<String, Object> getResponseJson() throws JsonSyntaxException,
+			IOException {
 		return getResponseJson(Map.class);
 	}
 
@@ -576,7 +586,9 @@ public class HttpClient {
 	 * @throws IOException
 	 * @throws ParserConfigurationException
 	 */
-	public Document getResponseXml() throws SAXException, IOException, ParserConfigurationException {
+	public Document getResponseXml() throws SAXException,
+			IOException,
+			ParserConfigurationException {
 		return XML_BUILDER_FACTORY
 				.newDocumentBuilder()
 				.parse(getInputStream());

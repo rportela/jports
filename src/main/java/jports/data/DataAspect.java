@@ -359,4 +359,8 @@ public abstract class DataAspect<TClass, TMember extends DataAspectMember<TClass
 		}
 
 	}
+
+	public TMember[] getColumnArray(String... names) {
+		return null;
+	}
 }

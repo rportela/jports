@@ -22,6 +22,8 @@ public class IntegerAdapter implements Adapter<Integer> {
 			return (Integer) source;
 		else if (Number.class.isAssignableFrom(source.getClass()))
 			return ((Number) source).intValue();
+		else if (source instanceof String)
+			return parse((String) source);
 		else
 			throw new RuntimeException("Can't convert " + source + " to Integer.");
 	}
