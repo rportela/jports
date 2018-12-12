@@ -1,5 +1,6 @@
 package jports.data;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -360,7 +361,11 @@ public abstract class DataAspect<TClass, TMember extends DataAspectMember<TClass
 
 	}
 
+	@SuppressWarnings("unchecked")
 	public TMember[] getColumnArray(String... names) {
-		return null;
+		TMember[] members = (TMember[]) Array.newInstance(get(0).getClass(), names.length);
+		for (int i = 0; i < names.length; i++)
+			members[i] = getColumn(names[i]);
+		return members;
 	}
 }
