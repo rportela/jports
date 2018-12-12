@@ -20,7 +20,7 @@ public class FixedLengthAspect<T> extends Aspect<T, FixedLengthAspectMember<T>> 
 	private Charset charset;
 	private int offset;
 
-	protected Class<T> initializeDataType(Class<T> dataType) {
+	protected void initializeDataType(Class<T> dataType) {
 		FixedLengthTable fixedLengthTable = dataType.getAnnotation(FixedLengthTable.class);
 		if (fixedLengthTable == null) {
 			this.charset = Charset.defaultCharset();
@@ -31,7 +31,7 @@ public class FixedLengthAspect<T> extends Aspect<T, FixedLengthAspectMember<T>> 
 					: Charset.forName(fixedLengthTable.charset());
 			this.offset = fixedLengthTable.offset();
 		}
-		return super.intializeDataType(dataType);
+		super.intializeDataType(dataType);
 	}
 
 	public FixedLengthAspect(Class<T> dataType) {

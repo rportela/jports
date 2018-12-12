@@ -145,8 +145,8 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>>
 			}
 	}
 
-	protected Class<TClass> intializeDataType(Class<TClass> dataType) {
-		return dataType;
+	protected void intializeDataType(Class<TClass> dataType) {
+
 	}
 
 	/**
@@ -155,7 +155,8 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>>
 	 * @param dataType
 	 */
 	protected Aspect(Class<TClass> dataType) {
-		this.dataType = intializeDataType(dataType);
+		this.dataType = dataType;
+		intializeDataType(dataType);
 		final Field[] fields = dataType.getFields();
 		final Method[] methods = dataType.getMethods();
 		this.members = new ArrayList<TMember>(fields.length + methods.length);
