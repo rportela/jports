@@ -355,7 +355,10 @@ public class HttpClient {
 	 * when the name matches.
 	 */
 	private void processResponseCookies() {
-		List<HttpCookie> parsedCookies = HttpCookie.parse(connection.getHeaderField("Set-Cookie"));
+		String cookieField = connection.getHeaderField("Set-Cookie");
+		if (cookieField == null)
+			return;
+		List<HttpCookie> parsedCookies = HttpCookie.parse(cookieField);
 		for (HttpCookie hc : parsedCookies) {
 			boolean replaced = false;
 			for (int i = 0; i < cookies.size() && replaced == false; i++) {
@@ -517,7 +520,8 @@ public class HttpClient {
 	 * @throws IOException
 	 */
 	public String getResponseText() throws IOException {
-		try (InputStreamReader reader = new InputStreamReader(getInputStream(), charset)) {
+		InputStream is = getInputStream();
+		try (InputStreamReader reader = new InputStreamReader(is, charset)) {
 			StringBuilder builder = new StringBuilder(4096);
 			try {
 				char[] buffer = new char[4096];
@@ -533,6 +537,8 @@ public class HttpClient {
 				}
 			}
 			return builder.toString();
+		} finally {
+			is.close();
 		}
 	}
 

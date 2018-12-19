@@ -6,7 +6,7 @@ import jports.database.DatabaseUpsert;
 
 public class PostgresDatabase extends Database {
 
-	public PostgresDatabase(String jdbcUrl, String username, String password) {
+	public PostgresDatabase(String jdbcUrl, String username, String password) throws ClassNotFoundException {
 		super(jdbcUrl, username, password);
 	}
 

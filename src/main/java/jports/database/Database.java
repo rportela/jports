@@ -33,12 +33,13 @@ public abstract class Database implements AutoCloseable, Closeable {
 	 * @param jdbcUrl
 	 * @param username
 	 * @param password
+	 * @throws ClassNotFoundException
 	 */
-	public Database(String jdbcUrl, String username, String password) {
+	public Database(String jdbcUrl, String username, String password) throws ClassNotFoundException {
 		this.jdbcUrl = jdbcUrl;
 		this.username = username;
 		this.password = password;
-
+		Class.forName(getDriverClass());
 		this.pool = new LinkedList<>();
 	}
 

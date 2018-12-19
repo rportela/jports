@@ -394,4 +394,15 @@ public abstract class DataStorage<T> implements Storage<T> {
 
 	}
 
+	public T readById(Object value) {
+		DataAspectMember<T> identity = getAspect().getIdentity();
+		if (identity == null) {
+			throw new RuntimeException(getAspect().getDataType() + " has no identity.");
+		} else {
+			return select()
+					.where(identity.getColumnName(), value)
+					.first();
+		}
+	}
+
 }
