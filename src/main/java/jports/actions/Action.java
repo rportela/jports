@@ -165,6 +165,7 @@ public abstract class Action<TParams, TResult> {
 
 			}
 		} catch (Exception e) {
+			e.printStackTrace();
 			execution.exception = e;
 			execution.result_type = ActionResultType.EXCEPTION_RAISED;
 		}

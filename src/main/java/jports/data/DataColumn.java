@@ -5,6 +5,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import jports.adapters.Adapter;
+import jports.adapters.VoidAdapter;
+
 /**
  * This is the default annotation of data members. It contains only the column
  * name and the column type. If no name is provided, the member name should be
@@ -31,4 +34,18 @@ public @interface DataColumn {
 	 * @return
 	 */
 	public ColumnType type() default ColumnType.REGULAR;
+
+	/**
+	 * Use this to add a custom data adapter to your column;
+	 * 
+	 * @return
+	 */
+	public Class<? extends Adapter<?>> adapter() default VoidAdapter.class;
+
+	/**
+	 * Use this to set a custom data format to your adapter;
+	 * 
+	 * @return
+	 */
+	public String format() default "";
 }

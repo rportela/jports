@@ -10,6 +10,10 @@ public class DateAdapter implements Adapter<Date> {
 
 	private DateFormat format;
 
+	public DateAdapter() {
+		this(DateFormat.getInstance());
+	}
+
 	public DateAdapter(DateFormat format) {
 		this.format = format;
 	}

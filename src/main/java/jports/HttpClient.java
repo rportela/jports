@@ -15,6 +15,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -165,6 +166,53 @@ public class HttpClient {
 	 */
 	public HttpClient setMethod(String method) {
 		this.method = method;
+		return this;
+	}
+
+	/**
+	 * This is the address of the previous web page from which a link to the
+	 * currently requested page was followed. (The word “referrer” has been
+	 * misspelled in the RFC as well as in most implementations to the point that it
+	 * has become standard usage and is considered correct terminology)
+	 * 
+	 * @param referrer
+	 * @return
+	 */
+	public HttpClient setReferer(String referrer) {
+		return setRequestHeader("Referer", referrer);
+	}
+
+	/**
+	 * Adds a cookie to the list of cookies of this client or replaces an existing
+	 * one with the same name;
+	 * 
+	 * @param cookie
+	 * @return
+	 */
+	public HttpClient setCookie(HttpCookie cookie) {
+		for (int i = 0; i < cookies.size(); i++) {
+			if (cookie.getName().equalsIgnoreCase(cookies.get(i).getName())) {
+				cookies.set(i, cookie);
+				return this;
+			}
+		}
+		this.cookies.add(cookie);
+		return this;
+	}
+
+	/**
+	 * Adds or replaces cookies in this HTTP client;
+	 * 
+	 * @param cookies
+	 * @return
+	 */
+	public HttpClient setCookies(Collection<HttpCookie> cookies) {
+		if (this.cookies.isEmpty()) {
+			this.cookies.addAll(cookies);
+		} else {
+			for (HttpCookie cookie : cookies)
+				this.setCookie(cookie);
+		}
 		return this;
 	}
 
@@ -486,7 +534,15 @@ public class HttpClient {
 	public InputStream getInputStream() throws IOException {
 		if (this.connection == null)
 			this.connect();
-		return this.connection.getInputStream();
+		try {
+			return this.connection.getInputStream();
+		} catch (IOException e) {
+			InputStream errorStream = this.connection.getErrorStream();
+			if (errorStream != null) {
+				System.err.write(errorStream.readAllBytes());
+			}
+			throw e;
+		}
 	}
 
 	/**
