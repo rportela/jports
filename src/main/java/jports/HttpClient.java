@@ -32,6 +32,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 
+import jports.adapters.InputStreamAdapter;
+
 /**
  * This class wraps useful methods for handling URL connections and
  * sending/receiving data from HTTP transport;
@@ -539,7 +541,7 @@ public class HttpClient {
 		} catch (IOException e) {
 			InputStream errorStream = this.connection.getErrorStream();
 			if (errorStream != null) {
-				System.err.write(errorStream.readAllBytes());
+				System.err.write(new InputStreamAdapter().toBytes(errorStream));
 			}
 			throw e;
 		}
