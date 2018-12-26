@@ -4,24 +4,55 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.Charset;
 
+/**
+ * This class creates input streams out of bytes and Strings; It also contain
+ * useful methods for reading and writing streams to strings and to bytes;
+ * 
+ * @author rportela
+ *
+ */
 public class InputStreamAdapter implements Adapter<InputStream> {
 
+	/**
+	 * The character set used to convert streams;
+	 */
 	private final Charset charset;
 
+	/**
+	 * Creates a new instance of the input stream adapter using UTF-8 as the default
+	 * character set.
+	 */
 	public InputStreamAdapter() {
 		this("UTF-8");
 	}
 
+	/**
+	 * Creates a new instance of the input stream adapter with a particular
+	 * character set.
+	 * 
+	 * @param charsetName
+	 */
 	public InputStreamAdapter(String charsetName) {
 		this(Charset.forName(charsetName));
 	}
 
+	/**
+	 * Creates a new instance of the input stream adapter with a particular
+	 * character set.
+	 * 
+	 * @param charset
+	 */
 	public InputStreamAdapter(Charset charset) {
 		this.charset = charset;
 	}
 
+	/**
+	 * Gets the bytes of an input string using the instance's character set and
+	 * converts them to a byte array input stream;
+	 */
 	@Override
 	public InputStream parse(String source) {
 		return source == null || source.isEmpty()
@@ -29,6 +60,10 @@ public class InputStreamAdapter implements Adapter<InputStream> {
 				: new ByteArrayInputStream(source.getBytes(charset));
 	}
 
+	/**
+	 * Reads the bytes from the input stream and create a new string using the
+	 * instance's character set;
+	 */
 	@Override
 	public String format(InputStream source) {
 		try {
@@ -40,6 +75,9 @@ public class InputStreamAdapter implements Adapter<InputStream> {
 		}
 	}
 
+	/**
+	 * Converts from different source objects to an input stream;
+	 */
 	@Override
 	public InputStream convert(Object source) {
 		if (source == null)
@@ -54,13 +92,17 @@ public class InputStreamAdapter implements Adapter<InputStream> {
 			throw new RuntimeException("Can't convert " + source + " to InputStream.");
 	}
 
+	/**
+	 * Gets the bytes of an input stream;
+	 * 
+	 * @param source
+	 * @return
+	 * @throws IOException
+	 */
 	public byte[] toBytes(InputStream source) throws IOException {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream(4096);
-		byte[] buffer = new byte[4096];
 		try {
-			for (int r = source.read(buffer); r >= 0; r = source.read(buffer)) {
-				bos.write(buffer, 0, r);
-			}
+			copy(source, bos, 4096);
 			return bos.toByteArray();
 		} finally {
 			try {
@@ -71,6 +113,27 @@ public class InputStreamAdapter implements Adapter<InputStream> {
 		}
 	}
 
+	/**
+	 * Creates a new string by reading the bytes from the input stream and using the
+	 * instance's character set. This method is the same as calling "format".
+	 * 
+	 * @param source
+	 * @return
+	 */
+	public String toString(InputStream source) {
+		return format(source);
+	}
+
+	public void copy(InputStream source, OutputStream dest, int bufferSize) throws IOException {
+		byte[] buffer = new byte[bufferSize];
+		for (int r = source.read(buffer); r >= 0; r = source.read(buffer)) {
+			dest.write(buffer, 0, r);
+		}
+	}
+
+	/**
+	 * Gets the data type (InputStream) that this Adapter can handle.
+	 */
 	@Override
 	public Class<InputStream> getDataType() {
 		return InputStream.class;
