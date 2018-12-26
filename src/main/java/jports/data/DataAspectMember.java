@@ -46,6 +46,22 @@ public class DataAspectMember<TClass> extends AspectMember<TClass> implements Co
 				: column_name;
 		this.adapter = AdapterFactory.createAdapter(accessor.getDataType(), adapterClass, pattern);
 	}
+	
+	/**
+	 * Creates a new instance of the data aspect member without adapterClass and pattern
+	 * 
+	 * @param accessor
+	 * @param column_type
+	 * @param column_name
+	 * 
+	 * @author Giovanna Marinelli
+	 */
+	public DataAspectMember(
+			AspectMemberAccessor<TClass> accessor,
+			ColumnType column_type,
+			String column_name) {
+		this(accessor, column_type, column_name, null, null);
+	}
 
 	/**
 	 * Creates a new instance of the data aspect member class.
