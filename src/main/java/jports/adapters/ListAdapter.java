@@ -16,8 +16,19 @@ public class ListAdapter<T> implements Adapter<List<T>> {
 	}
 
 	@Override
-	public List<T> parse(String source) {
 
+	public List<T> parse(String source) {
+		if (source == null || source.isBlank())
+			return null;
+		else {
+			String[] vals = source.split(separator);
+			List<T> list = newInstance(vals.length);
+			for (int i = 0; i < vals.length; i++) {
+				T item = adapter.parse(vals[i]);
+				list.add(item);
+			}
+			return list;
+		}
 	}
 
 	@Override

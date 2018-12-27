@@ -86,6 +86,9 @@ public final class AdapterFactory {
 		if (VoidAdapter.class.equals(adapterClass) || adapterClass == null) {
 			adapterClass = INSTANCES.get(claz);
 		}
+		if (adapterClass == null) {
+			throw new RuntimeException("Can't find and adapter for " + claz);
+		}
 		try {
 			Object adapter = pattern == null || pattern.isEmpty()
 					? adapterClass.getConstructor().newInstance()
