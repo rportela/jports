@@ -124,11 +124,39 @@ public class InputStreamAdapter implements Adapter<InputStream> {
 		return format(source);
 	}
 
-	public void copy(InputStream source, OutputStream dest, int bufferSize) throws IOException {
+	/**
+	 * Copies bytes from the source input stream to the output destination stream
+	 * using the default 4096 byte buffer; It returns the total number of bytes
+	 * copied from one stream to the other;
+	 * 
+	 * @param source
+	 * @param dest
+	 * @return
+	 * @throws IOException
+	 */
+	public int copy(InputStream source, OutputStream dest) throws IOException {
+		return copy(source, dest, 4096);
+	}
+
+	/**
+	 * Copies bytes from the source input stream to the output destination stream
+	 * using a custom size byte buffer; It returns the total number of bytes copied
+	 * from one stream to the other;
+	 * 
+	 * @param source
+	 * @param dest
+	 * @param bufferSize
+	 * @return
+	 * @throws IOException
+	 */
+	public int copy(InputStream source, OutputStream dest, int bufferSize) throws IOException {
+		int t = 0;
 		byte[] buffer = new byte[bufferSize];
 		for (int r = source.read(buffer); r >= 0; r = source.read(buffer)) {
 			dest.write(buffer, 0, r);
+			t += r;
 		}
+		return t;
 	}
 
 	/**
