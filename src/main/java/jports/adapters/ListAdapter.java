@@ -18,7 +18,7 @@ public class ListAdapter<T> implements Adapter<List<T>> {
 	@Override
 
 	public List<T> parse(String source) {
-		if (source == null || source.isBlank())
+		if (source == null || source.isEmpty())
 			return null;
 		else {
 			String[] vals = source.split(separator);
