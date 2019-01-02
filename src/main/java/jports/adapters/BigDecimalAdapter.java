@@ -6,7 +6,7 @@ public class BigDecimalAdapter implements Adapter<BigDecimal> {
 
 	@Override
 	public BigDecimal parse(String source) {
-		return source == null || source.isBlank()
+		return source == null || source.isEmpty()
 				? null
 				: new BigDecimal(source);
 	}
