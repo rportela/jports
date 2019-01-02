@@ -26,6 +26,10 @@ public class CopyMachine<TSource, TDest> {
 		}
 	}
 
+	public static <TSource, TDest> CopyMachine<TSource, TDest> create(Class<TSource> source, Class<TDest> dest) {
+		return new CopyMachine<>(source, dest);
+	}
+
 	public void map(String sourceName, String destName) {
 		AspectMember<TSource> sourceMember = source.get(sourceName);
 		AspectMember<TDest> destinationMember = destination.get(destName);

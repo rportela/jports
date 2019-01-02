@@ -1,6 +1,7 @@
 package jports.adapters;
 
 import java.lang.reflect.Constructor;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashMap;
 
@@ -42,6 +43,8 @@ public final class AdapterFactory {
 		INSTANCES.put(String.class, StringAdapter.class);
 		INSTANCES.put(Number.class, NumberAdapter.class);
 		INSTANCES.put(Date.class, DateAdapter.class);
+
+		INSTANCES.put(BigDecimal.class, BigDecimalAdapter.class);
 	}
 
 	/**
