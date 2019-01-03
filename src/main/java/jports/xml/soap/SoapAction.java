@@ -9,9 +9,8 @@ public class SoapAction<TParams extends SoapActionParameter, TResult extends Soa
 	@Override
 	protected void mainFlow(ActionExecution<TParams, TResult> execution) {
 
-		TParams params = execution.params;
-		
-		
+		// TParams params = execution.params;
+
 	}
 
 }
