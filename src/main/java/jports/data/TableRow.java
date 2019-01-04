@@ -1,9 +1,11 @@
 package jports.data;
 
+import jports.ShowStopper;
+
 public class TableRow {
 
-	public final Table table;
-	public Object[] values;
+	private final Table table;
+	private Object[] values;
 
 	public TableRow(Table table, Object... values) {
 		this.table = table;
@@ -22,17 +24,27 @@ public class TableRow {
 
 	public void set(int ordinal, Object value) {
 		if (ordinal < 0 || ordinal >= table.getColumnCount()) {
-			throw new RuntimeException(
+			throw new ShowStopper(
 					"Invalid column ordinal: " +
 							ordinal +
 							". Range is [0," +
-							table.getColumnCount() + "[");
-		} else
+							table.getColumnCount() +
+							"[");
+		} else {
 			values[ordinal] = value;
+		}
 	}
 
 	public void set(String name, Object value) {
 		set(table.getColumnOrdinal(name), value);
+	}
+
+	public Table getTable() {
+		return this.table;
+	}
+
+	public Object[] getValues() {
+		return this.values;
 	}
 
 }

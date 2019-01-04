@@ -3,6 +3,7 @@ package jports.database;
 import java.util.List;
 import java.util.Map;
 
+import jports.ShowStopper;
 import jports.data.FilterExpression;
 import jports.data.Upsert;
 
@@ -60,7 +61,7 @@ public class DatabaseUpsert extends Upsert {
 		try {
 			createCommand().execute();
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			throw new ShowStopper(e);
 		}
 
 	}

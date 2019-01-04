@@ -3,13 +3,6 @@ package jports.data;
 import java.util.ArrayList;
 import java.util.List;
 
-import jports.data.DataAspect;
-import jports.data.DataStorage;
-import jports.data.Delete;
-import jports.data.Insert;
-import jports.data.Select;
-import jports.data.Update;
-
 /**
  * A list that stores specific types of objects;
  * 
@@ -62,11 +55,11 @@ public class ListStorage<T> extends DataStorage<T> {
 
 	@Override
 	public Select<T> select() {
-		return new ListSelect<T>(this);
+		return new ListSelect<>(this);
 	}
 
 	@Override
-	public DataAspect<T, ?> getAspect() {
+	public DataAspect<T, DataAspectMember<T>> getAspect() {
 		return aspect;
 	}
 

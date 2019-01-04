@@ -2,6 +2,8 @@ package jports.data;
 
 import java.util.List;
 
+import jports.ShowStopper;
+
 /**
  * This is the abstract data storage class with methods than can handle saving,
  * deleting, updating and inserting entities to a back end storage;
@@ -14,11 +16,11 @@ public abstract class DataStorage<T> implements Storage<T> {
 
 	/**
 	 * Gets the data aspect with the annotated members of the data type stored by
-	 * this instance;
+	 * this instance
 	 * 
 	 * @return
 	 */
-	public abstract DataAspect<T, ?> getAspect();
+	public abstract DataAspect<T, DataAspectMember<T>> getAspect();
 
 	/**
 	 * When implemented should create an insert command capable of modifying the
@@ -43,12 +45,6 @@ public abstract class DataStorage<T> implements Storage<T> {
 	 * @return
 	 */
 	public abstract Update createUpdate();
-
-	/**
-	 * When implemented should create a select command capable of retrieving records
-	 * from the back end storage;
-	 */
-	public abstract Select<T> select();
 
 	/**
 	 * When implemented should create an upsert command capable of detecting
@@ -254,13 +250,14 @@ public abstract class DataStorage<T> implements Storage<T> {
 		else if (ckid == 0)
 			attemptWasMade = true;
 
-		// raises an exception if no attempt was made;
+		// raises an exception if no attempt was made
 		if (attemptWasMade)
 			return 0;
 		else {
-			throw new RuntimeException("Unable to find filters to delete " + entity
-					+ ". Please try to annotate members as identity, unique or composite key "
-					+ "and pass an argument that have one those values set.");
+			throw new ShowStopper("Unable to find filters to delete " +
+					entity +
+					". Please try to annotate members as identity, unique or composite key " +
+					"and pass an argument that have one those values set.");
 		}
 	}
 
@@ -383,13 +380,14 @@ public abstract class DataStorage<T> implements Storage<T> {
 		else if (ckid == 0)
 			attemptWasMade = true;
 
-		// raises an exception if no attempt was made;
+		// raises an exception if no attempt was made
 		if (attemptWasMade)
 			return 0;
 		else {
-			throw new RuntimeException("Unable to find filters to update " + entity
-					+ ". Please try to annotate members as identity, unique or composite key "
-					+ "and pass an argument that have one those values set.");
+			throw new ShowStopper("Unable to find filters to update " +
+					entity +
+					". Please try to annotate members as identity, unique or composite key " +
+					"and pass an argument that have one those values set.");
 		}
 
 	}
@@ -397,7 +395,7 @@ public abstract class DataStorage<T> implements Storage<T> {
 	public T readById(Object value) {
 		DataAspectMember<T> identity = getAspect().getIdentity();
 		if (identity == null) {
-			throw new RuntimeException(getAspect().getDataType() + " has no identity.");
+			throw new ShowStopper(getAspect().getDataType() + " has no identity.");
 		} else {
 			return select()
 					.where(identity.getColumnName(), value)

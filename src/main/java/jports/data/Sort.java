@@ -11,8 +11,8 @@ public class Sort {
 	}
 
 	public Sort thenOrderBy(String name, SortDirection direction) {
-		this.last.next = new SortNode(name, direction);
-		this.last = this.last.next;
+		this.last.setNext(name, direction);
+		this.last = this.last.getNext();
 		return this;
 	}
 }

@@ -4,9 +4,6 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import jports.data.Delete;
-import jports.data.FilterExpression;
-
 public class ListDelete<T> extends Delete {
 
 	private final ListStorage<T> storage;

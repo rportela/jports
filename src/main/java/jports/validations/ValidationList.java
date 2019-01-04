@@ -17,7 +17,7 @@ public class ValidationList extends ArrayList<Validation> implements Validation 
 		for (int i = 0; i < children.length; i++) {
 			children[i] = get(i).validate(name, value);
 			if (isValid
-					&& !children[i].isValid)
+					&& !children[i].isValid())
 				isValid = false;
 		}
 		return new ValidationResult(name, isValid, isValid

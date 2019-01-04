@@ -3,6 +3,8 @@ package jports.reflection;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
+import jports.ShowStopper;
+
 /**
  * An aspect member that contains a getter and a setter for reading and writing
  * values to an entity; The return type of the getDatType method is the return
@@ -63,7 +65,7 @@ public final class AspectMemberProperty<T> implements AspectMemberAccessor<T> {
 		try {
 			return this.getter.invoke(source);
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			throw new ShowStopper(e);
 		}
 	}
 
@@ -75,7 +77,7 @@ public final class AspectMemberProperty<T> implements AspectMemberAccessor<T> {
 		try {
 			this.setter.invoke(target, value);
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			throw new ShowStopper(e);
 		}
 	}
 

@@ -1,18 +1,15 @@
 package jports.data;
 
-import jports.data.DataAspect;
-import jports.data.DataAspectMember;
-import jports.data.DataColumn;
 import jports.reflection.AspectMemberAccessor;
 
-public class ListAspect<TClass> extends DataAspect<TClass, DataAspectMember<TClass>> {
+public class ListAspect<T> extends DataAspect<T, DataAspectMember<T>> {
 
-	protected ListAspect(Class<TClass> dataType) {
+	protected ListAspect(Class<T> dataType) {
 		super(dataType);
 	}
 
 	@Override
-	protected DataAspectMember<TClass> visit(AspectMemberAccessor<TClass> accessor) {
+	protected DataAspectMember<T> visit(AspectMemberAccessor<T> accessor) {
 		DataColumn dcol = accessor.getAnnotation(DataColumn.class);
 		return dcol == null
 				? new DataAspectMember<>(accessor)

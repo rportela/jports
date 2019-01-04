@@ -1,5 +1,7 @@
 package jports.adapters;
 
+import jports.ShowStopper;
+
 public class LongAdapter implements Adapter<Long> {
 
 	@Override
@@ -25,7 +27,7 @@ public class LongAdapter implements Adapter<Long> {
 		else if (source instanceof String)
 			return parse((String) source);
 		else
-			throw new RuntimeException("Can't convert " + source + " (" + source.getClass() + ") to Long.");
+			throw new ShowStopper("Can't convert " + source + " (" + source.getClass() + ") to Long.");
 	}
 
 	@Override

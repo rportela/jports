@@ -4,8 +4,8 @@ import java.io.IOException;
 
 import javax.servlet.http.HttpServletResponse;
 
-public interface HttpActionWriter<TParams, TResult> {
+public interface HttpActionWriter<T, R> {
 
-	public void write(ActionExecution<TParams, TResult> execution, HttpServletResponse response) throws IOException;
+	public void write(ActionExecution<T, R> execution, HttpServletResponse response) throws IOException;
 
 }

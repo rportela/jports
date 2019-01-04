@@ -2,9 +2,9 @@ package jports.data;
 
 public class TableColumn implements Column {
 
-	public String name;
-	public final Table table;
-	public ColumnType columnType;
+	private String name;
+	private final Table table;
+	private ColumnType columnType;
 
 	protected TableColumn(Table table, String name, ColumnType columnType) {
 		this.table = table;
@@ -22,6 +22,10 @@ public class TableColumn implements Column {
 
 	public ColumnType getColumnType() {
 		return this.columnType;
+	}
+
+	public Table getTable() {
+		return this.table;
 	}
 
 }

@@ -27,7 +27,7 @@ public class FilterExpression implements Filter {
 
 	public FilterExpression and(FilterTerm term) {
 		this.last.setNext(FilterOperation.AND, term);
-		this.last = this.last.next;
+		this.last = this.last.getNext();
 		return this;
 	}
 
@@ -41,13 +41,13 @@ public class FilterExpression implements Filter {
 
 	public FilterExpression and(FilterExpression expression) {
 		this.last.setNext(FilterOperation.AND, expression);
-		this.last = this.last.next;
+		this.last = this.last.getNext();
 		return this;
 	}
 
 	public FilterExpression or(FilterTerm term) {
 		this.last.setNext(FilterOperation.OR, term);
-		this.last = this.last.next;
+		this.last = this.last.getNext();
 		return this;
 	}
 
@@ -61,7 +61,7 @@ public class FilterExpression implements Filter {
 
 	public FilterExpression or(FilterExpression expression) {
 		this.last.setNext(FilterOperation.OR, expression);
-		this.last = this.last.next;
+		this.last = this.last.getNext();
 		return this;
 	}
 

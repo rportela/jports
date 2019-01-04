@@ -6,9 +6,6 @@ import java.util.Map.Entry;
 import java.util.stream.Stream;
 
 import jports.Incrementer;
-import jports.data.DataAspect;
-import jports.data.FilterExpression;
-import jports.data.Update;
 
 public class ListUpdate<T> extends Update {
 

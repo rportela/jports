@@ -1,5 +1,7 @@
 package jports.adapters;
 
+import jports.ShowStopper;
+
 public class IntegerAdapter implements Adapter<Integer> {
 
 	@Override
@@ -25,7 +27,7 @@ public class IntegerAdapter implements Adapter<Integer> {
 		else if (source instanceof String)
 			return parse((String) source);
 		else
-			throw new RuntimeException("Can't convert " + source + " to Integer.");
+			throw new ShowStopper("Can't convert " + source + " to Integer.");
 	}
 
 	@Override

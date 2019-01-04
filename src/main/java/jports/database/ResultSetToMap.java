@@ -9,17 +9,17 @@ import java.util.Map;
 public class ResultSetToMap implements ResultSetAdapter<Map<String, Object>> {
 	private final int offset;
 
-	public ResultSetToMap(int offset, int limit) {
+	public ResultSetToMap(int offset) {
 		this.offset = offset;
 	}
 
 	public ResultSetToMap() {
-		this(0, 0);
+		this(0);
 	}
 
 	@Override
 	public Map<String, Object> process(final ResultSet resultset) throws SQLException {
-		// skip offset;
+		// skip offset
 		for (int i = 0; i < offset && resultset.next(); i++)
 			;
 		if (!resultset.next())

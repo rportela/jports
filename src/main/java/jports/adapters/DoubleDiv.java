@@ -1,5 +1,7 @@
 package jports.adapters;
 
+import jports.ShowStopper;
+
 public class DoubleDiv implements Adapter<Double> {
 
 	private final double divBy;
@@ -31,7 +33,7 @@ public class DoubleDiv implements Adapter<Double> {
 		else if (source instanceof String)
 			return parse((String) source);
 		else
-			throw new RuntimeException("Unable to parse to double div by " + divBy + " -> " + source);
+			throw new ShowStopper("Unable to parse to double div by " + divBy + " -> " + source);
 	}
 
 	@Override

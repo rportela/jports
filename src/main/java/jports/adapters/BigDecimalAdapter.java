@@ -2,6 +2,8 @@ package jports.adapters;
 
 import java.math.BigDecimal;
 
+import jports.ShowStopper;
+
 public class BigDecimalAdapter implements Adapter<BigDecimal> {
 
 	@Override
@@ -29,7 +31,7 @@ public class BigDecimalAdapter implements Adapter<BigDecimal> {
 		else if (source instanceof String)
 			return parse((String) source);
 		else
-			throw new RuntimeException("Can't convert to BigDecimal: " + source);
+			throw new ShowStopper("Can't convert to BigDecimal: " + source);
 	}
 
 	@Override

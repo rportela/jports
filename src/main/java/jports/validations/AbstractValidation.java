@@ -35,9 +35,4 @@ public abstract class AbstractValidation implements Validation {
 		}
 	}
 
-	/**
-	 * Exposed method to test if a value is valid or not;
-	 */
-	public abstract boolean isValid(Object value);
-
 }

@@ -9,9 +9,9 @@ import java.lang.reflect.AnnotatedElement;
  * 
  * @author rportela
  *
- * @param <TClass>
+ * @param <T>
  */
-public interface AspectMemberAccessor<TClass> extends AnnotatedElement {
+public interface AspectMemberAccessor<T> extends AnnotatedElement {
 
 	/**
 	 * This aspect member is read only;
@@ -25,7 +25,7 @@ public interface AspectMemberAccessor<TClass> extends AnnotatedElement {
 	 * 
 	 * @return
 	 */
-	public Aspect<TClass, ?> getAspect();
+	public Aspect<T, ?> getAspect();
 
 	/**
 	 * Gets the value of this member from a specific source entity;
@@ -33,7 +33,7 @@ public interface AspectMemberAccessor<TClass> extends AnnotatedElement {
 	 * @param source
 	 * @return
 	 */
-	public Object getValue(TClass source);
+	public Object getValue(T source);
 
 	/**
 	 * Sets the value of this member onto a specific target entity;
@@ -41,7 +41,7 @@ public interface AspectMemberAccessor<TClass> extends AnnotatedElement {
 	 * @param target
 	 * @param value
 	 */
-	public void setValue(TClass target, Object value);
+	public void setValue(T target, Object value);
 
 	/**
 	 * Gets the data type of this member;

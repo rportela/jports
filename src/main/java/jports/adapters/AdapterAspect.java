@@ -10,16 +10,16 @@ import jports.reflection.AspectMemberAccessor;
  * 
  * @author rportela
  *
- * @param <TClass>
+ * @param <T>
  */
-public class AdapterAspect<TClass> extends Aspect<TClass, AdapterAspectMember<TClass>> {
+public class AdapterAspect<T> extends Aspect<T, AdapterAspectMember<T>> {
 
 	/**
 	 * A protected constructor so you can extend the class;
 	 * 
 	 * @param dataType
 	 */
-	protected AdapterAspect(Class<TClass> dataType) {
+	protected AdapterAspect(Class<T> dataType) {
 		super(dataType);
 	}
 
@@ -27,17 +27,17 @@ public class AdapterAspect<TClass> extends Aspect<TClass, AdapterAspectMember<TC
 	 * Creates a new adapter aspect member if an adapter is found for that member;
 	 */
 	@Override
-	protected AdapterAspectMember<TClass> visit(AspectMemberAccessor<TClass> accessor) {
+	protected AdapterAspectMember<T> visit(AspectMemberAccessor<T> accessor) {
 		Adapter<?> adapter = AdapterFactory.getInstance(accessor.getDataType());
 		return adapter == null
 				? null
-				: new AdapterAspectMember<TClass>(accessor, adapter);
+				: new AdapterAspectMember<>(accessor, adapter);
 	}
 
 	/**
 	 * A static map of instances for semi singleton fast loading;
 	 */
-	private static final HashMap<Class<?>, AdapterAspect<?>> INSTANCES = new HashMap<Class<?>, AdapterAspect<?>>();
+	private static final HashMap<Class<?>, AdapterAspect<?>> INSTANCES = new HashMap<>();
 
 	/**
 	 * Gets an aspect based on a class from the instances cache or creates a new one
@@ -47,13 +47,7 @@ public class AdapterAspect<TClass> extends Aspect<TClass, AdapterAspectMember<TC
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	public static synchronized final <T> AdapterAspect<T> getInstance(Class<T> claz) {
-
-		AdapterAspect<T> aspect = (AdapterAspect<T>) INSTANCES.get(claz);
-		if (aspect == null) {
-			aspect = new AdapterAspect<T>(claz);
-			INSTANCES.put(claz, aspect);
-		}
-		return aspect;
+	public static final synchronized <T> AdapterAspect<T> getInstance(Class<T> claz) {
+		return (AdapterAspect<T>) INSTANCES.computeIfAbsent(claz, k -> new AdapterAspect<>(claz));
 	}
 }

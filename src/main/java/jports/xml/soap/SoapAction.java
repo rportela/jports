@@ -3,13 +3,13 @@ package jports.xml.soap;
 import jports.actions.Action;
 import jports.actions.ActionExecution;
 
-public class SoapAction<TParams extends SoapActionParameter, TResult extends SoapActionResponse>
-		extends Action<TParams, TResult> {
+public class SoapAction<T extends SoapActionParameter, R extends SoapActionResponse>
+		extends Action<T, R> {
 
 	@Override
-	protected void mainFlow(ActionExecution<TParams, TResult> execution) {
+	protected void mainFlow(ActionExecution<T, R> execution) {
 
-		// TParams params = execution.params;
+		// TODO: implement this method
 
 	}
 

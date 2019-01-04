@@ -14,36 +14,36 @@ import jports.reflection.AspectMemberAccessor;
  * 
  * @author rportela
  *
- * @param <TClass>
+ * @param <T>
  */
-public class DataAspectMember<TClass> extends AspectMember<TClass> implements Column {
+public class DataAspectMember<T> extends AspectMember<T> implements Column {
 
-	private ColumnType column_type;
-	private String column_name;
+	private ColumnType columnType;
+	private String columnName;
 	private Adapter<?> adapter;
 
 	/**
 	 * Creates a new instance of the data aspect member.
 	 * 
 	 * @param accessor
-	 * @param column_type
-	 * @param column_name
+	 * @param columnType
+	 * @param columnName
 	 * @param adapterClass
 	 * @param pattern
 	 */
 	public DataAspectMember(
-			AspectMemberAccessor<TClass> accessor,
-			ColumnType column_type,
-			String column_name,
+			AspectMemberAccessor<T> accessor,
+			ColumnType columnType,
+			String columnName,
 			Class<?> adapterClass,
 			String pattern) {
 		super(accessor);
-		this.column_type = column_type == null
+		this.columnType = columnType == null
 				? ColumnType.REGULAR
-				: column_type;
-		this.column_name = column_name == null || column_name.isEmpty()
+				: columnType;
+		this.columnName = columnName == null || columnName.isEmpty()
 				? accessor.getName()
-				: column_name;
+				: columnName;
 		this.adapter = AdapterFactory.createAdapter(accessor.getDataType(), adapterClass, pattern);
 	}
 	
@@ -51,16 +51,16 @@ public class DataAspectMember<TClass> extends AspectMember<TClass> implements Co
 	 * Creates a new instance of the data aspect member without adapterClass and pattern
 	 * 
 	 * @param accessor
-	 * @param column_type
-	 * @param column_name
+	 * @param columnType
+	 * @param columnName
 	 * 
 	 * @author Giovanna Marinelli
 	 */
 	public DataAspectMember(
-			AspectMemberAccessor<TClass> accessor,
-			ColumnType column_type,
-			String column_name) {
-		this(accessor, column_type, column_name, null, null);
+			AspectMemberAccessor<T> accessor,
+			ColumnType columnType,
+			String columnName) {
+		this(accessor, columnType, columnName, null, null);
 	}
 
 	/**
@@ -69,7 +69,7 @@ public class DataAspectMember<TClass> extends AspectMember<TClass> implements Co
 	 * @param accessor
 	 * @param column
 	 */
-	public DataAspectMember(AspectMemberAccessor<TClass> accessor, DataColumn column) {
+	public DataAspectMember(AspectMemberAccessor<T> accessor, DataColumn column) {
 		this(accessor, column.type(), column.name(), column.adapter(), column.format());
 	}
 
@@ -79,7 +79,7 @@ public class DataAspectMember<TClass> extends AspectMember<TClass> implements Co
 	 * 
 	 * @param accessor
 	 */
-	public DataAspectMember(AspectMemberAccessor<TClass> accessor) {
+	public DataAspectMember(AspectMemberAccessor<T> accessor) {
 		this(accessor, null, null, null, null);
 	}
 
@@ -88,7 +88,7 @@ public class DataAspectMember<TClass> extends AspectMember<TClass> implements Co
 	 */
 	@Override
 	public String getColumnName() {
-		return this.column_name;
+		return this.columnName;
 	}
 
 	/**
@@ -96,7 +96,7 @@ public class DataAspectMember<TClass> extends AspectMember<TClass> implements Co
 	 */
 	@Override
 	public ColumnType getColumnType() {
-		return this.column_type;
+		return this.columnType;
 	}
 
 	/**
@@ -105,7 +105,7 @@ public class DataAspectMember<TClass> extends AspectMember<TClass> implements Co
 	 * @param name
 	 */
 	public void setColumnName(String name) {
-		this.column_name = name;
+		this.columnName = name;
 	}
 
 	/**
@@ -114,7 +114,7 @@ public class DataAspectMember<TClass> extends AspectMember<TClass> implements Co
 	 * @param type
 	 */
 	public void setColumnType(ColumnType type) {
-		this.column_type = type;
+		this.columnType = type;
 	}
 
 	/**
@@ -122,7 +122,7 @@ public class DataAspectMember<TClass> extends AspectMember<TClass> implements Co
 	 */
 	@Override
 	public String toString() {
-		return String.format("%s %s %s", this.column_name, this.column_type, this.getDataType());
+		return String.format("%s %s %s", this.columnName, this.columnType, this.getDataType());
 	}
 
 	/**
@@ -130,7 +130,7 @@ public class DataAspectMember<TClass> extends AspectMember<TClass> implements Co
 	 * member accessor;
 	 */
 	@Override
-	public void setValue(TClass target, Object value) {
+	public void setValue(T target, Object value) {
 		value = this.adapter == null
 				? value
 				: this.adapter.convert(value);

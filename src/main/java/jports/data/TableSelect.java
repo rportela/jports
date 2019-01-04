@@ -25,7 +25,7 @@ public class TableSelect extends Select<TableRow> {
 
 		Sort sort = getSort();
 		if (sort != null) {
-			for (SortNode i = sort.first; i != null; i = i.next) {
+			for (SortNode i = sort.first; i != null; i = i.getNext()) {
 				stream = stream.sorted(table.createComparator(i));
 			}
 		}
@@ -75,7 +75,7 @@ public class TableSelect extends Select<TableRow> {
 					.stream()
 					.filter(table.createPredicate(filter))
 					.findAny()
-					.get();
+					.orElse(null);
 	}
 
 }

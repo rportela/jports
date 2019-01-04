@@ -7,6 +7,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 
+import jports.ShowStopper;
+
 /**
  * This class creates input streams out of bytes and Strings; It also contain
  * useful methods for reading and writing streams to strings and to bytes;
@@ -71,7 +73,7 @@ public class InputStreamAdapter implements Adapter<InputStream> {
 					? null
 					: new String(toBytes(source), charset);
 		} catch (IOException e) {
-			throw new RuntimeException(e);
+			throw new ShowStopper(e);
 		}
 	}
 
@@ -80,16 +82,17 @@ public class InputStreamAdapter implements Adapter<InputStream> {
 	 */
 	@Override
 	public InputStream convert(Object source) {
-		if (source == null)
+		if (source == null) {
 			return null;
-		else if (source instanceof InputStream)
+		} else if (source instanceof InputStream) {
 			return (InputStream) source;
-		else if (source instanceof byte[]) {
+		} else if (source instanceof byte[]) {
 			return new ByteArrayInputStream((byte[]) source);
-		} else if (source instanceof String)
+		} else if (source instanceof String) {
 			return new ByteArrayInputStream(((String) source).getBytes(charset));
-		else
-			throw new RuntimeException("Can't convert " + source + " to InputStream.");
+		} else {
+			throw new ShowStopper("Can't convert " + source + " to InputStream.");
+		}
 	}
 
 	/**
@@ -100,16 +103,9 @@ public class InputStreamAdapter implements Adapter<InputStream> {
 	 * @throws IOException
 	 */
 	public byte[] toBytes(InputStream source) throws IOException {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream(4096);
-		try {
+		try (ByteArrayOutputStream bos = new ByteArrayOutputStream(4096)) {
 			copy(source, bos, 4096);
 			return bos.toByteArray();
-		} finally {
-			try {
-				bos.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
 		}
 	}
 

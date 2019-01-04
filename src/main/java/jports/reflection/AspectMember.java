@@ -2,11 +2,11 @@ package jports.reflection;
 
 import java.lang.annotation.Annotation;
 
-public class AspectMember<TClass> implements AspectMemberAccessor<TClass> {
+public class AspectMember<T> implements AspectMemberAccessor<T> {
 
-	private final AspectMemberAccessor<TClass> accessor;
+	private final AspectMemberAccessor<T> accessor;
 
-	public AspectMember(AspectMemberAccessor<TClass> accessor) {
+	public AspectMember(AspectMemberAccessor<T> accessor) {
 		this.accessor = accessor;
 	}
 
@@ -14,15 +14,15 @@ public class AspectMember<TClass> implements AspectMemberAccessor<TClass> {
 		return this.accessor.isReadOnly();
 	}
 
-	public Aspect<TClass, ?> getAspect() {
+	public Aspect<T, ?> getAspect() {
 		return this.accessor.getAspect();
 	}
 
-	public Object getValue(TClass source) {
+	public Object getValue(T source) {
 		return this.accessor.getValue(source);
 	}
 
-	public void setValue(TClass target, Object value) {
+	public void setValue(T target, Object value) {
 		this.accessor.setValue(target, value);
 	}
 
@@ -39,7 +39,7 @@ public class AspectMember<TClass> implements AspectMemberAccessor<TClass> {
 		return this.accessor.toString();
 	}
 
-	public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
+	public <A extends Annotation> A getAnnotation(Class<A> annotationClass) {
 		return this.accessor.getAnnotation(annotationClass);
 	}
 

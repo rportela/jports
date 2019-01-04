@@ -4,9 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import jports.data.DataAspect;
-import jports.data.DataAspectMember;
-import jports.data.Insert;
+import jports.ShowStopper;
 
 public class ListInsert<T> extends Insert {
 
@@ -32,7 +30,7 @@ public class ListInsert<T> extends Insert {
 		DataAspect<T, ?> aspect = storage.getAspect();
 		DataAspectMember<T> identity = aspect.getIdentity();
 		if (identity == null)
-			throw new RuntimeException("This aspect has no identity: " + aspect);
+			throw new ShowStopper("This aspect has no identity: " + aspect);
 
 		HashMap<String, Object> map = new HashMap<>();
 		map.put(identity.getColumnName(), storage.all().size());

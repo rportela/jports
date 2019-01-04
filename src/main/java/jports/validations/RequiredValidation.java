@@ -48,15 +48,14 @@ public class RequiredValidation extends AbstractValidation {
 	public boolean isValid(Object value) {
 		if (value == null)
 			return false;
-		else if (value instanceof String
-				&& ((String) value).isEmpty())
-			return false;
-		else if (value instanceof UUID
-				&& ((UUID) value).getLeastSignificantBits() == 0L
-				&& ((UUID) value).getMostSignificantBits() == 0L)
-			return false;
+		else if (value instanceof String)
+			return !((String) value).isBlank();
+		else if (value instanceof UUID)
+			return ((UUID) value).getLeastSignificantBits() != 0L &&
+					((UUID) value).getMostSignificantBits() != 0L;
 		else
 			return true;
+
 	}
 
 }

@@ -2,6 +2,7 @@ package jports.database;
 
 import java.sql.SQLException;
 
+import jports.ShowStopper;
 import jports.data.Update;
 
 public class DatabaseUpdate extends Update {
@@ -21,7 +22,7 @@ public class DatabaseUpdate extends Update {
 					.appendUpdate(target, getValues(), getFilter())
 					.executeNonQuery();
 		} catch (SQLException e) {
-			throw new RuntimeException(e);
+			throw new ShowStopper(e);
 		}
 	}
 

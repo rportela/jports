@@ -1,5 +1,7 @@
 package jports.adapters;
 
+import jports.ShowStopper;
+
 public class BooleanAdapter implements Adapter<Boolean> {
 
 	@Override
@@ -19,7 +21,7 @@ public class BooleanAdapter implements Adapter<Boolean> {
 	@Override
 	public Boolean convert(Object source) {
 		if (source == null)
-			return null;
+			return false;
 		else if (source instanceof Boolean)
 			return ((Boolean) source);
 		else if (source instanceof Number)
@@ -27,7 +29,7 @@ public class BooleanAdapter implements Adapter<Boolean> {
 		else if (source instanceof String)
 			return parse((String) source);
 		else
-			throw new RuntimeException("Can't convert " + source + " to Boolean.");
+			throw new ShowStopper("Can't convert " + source + " to Boolean.");
 	}
 
 	@Override

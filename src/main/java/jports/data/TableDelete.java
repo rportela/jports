@@ -1,5 +1,6 @@
 package jports.data;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -23,13 +24,14 @@ public class TableDelete extends Delete {
 			rows.clear();
 		} else {
 			Predicate<TableRow> predicate = table.createPredicate(filter);
-			for (int i = 0; i < rows.size(); i++) {
-				TableRow row = rows.get(i);
-				if (predicate.test(row)) {
-					rows.remove(i);
-					i--;
-					inc.increment();
-				}
+			List<Integer> indices = new ArrayList<>(rows.size());
+			for (int i = 0; i < rows.size(); i++)
+				if (predicate.test(rows.get(i)))
+					indices.add(i);
+
+			for (Integer i : indices) {
+				rows.remove(i.intValue());
+				inc.increment();
 			}
 		}
 		return inc.getValue();

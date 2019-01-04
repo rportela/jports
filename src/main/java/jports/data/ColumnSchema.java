@@ -10,7 +10,7 @@ import java.util.List;
  * @author rportela
  *
  */
-public interface ColumnSchema<TColumn> {
+public interface ColumnSchema<T> {
 
 	/**
 	 * The number of columns in this schema;
@@ -32,7 +32,7 @@ public interface ColumnSchema<TColumn> {
 	 * 
 	 * @return
 	 */
-	public List<TColumn> getColumns();
+	public List<T> getColumns();
 
 	/**
 	 * Gets a column by it's ordinal position in the column list;
@@ -40,36 +40,36 @@ public interface ColumnSchema<TColumn> {
 	 * @param ordinal
 	 * @return
 	 */
-	public TColumn getColumn(int ordinal);
+	public T getColumn(int ordinal);
 
 	/*
-	 * Gets a column by it's column name;
+	 * Gets a column by it's column name
 	 */
-	public TColumn getColumn(String name);
+	public T getColumn(String name);
 
 	/**
-	 * Gets the identity column of this schema;
+	 * Gets the identity column of this schema
 	 * 
 	 * @return
 	 */
-	public TColumn getIdentity();
+	public T getIdentity();
 
 	/**
-	 * Gets a list of unique columns in this schema;
+	 * Gets a list of unique columns in this schema
 	 * 
 	 * @return
 	 */
-	public List<TColumn> getUniqueColumns();
+	public List<T> getUniqueColumns();
 
 	/**
-	 * Gets the list of columns that are member of a composite key;
+	 * Gets the list of columns that are member of a composite key
 	 * 
 	 * @return
 	 */
-	public List<TColumn> getCompositeKey();
+	public List<T> getCompositeKey();
 
 	/**
-	 * Gets the name of this column schema;
+	 * Gets the name of this column schema
 	 * 
 	 * @return
 	 */

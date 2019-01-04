@@ -8,13 +8,13 @@ import jports.reflection.AspectMemberAccessor;
 
 public class DatabaseAspect<T> extends DataAspect<T, DataAspectMember<T>> {
 
-	private String database_object;
+	private String databaseObject;
 
 	private DatabaseAspect(Class<T> dataType) {
 		super(dataType);
 
 		DatabaseObject dbo = dataType.getAnnotation(DatabaseObject.class);
-		database_object = dbo == null || dbo.value().isEmpty()
+		databaseObject = dbo == null || dbo.value().isEmpty()
 				? dataType.getSimpleName()
 				: dbo.value();
 	}
@@ -28,11 +28,11 @@ public class DatabaseAspect<T> extends DataAspect<T, DataAspectMember<T>> {
 	}
 
 	public String getDatabaseObject() {
-		return this.database_object;
+		return this.databaseObject;
 	}
 
 	public void setDatabaseObject(String value) {
-		this.database_object = value;
+		this.databaseObject = value;
 	}
 
 	private static final HashMap<Class<?>, DatabaseAspect<?>> INSTANCES;
@@ -41,12 +41,7 @@ public class DatabaseAspect<T> extends DataAspect<T, DataAspectMember<T>> {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static synchronized final <T> DatabaseAspect<T> getInstance(Class<T> dataType) {
-		DatabaseAspect<T> aspect = (DatabaseAspect<T>) INSTANCES.get(dataType);
-		if (aspect == null) {
-			aspect = new DatabaseAspect<>(dataType);
-			INSTANCES.put(dataType, aspect);
-		}
-		return aspect;
+	public static final synchronized <T> DatabaseAspect<T> getInstance(Class<T> dataType) {
+		return (DatabaseAspect<T>) INSTANCES.computeIfAbsent(dataType, DatabaseAspect::new);
 	}
 }

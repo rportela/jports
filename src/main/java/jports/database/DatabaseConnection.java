@@ -23,40 +23,53 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 
+import jports.GenericLogger;
+
 public class DatabaseConnection implements Connection {
 
 	private Database database;
 	private Statement statement;
 	private Connection connection;
-	private Date created_at;
-	private Date released_at;
+	private Date createdAt;
+	private Date releasedAt;
 
 	protected DatabaseConnection(Database database, Connection connection) throws SQLException {
 		this.database = database;
 		this.connection = connection;
-		this.created_at = new Date();
+		this.createdAt = new Date();
 		this.statement = connection.createStatement();
 	}
 
 	public Date getCreatetAt() {
-		return this.created_at;
+		return this.createdAt;
 	}
 
 	public Date getReleasedAt() {
-		return this.released_at;
+		return this.releasedAt;
 	}
 
 	public void terminate() throws SQLException {
-		System.out.println("terminating ... " + this);
+		GenericLogger.info(this, "terminating ... " + this);
 		try {
 			this.statement.close();
 		} catch (Exception e) {
-			e.printStackTrace();
+			GenericLogger.warn(this, e);
 		}
 		this.connection.close();
 	}
 
+	/**
+	 * @deprecated The garbage collector invokes object finalizer methods after it
+	 *             determines that the object is unreachable but before it reclaims
+	 *             the object's storage. Execution of the finalizer provides an
+	 *             opportunity to release resources such as open streams, files, and
+	 *             network connections that might not otherwise be released
+	 *             automatically through the normal action of the garbage collector.
+	 */
 	@Override
+	@Deprecated(
+			since = "1.9",
+			forRemoval = true)
 	protected void finalize() throws Throwable {
 		terminate();
 	}
@@ -145,7 +158,7 @@ public class DatabaseConnection implements Connection {
 
 	@Override
 	public synchronized void close() throws SQLException {
-		this.released_at = new Date();
+		this.releasedAt = new Date();
 		this.database.pool.add(this);
 	}
 

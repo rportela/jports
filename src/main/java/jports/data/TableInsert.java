@@ -3,6 +3,8 @@ package jports.data;
 import java.util.HashMap;
 import java.util.Map;
 
+import jports.ShowStopper;
+
 public class TableInsert extends Insert {
 
 	private final Table table;
@@ -15,7 +17,7 @@ public class TableInsert extends Insert {
 	public int execute() {
 		Object[] row = new Object[table.getColumnCount()];
 		for (int i = 0; i < row.length; i++) {
-			String colName = table.getColumn(i).name;
+			String colName = table.getColumn(i).getColumnName();
 			row[i] = super.get(colName);
 		}
 		table.addRow(row);
@@ -26,7 +28,7 @@ public class TableInsert extends Insert {
 	public Map<String, Object> executeWithGeneratedKeys() {
 		TableColumn identity = table.getIdentity();
 		if (identity == null)
-			throw new RuntimeException("The underlying table has no identity column: " + table);
+			throw new ShowStopper("The underlying table has no identity column: " + table);
 		else {
 			execute();
 			HashMap<String, Object> map = new HashMap<>();

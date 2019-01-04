@@ -4,6 +4,8 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import jports.ShowStopper;
+import jports.data.DataAspectMember;
 import jports.data.Select;
 
 public class DatabaseSelectObject<T> extends Select<T> {
@@ -27,7 +29,7 @@ public class DatabaseSelectObject<T> extends Select<T> {
 							aspect
 									.getColumns()
 									.stream()
-									.map(col -> col.getColumnName())
+									.map(DataAspectMember::getColumnName)
 									.collect(Collectors.toList()))
 					.appendSql(" FROM ")
 					.appendName(aspect.getDatabaseObject())
@@ -39,14 +41,14 @@ public class DatabaseSelectObject<T> extends Select<T> {
 			return command.executeQuery(
 					new ResultSetToObjectList<>(
 							aspect,
-							command.acceptsOffset() ?
-									0 :
-									getOffset(),
-							command.acceptsLimit() ?
-									0 :
-									getLimit()));
+							command.acceptsOffset()
+									? 0
+									: getOffset(),
+							command.acceptsLimit()
+									? 0
+									: getLimit()));
 		} catch (SQLException e) {
-			throw new RuntimeException(e);
+			throw new ShowStopper(e);
 		}
 	}
 
@@ -58,11 +60,11 @@ public class DatabaseSelectObject<T> extends Select<T> {
 					.appendName(aspect.getDatabaseObject())
 					.appendWhere(getFilter())
 					.executeQuery(r -> r.getObject(1));
-			return obj == null ?
-					0L :
-					((Number) obj).longValue();
+			return obj == null
+					? 0L
+					: ((Number) obj).longValue();
 		} catch (SQLException e) {
-			throw new RuntimeException(e);
+			throw new ShowStopper(e);
 		}
 	}
 
@@ -75,11 +77,9 @@ public class DatabaseSelectObject<T> extends Select<T> {
 					.appendWhere(getFilter())
 					.appendSql(")")
 					.executeQuery(r -> r.getObject(1));
-			return obj == null ?
-					false :
-					((Number) obj).intValue() == 1;
+			return obj != null && ((Number) obj).intValue() == 1;
 		} catch (SQLException e) {
-			throw new RuntimeException(e);
+			throw new ShowStopper(e);
 		}
 
 	}
@@ -95,7 +95,7 @@ public class DatabaseSelectObject<T> extends Select<T> {
 							aspect
 									.getColumns()
 									.stream()
-									.map(col -> col.getColumnName())
+									.map(DataAspectMember::getColumnName)
 									.collect(Collectors.toList()))
 					.appendSql(" FROM ")
 					.appendName(aspect.getDatabaseObject())
@@ -107,11 +107,11 @@ public class DatabaseSelectObject<T> extends Select<T> {
 			return command.executeQuery(
 					new ResultSetToObject<>(
 							aspect,
-							command.acceptsOffset() ?
-									0 :
-									getOffset()));
+							command.acceptsOffset()
+									? 0
+									: getOffset()));
 		} catch (SQLException e) {
-			throw new RuntimeException(e);
+			throw new ShowStopper(e);
 		}
 	}
 

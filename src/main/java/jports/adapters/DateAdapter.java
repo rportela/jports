@@ -6,6 +6,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
+import jports.ShowStopper;
+
 public class DateAdapter implements Adapter<Date> {
 
 	private DateFormat format;
@@ -33,7 +35,7 @@ public class DateAdapter implements Adapter<Date> {
 					? null
 					: format.parse(source);
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			throw new ShowStopper(e);
 		}
 	}
 
@@ -60,7 +62,7 @@ public class DateAdapter implements Adapter<Date> {
 		else if (source instanceof String)
 			return parse((String) source);
 		else
-			throw new RuntimeException("Can't convert to java.util.Date: " + source);
+			throw new ShowStopper("Can't convert to java.util.Date: " + source);
 	}
 
 	@Override

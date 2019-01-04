@@ -5,12 +5,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import jports.data.DataAspect;
-import jports.data.FilterExpression;
-import jports.data.Select;
-import jports.data.Sort;
-import jports.data.SortNode;
-
 public class ListSelect<T> extends Select<T> {
 
 	private final ListStorage<T> storage;
@@ -29,7 +23,7 @@ public class ListSelect<T> extends Select<T> {
 
 		final Sort sort = getSort();
 		if (sort != null)
-			for (SortNode node = sort.first; node != null; node = node.next)
+			for (SortNode node = sort.first; node != null; node = node.getNext())
 				stream = stream.sorted(aspect.createComparator(node));
 
 		final int offset = this.getOffset();
@@ -73,7 +67,7 @@ public class ListSelect<T> extends Select<T> {
 
 	@Override
 	public T first() {
-		return toStream().findAny().get();
+		return toStream().findAny().orElse(null);
 	}
 
 }

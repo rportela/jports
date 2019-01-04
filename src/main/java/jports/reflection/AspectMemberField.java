@@ -4,6 +4,8 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
+import jports.ShowStopper;
+
 public final class AspectMemberField<T> implements AspectMemberAccessor<T> {
 
 	public final Aspect<T, ?> aspect;
@@ -22,7 +24,7 @@ public final class AspectMemberField<T> implements AspectMemberAccessor<T> {
 		try {
 			return this.field.get(source);
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			throw new ShowStopper(e);
 		}
 	}
 
@@ -30,7 +32,7 @@ public final class AspectMemberField<T> implements AspectMemberAccessor<T> {
 		try {
 			this.field.set(target, value);
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			throw new ShowStopper(e);
 		}
 	}
 

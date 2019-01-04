@@ -1,5 +1,7 @@
 package jports;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * A very simple non thread save integer incrementer to return number of records
  * affected on actions;
@@ -9,19 +11,19 @@ package jports;
  */
 public class Incrementer {
 
-	private volatile int value;
+	private final AtomicInteger value = new AtomicInteger();
 
 	/**
 	 * Increments the value wrapped by this incrementer;
 	 * 
 	 * @return
 	 */
-	public void increment() {
-		value++;
+	public int increment() {
+		return value.incrementAndGet();
 	}
 
-	public void increment(final int inc) {
-		this.value += inc;
+	public int increment(final int inc) {
+		return value.addAndGet(inc);
 	}
 
 	/**
@@ -30,7 +32,7 @@ public class Incrementer {
 	 * @return
 	 */
 	public int getValue() {
-		return this.value;
+		return value.get();
 	}
 
 	/**
@@ -39,7 +41,7 @@ public class Incrementer {
 	 * @param value
 	 */
 	public void setValue(int value) {
-		this.value = value;
+		this.value.set(value);
 	}
 
 	/**
@@ -47,6 +49,6 @@ public class Incrementer {
 	 */
 	@Override
 	public String toString() {
-		return Integer.toString(value);
+		return value.toString();
 	}
 }

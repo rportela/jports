@@ -2,6 +2,7 @@ package jports.database;
 
 import java.sql.SQLException;
 
+import jports.ShowStopper;
 import jports.data.Delete;
 
 public class DatabaseDelete extends Delete {
@@ -21,7 +22,7 @@ public class DatabaseDelete extends Delete {
 					.appendDelete(target, getFilter())
 					.executeNonQuery();
 		} catch (SQLException e) {
-			throw new RuntimeException(e);
+			throw new ShowStopper(e);
 		}
 
 	}

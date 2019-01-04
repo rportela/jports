@@ -1,7 +1,7 @@
 package jports.actions;
 
 import java.io.InputStreamReader;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 
 import javax.servlet.http.HttpServletRequest;
@@ -18,18 +18,16 @@ import com.google.gson.GsonBuilder;
  */
 public class HttpActionParamParserForJson implements HttpActionParamParser {
 
-	private static Gson GSON = new GsonBuilder()
+	private static final Gson GSON = new GsonBuilder()
 			.setDateFormat(DateFormat.FULL, DateFormat.FULL)
 			.create();
-
-	private static Charset UTF8 = Charset.forName("UTF-8");
 
 	/**
 	 * Parses the HTTP servlet request as JSON mapped to a specific parameter class;
 	 */
 	@Override
 	public <T> T parseParams(Class<T> paramsClass, HttpServletRequest request) throws Exception {
-		return GSON.fromJson(new InputStreamReader(request.getInputStream(), UTF8), paramsClass);
+		return GSON.fromJson(new InputStreamReader(request.getInputStream(), StandardCharsets.UTF_8), paramsClass);
 	}
 
 }

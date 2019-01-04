@@ -5,6 +5,8 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashMap;
 
+import jports.ShowStopper;
+
 /**
  * This class has a static map of classes to adapters so it can find their
  * constructor and instantiate adapters based on a given Class<T> data type;
@@ -33,8 +35,8 @@ public final class AdapterFactory {
 		INSTANCES.put(Boolean.TYPE, BooleanAdapter.class);
 		INSTANCES.put(Double.class, DoubleAdapter.class);
 		INSTANCES.put(Double.TYPE, DoubleAdapter.class);
-		// INSTANCES.put(Float.class, FloatAdapter.class);
-		// INSTANCES.put(Float.TYPE, FloatAdapter.class);
+		INSTANCES.put(Float.class, FloatAdapter.class);
+		INSTANCES.put(Float.TYPE, FloatAdapter.class);
 		INSTANCES.put(Long.class, LongAdapter.class);
 		INSTANCES.put(Long.TYPE, LongAdapter.class);
 		INSTANCES.put(Integer.class, IntegerAdapter.class);
@@ -80,25 +82,27 @@ public final class AdapterFactory {
 				Object newInstance = constructor.newInstance();
 				return (Adapter<T>) newInstance;
 			} catch (Exception e) {
-				throw new RuntimeException(e);
+				throw new ShowStopper(e);
 			}
 		}
 	}
 
-	public static Adapter<?> createAdapter(final Class<?> claz, Class<?> adapterClass, final String pattern) {
+	@SuppressWarnings({ "rawtypes" })
+	public static Adapter createAdapter(final Class<?> claz, Class<?> adapterClass,
+			final String pattern) {
 		if (VoidAdapter.class.equals(adapterClass) || adapterClass == null) {
 			adapterClass = INSTANCES.get(claz);
 		}
 		if (adapterClass == null) {
-			throw new RuntimeException("Can't find and adapter for " + claz);
+			throw new ShowStopper("Can't find and adapter for " + claz);
 		}
 		try {
-			Object adapter = pattern == null || pattern.isEmpty()
+			Object instance = pattern == null || pattern.isEmpty()
 					? adapterClass.getConstructor().newInstance()
 					: adapterClass.getConstructor(String.class).newInstance(pattern);
-			return (Adapter<?>) adapter;
+			return (Adapter) instance;
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			throw new ShowStopper(e);
 		}
 	}
 }

@@ -9,7 +9,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 
+import jports.ShowStopper;
 import jports.data.Filter;
+import jports.data.FilterComparison;
 import jports.data.FilterExpression;
 import jports.data.FilterNode;
 import jports.data.FilterOperation;
@@ -28,7 +30,7 @@ public abstract class DatabaseCommand {
 	/**
 	 * The database that this command belong to;
 	 */
-	private final Database database;;
+	private final Database database;
 
 	/**
 	 * Creates a new instance of the database command;
@@ -141,7 +143,7 @@ public abstract class DatabaseCommand {
 	 */
 	public void validateNameOrThrowException(String name) {
 		if (name.contains("'") || name.contains("--"))
-			throw new RuntimeException("Invalid database object name: " + name);
+			throw new ShowStopper("Invalid database object name: " + name);
 	}
 
 	/**
@@ -209,8 +211,9 @@ public abstract class DatabaseCommand {
 		for (String name : names) {
 			if (prependComma) {
 				text.append(", ");
-			} else
+			} else {
 				prependComma = true;
+			}
 			appendName(name);
 		}
 		return this;
@@ -372,7 +375,7 @@ public abstract class DatabaseCommand {
 		else if (value instanceof String)
 			return appendString((String) value);
 		else
-			throw new RuntimeException("Can't convert " + value + " to SQL.");
+			throw new ShowStopper("Can't convert " + value + " to SQL.");
 	}
 
 	/**
@@ -421,7 +424,7 @@ public abstract class DatabaseCommand {
 		case TERM:
 			return appendFilterTerm((FilterTerm) filter);
 		default:
-			throw new RuntimeException("Unexpected filter type: " + filter);
+			throw new ShowStopper("Unexpected filter type: " + filter);
 		}
 	}
 
@@ -496,33 +499,38 @@ public abstract class DatabaseCommand {
 	 * @return
 	 */
 	public DatabaseCommand appendFilterTerm(FilterTerm term) {
-		switch (term.comparison) {
+
+		FilterComparison comparison = term.getComparison();
+		Object value = term.getValue();
+		String name = term.getName();
+
+		switch (comparison) {
 		case EQUAL_TO:
-			return appendEqualTo(term.name, term.value);
+			return appendEqualTo(name, value);
 
 		case GRATER_OR_EQUAL:
-			return appendGreaterOrEqual(term.name, term.value);
+			return appendGreaterOrEqual(name, value);
 
 		case GREATER_THAN:
-			return appendGreaterThan(term.name, term.value);
+			return appendGreaterThan(name, value);
 
 		case LIKE:
-			return appendLike(term.name, term.value);
+			return appendLike(name, value);
 
 		case LOWER_OR_EQUAL:
-			return appendLowerOrEqual(term.name, term.value);
+			return appendLowerOrEqual(name, value);
 
 		case LOWER_THAN:
-			return appendLowerThan(term.name, term.value);
+			return appendLowerThan(name, value);
 
 		case NOT_EQUAL_TO:
-			return appendNotEqualTo(term.name, term.value);
+			return appendNotEqualTo(name, value);
 
 		case NOT_LIKE:
-			return appendNotLike(term.name, term.value);
+			return appendNotLike(name, value);
 
 		default:
-			throw new RuntimeException("Unexpected filter comparison: " + term.comparison);
+			throw new ShowStopper("Unexpected filter comparison: " + comparison);
 
 		}
 
@@ -537,7 +545,7 @@ public abstract class DatabaseCommand {
 	public DatabaseCommand appendFilterExpression(FilterExpression expression) {
 		text.append("(");
 		FilterOperation op = null;
-		for (FilterNode node = expression.first; node != null; node = node.next) {
+		for (FilterNode node = expression.first; node != null; node = node.getNext()) {
 			if (op != null) {
 				switch (op) {
 				case AND:
@@ -547,11 +555,11 @@ public abstract class DatabaseCommand {
 					text.append(" OR ");
 					break;
 				default:
-					throw new RuntimeException("Unknown filter operation: " + op);
+					throw new ShowStopper("Unknown filter operation: " + op);
 				}
 			}
-			appendFilter(node.filter);
-			op = node.operation;
+			appendFilter(node.getFilter());
+			op = node.getOperation();
 		}
 		text.append(")");
 		return this;
@@ -585,21 +593,21 @@ public abstract class DatabaseCommand {
 
 		text.append(" ORDER BY ");
 		boolean prependComma = false;
-		for (SortNode node = sort.first; node != null; node = node.next) {
+		for (SortNode node = sort.first; node != null; node = node.getNext()) {
 			if (prependComma)
 				text.append(", ");
 			else
 				prependComma = true;
 
-			appendName(node.name);
-			switch (node.direction) {
+			appendName(node.getName());
+			switch (node.getDirection()) {
 			case ASCENDING:
 				break;
 			case DESCENDING:
 				text.append(" DESC");
 				break;
 			default:
-				throw new RuntimeException("Unknown sort direction: " + node.direction + " -> " + sort);
+				throw new ShowStopper("Unknown sort direction: " + node.getDirection() + " -> " + sort);
 			}
 		}
 		return this;

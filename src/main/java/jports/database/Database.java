@@ -6,6 +6,8 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.LinkedList;
 
+import jports.GenericLogger;
+
 /**
  * A class that abstracts a database. It contains methods and configurations
  * that should be database specific;
@@ -141,7 +143,7 @@ public abstract class Database implements AutoCloseable, Closeable {
 				try {
 					conn.terminate();
 				} catch (SQLException e) {
-					e.printStackTrace();
+					GenericLogger.warn(this, e.getMessage(), e);
 				}
 		} finally {
 			pool.clear();

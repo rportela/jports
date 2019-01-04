@@ -2,9 +2,9 @@ package jports.data;
 
 public class FilterNode implements Filter {
 
-	public final Filter filter;
-	public FilterOperation operation;
-	public FilterNode next;
+	private final Filter filter;
+	private FilterOperation operation;
+	private FilterNode next;
 
 	public FilterNode(FilterTerm term) {
 		this.filter = term;
@@ -27,6 +27,36 @@ public class FilterNode implements Filter {
 	@Override
 	public final FilterType getFilterType() {
 		return FilterType.NODE;
+	}
+
+	/**
+	 * @return the operation
+	 */
+	public FilterOperation getOperation() {
+		return operation;
+	}
+
+	/**
+	 * @param operation
+	 *            the operation to set
+	 */
+	public FilterNode setOperation(FilterOperation operation) {
+		this.operation = operation;
+		return this;
+	}
+
+	/**
+	 * @return the next
+	 */
+	public FilterNode getNext() {
+		return next;
+	}
+
+	/**
+	 * @return the filter
+	 */
+	public Filter getFilter() {
+		return filter;
 	}
 
 }

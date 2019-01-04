@@ -3,6 +3,7 @@ package jports.database;
 import java.sql.SQLException;
 import java.util.Map;
 
+import jports.ShowStopper;
 import jports.data.Insert;
 
 public class DatabaseInsert extends Insert {
@@ -22,7 +23,7 @@ public class DatabaseInsert extends Insert {
 					.appendInsert(target, getValues())
 					.executeNonQuery();
 		} catch (SQLException e) {
-			throw new RuntimeException(e);
+			throw new ShowStopper(e);
 		}
 	}
 
@@ -33,7 +34,7 @@ public class DatabaseInsert extends Insert {
 					.appendInsert(target, getValues())
 					.executeWithGeneratedKeys();
 		} catch (SQLException e) {
-			throw new RuntimeException(e);
+			throw new ShowStopper(e);
 		}
 
 	}

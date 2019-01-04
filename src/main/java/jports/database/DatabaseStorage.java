@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+import jports.ShowStopper;
 import jports.data.DataAspect;
 import jports.data.DataAspectMember;
 import jports.data.DataStorage;
@@ -57,11 +58,11 @@ public class DatabaseStorage<T> extends DataStorage<T> {
 
 	@Override
 	public Select<T> select() {
-		return new DatabaseSelectObject<T>(database, aspect);
+		return new DatabaseSelectObject<>(database, aspect);
 	}
 
 	@Override
-	public DataAspect<T, ?> getAspect() {
+	public DataAspect<T, DataAspectMember<T>> getAspect() {
 		return aspect;
 	}
 
@@ -87,8 +88,9 @@ public class DatabaseStorage<T> extends DataStorage<T> {
 		}
 		// Is it an upsert with no key?! throw an exception
 		else {
-			throw new RuntimeException("We couldn't find a suitable key " +
-					"to perform upserts on " + aspect.getDataType());
+			throw new ShowStopper("We couldn't find a suitable key " +
+					"to perform upserts on " +
+					aspect.getDataType());
 		}
 
 		final StringBuilder cmdBuilder = new StringBuilder(100000);
@@ -113,7 +115,7 @@ public class DatabaseStorage<T> extends DataStorage<T> {
 								.execute();
 
 					} catch (Exception e) {
-						throw new RuntimeException(e);
+						throw new ShowStopper(e);
 					}
 
 					cmdBuilder.delete(0, cmdBuilder.length());
@@ -130,7 +132,7 @@ public class DatabaseStorage<T> extends DataStorage<T> {
 						.execute();
 
 			} catch (Exception e) {
-				throw new RuntimeException(e);
+				throw new ShowStopper(e);
 			}
 		}
 

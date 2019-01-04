@@ -12,6 +12,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
+import jports.ShowStopper;
 import jports.reflection.Aspect;
 import jports.reflection.AspectMemberAccessor;
 
@@ -21,9 +22,9 @@ import jports.reflection.AspectMemberAccessor;
  * 
  * @author rportela
  *
- * @param <TClass>
+ * @param <T>
  */
-public class CsvAspect<TClass> extends Aspect<TClass, CsvAspectMember<TClass>> {
+public class CsvAspect<T> extends Aspect<T, CsvAspectMember<T>> {
 
 	private String separator;
 	private Charset charset;
@@ -31,7 +32,7 @@ public class CsvAspect<TClass> extends Aspect<TClass, CsvAspectMember<TClass>> {
 	private int capacity;
 	private boolean firstRowHasNames;
 
-	public CsvAspect(Class<TClass> claz) {
+	public CsvAspect(Class<T> claz) {
 		super(claz);
 
 		CsvTable table = claz.getAnnotation(CsvTable.class);
@@ -57,7 +58,7 @@ public class CsvAspect<TClass> extends Aspect<TClass, CsvAspectMember<TClass>> {
 		return this.separator;
 	}
 
-	public CsvAspect<TClass> setSeparator(String separator) {
+	public CsvAspect<T> setSeparator(String separator) {
 		this.separator = separator;
 		return this;
 	}
@@ -66,12 +67,12 @@ public class CsvAspect<TClass> extends Aspect<TClass, CsvAspectMember<TClass>> {
 		return this.charset;
 	}
 
-	public CsvAspect<TClass> setCharset(Charset charset) {
+	public CsvAspect<T> setCharset(Charset charset) {
 		this.charset = charset;
 		return this;
 	}
 
-	public CsvAspect<TClass> setCharset(String charsetName) {
+	public CsvAspect<T> setCharset(String charsetName) {
 		this.charset = Charset.forName(charsetName);
 		return this;
 	}
@@ -80,7 +81,7 @@ public class CsvAspect<TClass> extends Aspect<TClass, CsvAspectMember<TClass>> {
 		return this.commentQualifier;
 	}
 
-	public CsvAspect<TClass> setCommentQualifier(String commentQualifier) {
+	public CsvAspect<T> setCommentQualifier(String commentQualifier) {
 		this.commentQualifier = commentQualifier;
 		return this;
 	}
@@ -89,7 +90,7 @@ public class CsvAspect<TClass> extends Aspect<TClass, CsvAspectMember<TClass>> {
 		return this.capacity;
 	}
 
-	public CsvAspect<TClass> setCapacity(int capacity) {
+	public CsvAspect<T> setCapacity(int capacity) {
 		this.capacity = capacity;
 		return this;
 	}
@@ -98,13 +99,13 @@ public class CsvAspect<TClass> extends Aspect<TClass, CsvAspectMember<TClass>> {
 		return this.firstRowHasNames;
 	}
 
-	public CsvAspect<TClass> firstRowHasNames(boolean value) {
+	public CsvAspect<T> firstRowHasNames(boolean value) {
 		this.firstRowHasNames = value;
 		return this;
 	}
 
 	@Override
-	protected CsvAspectMember<TClass> visit(AspectMemberAccessor<TClass> accessor) {
+	protected CsvAspectMember<T> visit(AspectMemberAccessor<T> accessor) {
 		CsvColumn csv = accessor.getAnnotation(CsvColumn.class);
 		return csv == null
 				? null
@@ -113,43 +114,44 @@ public class CsvAspect<TClass> extends Aspect<TClass, CsvAspectMember<TClass>> {
 
 	public void parse(
 			final InputStream source,
-			final List<TClass> target) {
+			final List<T> target) {
 		String line;
 		boolean frowhasnames = this.firstRowHasNames;
 		try {
-			Constructor<TClass> constructor = super.getDataType().getConstructor();
+			Constructor<T> constructor = super.getDataType().getConstructor();
 			BufferedReader reader = new BufferedReader(new InputStreamReader(source, charset));
 			while ((line = reader.readLine()) != null) {
-				if (line.isEmpty())
-					continue;
-				if (commentQualifier != null && !commentQualifier.isEmpty() && line.startsWith(commentQualifier))
-					continue;
-				if (frowhasnames) {
+				if (line.isEmpty() ||
+						(commentQualifier != null &&
+								!commentQualifier.isEmpty() &&
+								line.startsWith(commentQualifier))) {
+					// just ignore
+				} else if (frowhasnames) {
 					frowhasnames = false;
 					String[] names = line.split(separator);
 					for (CsvAspectMember<?> member : this)
 						member.setPositionFrom(names);
 				} else {
 					String[] cells = line.split(separator);
-					TClass entity = constructor.newInstance();
-					for (CsvAspectMember<TClass> member : this)
+					T entity = constructor.newInstance();
+					for (CsvAspectMember<T> member : this)
 						member.parseAndApply(cells, entity);
 					target.add(entity);
 				}
 			}
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			throw new ShowStopper(e);
 		}
 
 	}
 
-	public List<TClass> parse(InputStream source) {
-		List<TClass> list = new ArrayList<>(capacity);
+	public List<T> parse(InputStream source) {
+		List<T> list = new ArrayList<>(capacity);
 		parse(source, list);
 		return list;
 	}
 
-	public List<TClass> parse(File file) throws IOException {
+	public List<T> parse(File file) throws IOException {
 		FileInputStream fis = new FileInputStream(file);
 		try {
 			return parse(fis);
@@ -158,7 +160,7 @@ public class CsvAspect<TClass> extends Aspect<TClass, CsvAspectMember<TClass>> {
 		}
 	}
 
-	public List<TClass> parse(URL url) throws IOException {
+	public List<T> parse(URL url) throws IOException {
 		InputStream fis = url.openStream();
 		try {
 			return parse(fis);

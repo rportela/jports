@@ -5,6 +5,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -92,7 +94,7 @@ public class HttpAction {
 	 * @return
 	 */
 	public Map<String, Object> copyHeaders() {
-		HashMap<String, Object> headers = new HashMap<String, Object>();
+		HashMap<String, Object> headers = new HashMap<>();
 		Enumeration<String> names = request.getHeaderNames();
 		while (names.hasMoreElements()) {
 			String name = names.nextElement();
@@ -115,17 +117,15 @@ public class HttpAction {
 	 * @throws ClassNotFoundException
 	 */
 	@SuppressWarnings("unchecked")
-	public <TParams, TResult> Action<TParams, TResult> buildAction() throws InstantiationException,
+	public <T, R> Action<T, R> buildAction() throws InstantiationException,
 			IllegalAccessException,
-			IllegalArgumentException,
 			InvocationTargetException,
 			NoSuchMethodException,
-			SecurityException,
 			ClassNotFoundException {
 		String className = request.getPathInfo();
 		className = className.replace('/', '.');
 		className = packageName + className;
-		return (Action<TParams, TResult>) Class
+		return (Action<T, R>) Class
 				.forName(className)
 				.getConstructor()
 				.newInstance();
@@ -140,14 +140,14 @@ public class HttpAction {
 	 * @return
 	 * @throws Exception
 	 */
-	public <TParams> TParams parseParams(Class<TParams> paramsClass) throws Exception {
-		String content_type = request.getContentType();
+	public <P> P parseParams(Class<P> paramsClass) throws Exception {
+		String contentType = request.getContentType();
 		HttpActionParamParser parser = null;
-		if (isJsonContentType(content_type)) {
+		if (isJsonContentType(contentType)) {
 			parser = new HttpActionParamParserForJson();
-		} else if (isXmlContentType(content_type)) {
+		} else if (isXmlContentType(contentType)) {
 			parser = new HttpActionParamParserForXml();
-		} else if (isMultipart(content_type)) {
+		} else if (isMultipart(contentType)) {
 			parser = new HttpActionParamParserForMultipart();
 		} else {
 			parser = new HttpActionParamParserForParameters();
@@ -163,27 +163,28 @@ public class HttpAction {
 	 * 
 	 * @return
 	 */
-	public <TParams, TResult> ActionExecution<TParams, TResult> execute() {
+	public <T, R> ActionExecution<T, R> execute() {
 
 		try {
-			Action<TParams, TResult> action = this.buildAction();
-			ActionExecution<TParams, TResult> execution = action.execute(
+			Action<T, R> action = this.buildAction();
+			ActionExecution<T, R> execution = action.execute(
 					parseParams(action.getParamsClass()),
 					copyHeaders());
-			HttpActionWriter<TParams, TResult> writer = execution.result_type == ActionResultType.SUCCESS ?
-					action.getHttpWriter() :
-					new HttpActionWriterForJson<>();
+			HttpActionWriter<T, R> writer = execution.getResultType() == ActionResultType.SUCCESS
+					? action.getHttpWriter()
+					: new HttpActionWriterForJson<>();
 			writer.write(execution, response);
 			return execution;
 		} catch (Exception e) {
-			ActionExecution<TParams, TResult> errorExec = new ActionExecution<>();
-			errorExec.name = request.getPathInfo();
-			errorExec.result_type = ActionResultType.EXCEPTION_RAISED;
-			errorExec.exception = e;
+			ActionExecution<T, R> errorExec = new ActionExecution<>();
+			errorExec.setName(request.getPathInfo())
+					.setResultType(ActionResultType.EXCEPTION_RAISED)
+					.setException(e)
+					.setFailMessage(e.getMessage());
 			try {
-				new HttpActionWriterForJson<TParams, TResult>().write(errorExec, response);
+				new HttpActionWriterForJson<T, R>().write(errorExec, response);
 			} catch (IOException ignore) {
-				ignore.printStackTrace();
+				Logger.getLogger(getClass().getName()).log(Level.INFO, ignore, null);
 			}
 			return errorExec;
 
@@ -194,14 +195,14 @@ public class HttpAction {
 	/**
 	 * Checks if a given content type is JSON;
 	 * 
-	 * @param content_type
+	 * @param contentType
 	 * @return
 	 */
-	public static final boolean isJsonContentType(String content_type) {
-		if (content_type == null || content_type.isEmpty())
+	public static final boolean isJsonContentType(String contentType) {
+		if (contentType == null || contentType.isEmpty())
 			return false;
-		for (int i = 0; i < JSON_CONTENT_TYPES.length; i++)
-			if (JSON_CONTENT_TYPES[i].equalsIgnoreCase(content_type))
+		for (int i = 0; i < JSON_contentTypeS.length; i++)
+			if (JSON_contentTypeS[i].equalsIgnoreCase(contentType))
 				return true;
 		return false;
 	}
@@ -209,14 +210,14 @@ public class HttpAction {
 	/**
 	 * Checks if a given content type is XML;
 	 * 
-	 * @param content_type
+	 * @param contentType
 	 * @return
 	 */
-	public static final boolean isXmlContentType(String content_type) {
-		if (content_type == null || content_type.isEmpty())
+	public static final boolean isXmlContentType(String contentType) {
+		if (contentType == null || contentType.isEmpty())
 			return false;
-		for (int i = 0; i < XML_CONTENT_TYPES.length; i++)
-			if (XML_CONTENT_TYPES[i].equalsIgnoreCase(content_type))
+		for (int i = 0; i < XML_contentTypeS.length; i++)
+			if (XML_contentTypeS[i].equalsIgnoreCase(contentType))
 				return true;
 		return false;
 	}
@@ -224,17 +225,17 @@ public class HttpAction {
 	/**
 	 * Checks if a given content type is a multi-part/form-data submission;
 	 * 
-	 * @param content_type
+	 * @param contentType
 	 * @return
 	 */
-	public static final boolean isMultipart(String content_type) {
-		return content_type != null && content_type.startsWith("multipart/form-data");
+	protected static final boolean isMultipart(String contentType) {
+		return contentType != null && contentType.startsWith("multipart/form-data");
 	}
 
 	/**
 	 * The default known names of JSON content types;
 	 */
-	public static final String[] JSON_CONTENT_TYPES = new String[] {
+	protected static final String[] JSON_contentTypeS = new String[] {
 			"application/json",
 			"application/x-javascript",
 			"text/javascript",
@@ -245,7 +246,7 @@ public class HttpAction {
 	/**
 	 * The default known names of XML content types;
 	 */
-	public static final String[] XML_CONTENT_TYPES = new String[] {
+	protected static final String[] XML_contentTypeS = new String[] {
 			"text/xml",
 			"application/xml"
 	};

@@ -4,7 +4,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 
-public abstract class Select<TRow> extends Filterable<Select<TRow>> implements Iterable<TRow> {
+public abstract class Select<T> extends Filterable<Select<T>> implements Iterable<T> {
 
 	private Sort sort;
 	private int offset;
@@ -14,21 +14,21 @@ public abstract class Select<TRow> extends Filterable<Select<TRow>> implements I
 		return this.sort;
 	}
 
-	public Select<TRow> orderBy(String name, SortDirection direction) {
+	public Select<T> orderBy(String name, SortDirection direction) {
 		this.sort = new Sort(name, direction);
 		return this;
 	}
 
-	public Select<TRow> orderBy(String name) {
+	public Select<T> orderBy(String name) {
 		return orderBy(name, SortDirection.ASCENDING);
 	}
 
-	public Select<TRow> thenOrderBy(String name, SortDirection direction) {
+	public Select<T> thenOrderBy(String name, SortDirection direction) {
 		this.sort.thenOrderBy(name, direction);
 		return this;
 	}
 
-	public Select<TRow> thenOrderBy(String name) {
+	public Select<T> thenOrderBy(String name) {
 		return thenOrderBy(name, SortDirection.ASCENDING);
 	}
 
@@ -36,7 +36,7 @@ public abstract class Select<TRow> extends Filterable<Select<TRow>> implements I
 		return this.offset;
 	}
 
-	public Select<TRow> setOffset(int offset) {
+	public Select<T> setOffset(int offset) {
 		this.offset = offset;
 		return this;
 	}
@@ -45,27 +45,27 @@ public abstract class Select<TRow> extends Filterable<Select<TRow>> implements I
 		return this.limit;
 	}
 
-	public Select<TRow> setLimit(int limit) {
+	public Select<T> setLimit(int limit) {
 		this.limit = limit;
 		return this;
 	}
 
-	public Select<TRow> setPage(int pageNumber, int pageSize) {
+	public Select<T> setPage(int pageNumber, int pageSize) {
 		this.offset = pageNumber * pageSize;
 		this.limit = pageSize;
 		return this;
 	}
 
 	@Override
-	protected Select<TRow> getThis() {
+	protected Select<T> getThis() {
 		return this;
 	}
 
-	public Iterator<TRow> iterator() {
+	public Iterator<T> iterator() {
 		return toList().iterator();
 	}
 
-	public Stream<TRow> stream() {
+	public Stream<T> stream() {
 		return toList().stream();
 	}
 
@@ -73,10 +73,10 @@ public abstract class Select<TRow> extends Filterable<Select<TRow>> implements I
 		return first() != null;
 	}
 
-	public abstract List<TRow> toList();
+	public abstract List<T> toList();
 
 	public abstract long count();
 
-	public abstract TRow first();
+	public abstract T first();
 
 }

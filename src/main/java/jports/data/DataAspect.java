@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import jports.ShowStopper;
 import jports.reflection.Aspect;
 
 /**
@@ -16,34 +17,34 @@ import jports.reflection.Aspect;
  * 
  * @author rportela
  *
- * @param <TClass>
- * @param <TMember>
+ * @param <T>
+ * @param <M>
  */
-public abstract class DataAspect<TClass, TMember extends DataAspectMember<TClass>>
-		extends Aspect<TClass, TMember>
-		implements ColumnSchema<TMember> {
+public abstract class DataAspect<T, M extends DataAspectMember<T>>
+		extends Aspect<T, M>
+		implements ColumnSchema<M> {
 
-	private TMember identity;
-	private final ArrayList<TMember> uniques = new ArrayList<>();
-	private final ArrayList<TMember> composite_key = new ArrayList<>();
+	private M identity;
+	private final ArrayList<M> uniques = new ArrayList<>();
+	private final ArrayList<M> compositeKey = new ArrayList<>();
 
 	/**
 	 * Creates a new Data Aspect for a specific data type;
 	 * 
 	 * @param dataType
 	 */
-	protected DataAspect(final Class<TClass> dataType) {
+	protected DataAspect(final Class<T> dataType) {
 		super(dataType);
 
-		TMember id = null;
-		for (TMember member : this) {
+		M id = null;
+		for (M member : this) {
 			switch (member.getColumnType()) {
 			case COMPOSITE_KEY:
-				composite_key.add(member);
+				compositeKey.add(member);
 				break;
 			case IDENTITY:
 				if (id != null)
-					throw new RuntimeException("Please use just one identity per class: " +
+					throw new ShowStopper("Please use just one identity per class: " +
 							dataType +
 							" (" +
 							member.getColumnName() +
@@ -87,7 +88,7 @@ public abstract class DataAspect<TClass, TMember extends DataAspectMember<TClass
 	 * Gets all the columns of this Data Aspect;
 	 */
 	@Override
-	public List<TMember> getColumns() {
+	public List<M> getColumns() {
 		return super.getMembers();
 	}
 
@@ -95,7 +96,7 @@ public abstract class DataAspect<TClass, TMember extends DataAspectMember<TClass
 	 * Gets a specific column by it's ordinal position in this schema;
 	 */
 	@Override
-	public TMember getColumn(final int ordinal) {
+	public M getColumn(final int ordinal) {
 		return super.get(ordinal);
 	}
 
@@ -106,7 +107,7 @@ public abstract class DataAspect<TClass, TMember extends DataAspectMember<TClass
 	 * informed name;
 	 */
 	@Override
-	public TMember getColumn(final String name) {
+	public M getColumn(final String name) {
 		final int ordinal = getColumnOrdinal(name);
 		return ordinal < 0
 				? null
@@ -117,7 +118,7 @@ public abstract class DataAspect<TClass, TMember extends DataAspectMember<TClass
 	 * Gets the identity member of this data aspect or null if none was annotated;
 	 */
 	@Override
-	public TMember getIdentity() {
+	public M getIdentity() {
 		return this.identity;
 	}
 
@@ -129,7 +130,7 @@ public abstract class DataAspect<TClass, TMember extends DataAspectMember<TClass
 	 * 
 	 * @param name
 	 */
-	public synchronized DataAspect<TClass, TMember> setIdentity(final String name) {
+	public synchronized DataAspect<T, M> setIdentity(final String name) {
 		if (this.identity != null) {
 			this.identity.setColumnType(ColumnType.REGULAR);
 		}
@@ -144,7 +145,7 @@ public abstract class DataAspect<TClass, TMember extends DataAspectMember<TClass
 	 * Gets a list of unique columns annotated on this data aspect;
 	 */
 	@Override
-	public List<TMember> getUniqueColumns() {
+	public List<M> getUniqueColumns() {
 		return this.uniques;
 	}
 
@@ -156,8 +157,8 @@ public abstract class DataAspect<TClass, TMember extends DataAspectMember<TClass
 	 * 
 	 * @param name
 	 */
-	public synchronized DataAspect<TClass, TMember> setUnique(final String name) {
-		TMember column = getColumn(name);
+	public synchronized DataAspect<T, M> setUnique(final String name) {
+		M column = getColumn(name);
 		if (!uniques.contains(column)) {
 			column.setColumnType(ColumnType.UNIQUE);
 			uniques.add(column);
@@ -169,8 +170,8 @@ public abstract class DataAspect<TClass, TMember extends DataAspectMember<TClass
 	 * Gets a list of members that are part of the composite key;
 	 */
 	@Override
-	public List<TMember> getCompositeKey() {
-		return this.composite_key;
+	public List<M> getCompositeKey() {
+		return this.compositeKey;
 	}
 
 	/**
@@ -182,21 +183,21 @@ public abstract class DataAspect<TClass, TMember extends DataAspectMember<TClass
 	 * 
 	 * @param names
 	 */
-	public synchronized DataAspect<TClass, TMember> setCompositeKey(final String... names) {
+	public synchronized DataAspect<T, M> setCompositeKey(final String... names) {
 
 		if (names.length < 2)
-			throw new RuntimeException("Please add at least 2 columns to a composite key: " + this);
+			throw new ShowStopper("Please add at least 2 columns to a composite key: " + this);
 
-		for (TMember prev : this.composite_key) {
+		for (M prev : this.compositeKey) {
 			prev.setColumnType(ColumnType.REGULAR);
 		}
 
-		this.composite_key.clear();
+		this.compositeKey.clear();
 
 		for (int i = 0; i < names.length; i++) {
-			TMember column = getColumn(names[i]);
+			M column = getColumn(names[i]);
 			column.setColumnType(ColumnType.COMPOSITE_KEY);
-			this.composite_key.add(column);
+			this.compositeKey.add(column);
 		}
 
 		return this;
@@ -209,24 +210,25 @@ public abstract class DataAspect<TClass, TMember extends DataAspectMember<TClass
 	 * @param entity
 	 * @return
 	 */
-	public synchronized Predicate<TClass> createCompositeKeyFilter(final TClass entity) {
-		return new Predicate<TClass>() {
-			private final List<Object> ckValues = composite_key
+	public synchronized Predicate<T> createCompositeKeyFilter(final T entity) {
+		return new Predicate<T>() {
+			private final List<Object> ckValues = compositeKey
 					.stream()
 					.map(ck -> ck.getValue(entity))
 					.collect(Collectors.toList());
 
 			@Override
-			public boolean test(TClass t) {
+			public boolean test(T t) {
 				for (int i = 0; i < ckValues.size(); i++) {
-					TMember ck = composite_key.get(i);
+					M ck = compositeKey.get(i);
 					Object a = ck.getValue(t);
 					Object b = ckValues.get(i);
 					if (b == null) {
 						if (a != null)
 							return false;
-					} else if (!b.equals(a))
+					} else if (!b.equals(a)) {
 						return false;
+					}
 				}
 				return true;
 			}
@@ -240,7 +242,7 @@ public abstract class DataAspect<TClass, TMember extends DataAspectMember<TClass
 	 * @param filter
 	 * @return
 	 */
-	public Predicate<TClass> createFilter(final Filter filter) {
+	public Predicate<T> createFilter(final Filter filter) {
 		switch (filter.getFilterType()) {
 		case EXPRESSION:
 			return createFilter((FilterExpression) filter);
@@ -249,7 +251,7 @@ public abstract class DataAspect<TClass, TMember extends DataAspectMember<TClass
 		case TERM:
 			return createFilter((FilterTerm) filter);
 		default:
-			throw new RuntimeException("Unknwon filter type: " + filter.getFilterType() + " on " + filter);
+			throw new ShowStopper("Unknwon filter type: " + filter.getFilterType() + " on " + filter);
 
 		}
 	}
@@ -261,7 +263,7 @@ public abstract class DataAspect<TClass, TMember extends DataAspectMember<TClass
 	 * @param expression
 	 * @return
 	 */
-	public Predicate<TClass> createFilter(final FilterExpression expression) {
+	public Predicate<T> createFilter(final FilterExpression expression) {
 		return createFilter(expression.first);
 	}
 
@@ -272,17 +274,17 @@ public abstract class DataAspect<TClass, TMember extends DataAspectMember<TClass
 	 * @param node
 	 * @return
 	 */
-	public synchronized Predicate<TClass> createFilter(final FilterNode node) {
-		return new Predicate<TClass>() {
+	public synchronized Predicate<T> createFilter(final FilterNode node) {
+		return new Predicate<T>() {
 
-			final Predicate<TClass> filterPredicate = createFilter(node.filter);
-			final FilterOperation op = node.operation;
-			final Predicate<TClass> next = node.next == null
+			final Predicate<T> filterPredicate = createFilter(node.getFilter());
+			final FilterOperation op = node.getOperation();
+			final Predicate<T> next = node.getNext() == null
 					? null
-					: createFilter(node.next);
+					: createFilter(node.getNext());
 
 			@Override
-			public boolean test(TClass arg0) {
+			public boolean test(T arg0) {
 				if (next == null)
 					return filterPredicate.test(arg0);
 				else {
@@ -292,7 +294,7 @@ public abstract class DataAspect<TClass, TMember extends DataAspectMember<TClass
 					case OR:
 						return filterPredicate.test(arg0) || next.test(arg0);
 					default:
-						throw new RuntimeException("Unknown filter operation: " + op);
+						throw new ShowStopper("Unknown filter operation: " + op);
 
 					}
 				}
@@ -307,14 +309,14 @@ public abstract class DataAspect<TClass, TMember extends DataAspectMember<TClass
 	 * @param term
 	 * @return
 	 */
-	public synchronized Predicate<TClass> createFilter(final FilterTerm term) {
-		return new Predicate<TClass>() {
+	public synchronized Predicate<T> createFilter(final FilterTerm term) {
+		return new Predicate<T>() {
 
-			final DataAspectMember<TClass> member = get(term.name);
-			final Predicate<Object> valuePredicate = term.createValuePredicate();
+			final DataAspectMember<T> member = get(term.getName());
+			final Predicate<Object> valuePredicate = term.valuePredicate;
 
 			@Override
-			public boolean test(TClass arg0) {
+			public boolean test(T arg0) {
 				Object value = member.getValue(arg0);
 				return valuePredicate.test(value);
 			}
@@ -328,42 +330,42 @@ public abstract class DataAspect<TClass, TMember extends DataAspectMember<TClass
 	 * @param node
 	 * @return
 	 */
-	public synchronized Comparator<TClass> createComparator(final SortNode node) {
+	public synchronized Comparator<T> createComparator(final SortNode node) {
 
-		switch (node.direction) {
+		switch (node.getDirection()) {
 		case ASCENDING:
-			return new Comparator<TClass>() {
-				final TMember member = get(node.name);
+			return new Comparator<T>() {
+				final M member = get(node.getName());
 
 				@SuppressWarnings({ "unchecked", "rawtypes" })
 				@Override
-				public int compare(TClass arg0, TClass arg1) {
+				public int compare(T arg0, T arg1) {
 					Object a = member.getValue(arg0);
 					Object b = member.getValue(arg1);
 					return ((Comparable) a).compareTo(b);
 				}
 			};
 		case DESCENDING:
-			return new Comparator<TClass>() {
-				final TMember member = get(node.name);
+			return new Comparator<T>() {
+				final M member = get(node.getName());
 
 				@SuppressWarnings({ "unchecked", "rawtypes" })
 				@Override
-				public int compare(TClass arg0, TClass arg1) {
+				public int compare(T arg0, T arg1) {
 					Object a = member.getValue(arg0);
 					Object b = member.getValue(arg1);
-					return -((Comparable) a).compareTo(b);
+					return ((Comparable) b).compareTo(a);
 				}
 			};
 		default:
-			throw new RuntimeException("Unknown sort direction: " + node.direction);
+			throw new ShowStopper("Unknown sort direction: " + node.getDirection());
 		}
 
 	}
 
 	@SuppressWarnings("unchecked")
-	public TMember[] getColumnArray(String... names) {
-		TMember[] members = (TMember[]) Array.newInstance(get(0).getClass(), names.length);
+	public M[] getColumnArray(String... names) {
+		M[] members = (M[]) Array.newInstance(get(0).getClass(), names.length);
 		for (int i = 0; i < names.length; i++)
 			members[i] = getColumn(names[i]);
 		return members;

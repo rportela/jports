@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Stream;
 
+import jports.ShowStopper;
+
 /**
  * This class represents an uniform way of interacting with entities in this
  * framework; It easily allows to get and set values to entities based on the
@@ -24,13 +26,13 @@ import java.util.stream.Stream;
  * 
  * @author rportela
  *
- * @param <TClass>
- * @param <TMember>
+ * @param <T>
+ * @param <M>
  */
-public abstract class Aspect<TClass, TMember extends AspectMember<TClass>>
+public abstract class Aspect<T, M extends AspectMember<T>>
 		implements
 		AnnotatedType,
-		Iterable<TMember> {
+		Iterable<M> {
 
 	/**
 	 * Locates a setter based on a name and an expected parameter type;
@@ -60,17 +62,17 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>>
 	/**
 	 * Holds a list of members of this class;
 	 */
-	private final ArrayList<TMember> members;
+	private final ArrayList<M> members;
 
 	/**
 	 * The actual class definition;
 	 */
-	private final Class<TClass> dataType;
+	private final Class<T> dataType;
 
 	/**
 	 * The default constructor with no paramters;
 	 */
-	private final Constructor<TClass> constructor;
+	private final Constructor<T> constructor;
 
 	/**
 	 * Tells the aspect that it should inspect fields;
@@ -96,14 +98,14 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>>
 	 * 
 	 * @param fields
 	 */
-	protected void createFieldMembers(List<TMember> target, Field[] fields) {
+	protected void createFieldMembers(List<M> target, Field[] fields) {
 		if (this.canHaveFields())
 			for (int i = 0; i < fields.length; i++) {
 				int modifiers = fields[i].getModifiers();
 				if (!Modifier.isStatic(modifiers) &&
 						!Modifier.isTransient(modifiers)) {
-					AspectMemberField<TClass> accessor = new AspectMemberField<TClass>(this, fields[i]);
-					TMember member = this.visit(accessor);
+					AspectMemberField<T> accessor = new AspectMemberField<>(this, fields[i]);
+					M member = this.visit(accessor);
 					if (member != null)
 						target.add(member);
 				}
@@ -117,7 +119,7 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>>
 	 * @param target
 	 * @param methods
 	 */
-	protected void createPropertyMembers(List<TMember> target, Method[] methods) {
+	protected void createPropertyMembers(List<M> target, Method[] methods) {
 		if (this.canHaveProperties())
 			for (int i = 0; i < methods.length; i++) {
 				Method getter = methods[i];
@@ -131,12 +133,12 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>>
 						if (parameterTypes == null || parameterTypes.length == 0) {
 							name = name.substring(3);
 							Method setter = findSetter(methods, "set" + name, getter.getReturnType());
-							AspectMemberProperty<TClass> accessor = new AspectMemberProperty<TClass>(
+							AspectMemberProperty<T> accessor = new AspectMemberProperty<>(
 									this,
 									name,
 									getter,
 									setter);
-							TMember member = this.visit(accessor);
+							M member = this.visit(accessor);
 							if (member != null)
 								target.add(member);
 						}
@@ -145,7 +147,7 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>>
 			}
 	}
 
-	protected void intializeDataType(Class<TClass> dataType) {
+	protected void intializeDataType(Class<T> dataType) {
 
 	}
 
@@ -154,19 +156,19 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>>
 	 * 
 	 * @param dataType
 	 */
-	protected Aspect(Class<TClass> dataType) {
+	protected Aspect(Class<T> dataType) {
 		this.dataType = dataType;
 		intializeDataType(dataType);
 		final Field[] fields = dataType.getFields();
 		final Method[] methods = dataType.getMethods();
-		this.members = new ArrayList<TMember>(fields.length + methods.length);
+		this.members = new ArrayList<>(fields.length + methods.length);
 		createFieldMembers(members, fields);
 		createPropertyMembers(members, methods);
 		this.members.trimToSize();
 		try {
 			this.constructor = dataType.getConstructor();
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			throw new ShowStopper(e);
 		}
 	}
 
@@ -178,14 +180,14 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>>
 	 * @param field
 	 * @return
 	 */
-	protected abstract TMember visit(AspectMemberAccessor<TClass> accessor);
+	protected abstract M visit(AspectMemberAccessor<T> accessor);
 
 	/**
 	 * The expected type of entity in this aspect;
 	 * 
 	 * @return
 	 */
-	public final Class<TClass> getDataType() {
+	public final Class<T> getDataType() {
 		return this.dataType;
 	}
 
@@ -213,7 +215,7 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>>
 	 * @param index
 	 * @return
 	 */
-	public final TMember get(int index) {
+	public final M get(int index) {
 		return this.members.get(index);
 	}
 
@@ -238,10 +240,10 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>>
 	 * @param name
 	 * @return
 	 */
-	public final TMember get(final String name) {
+	public final M get(final String name) {
 		final int index = this.indexOf(name);
 		if (index < 0)
-			throw new RuntimeException(name + " is not a member of " + this.dataType);
+			throw new ShowStopper(name + " is not a member of " + this.dataType);
 		else
 			return this.members.get(index);
 	}
@@ -254,7 +256,7 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>>
 	 * @param index
 	 * @return
 	 */
-	public synchronized Object getValue(final TClass source, final int index) {
+	public synchronized Object getValue(final T source, final int index) {
 		return this.members.get(index).getValue(source);
 	}
 
@@ -266,7 +268,7 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>>
 	 * @param name
 	 * @return
 	 */
-	public synchronized Object getValue(final TClass source, final String name) {
+	public synchronized Object getValue(final T source, final String name) {
 		return this.get(name).getValue(source);
 	}
 
@@ -278,7 +280,7 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>>
 	 * @param index
 	 * @param value
 	 */
-	public synchronized void setValue(final TClass target, final int index, final Object value) {
+	public synchronized void setValue(final T target, final int index, final Object value) {
 		this.members.get(index).setValue(target, value);
 	}
 
@@ -289,7 +291,7 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>>
 	 * @param name
 	 * @param value
 	 */
-	public synchronized void setValue(final TClass target, final String name, final Object value) {
+	public synchronized void setValue(final T target, final String name, final Object value) {
 		this.get(name).setValue(target, value);
 	}
 
@@ -300,8 +302,8 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>>
 	 * @param source
 	 * @param target
 	 */
-	public synchronized void getValues(final TClass source, final Map<String, Object> target) {
-		for (TMember member : this.members)
+	public synchronized void getValues(final T source, final Map<String, Object> target) {
+		for (M member : this.members)
 			target.put(member.getName(), member.getValue(source));
 	}
 
@@ -311,8 +313,8 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>>
 	 * @param entity
 	 * @return
 	 */
-	public synchronized Map<String, Object> toMap(final TClass entity) {
-		final LinkedHashMap<String, Object> map = new LinkedHashMap<String, Object>();
+	public synchronized Map<String, Object> toMap(final T entity) {
+		final LinkedHashMap<String, Object> map = new LinkedHashMap<>();
 		getValues(entity, map);
 		return map;
 	}
@@ -325,13 +327,13 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>>
 	 * @param map
 	 * @return
 	 */
-	public synchronized final TClass fromMap(final Map<String, Object> map) {
+	public synchronized final T fromMap(final Map<String, Object> map) {
 		try {
-			TClass entity = this.dataType.getConstructor().newInstance();
+			T entity = this.dataType.getConstructor().newInstance();
 			setValues(entity, map);
 			return entity;
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			throw new ShowStopper(e);
 		}
 	}
 
@@ -342,7 +344,7 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>>
 	 * @param target
 	 * @param values
 	 */
-	public synchronized final void setValues(final TClass target, final Map<String, Object> values) {
+	public final synchronized void setValues(final T target, final Map<String, Object> values) {
 		for (Entry<String, Object> entry : values.entrySet()) {
 			get(entry.getKey()).setValue(target, entry.getValue());
 		}
@@ -352,7 +354,7 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>>
 	 * Returns this element's annotation for the specified type if such an
 	 * annotation is present, else null.
 	 */
-	public final <T extends Annotation> T getAnnotation(final Class<T> annotationClass) {
+	public final <A extends Annotation> A getAnnotation(final Class<A> annotationClass) {
 		return this.dataType.getAnnotation(annotationClass);
 	}
 
@@ -386,7 +388,7 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>>
 	/**
 	 * Gets an iterator for members of this aspect;
 	 */
-	public Iterator<TMember> iterator() {
+	public Iterator<M> iterator() {
 		return this.members.iterator();
 	}
 
@@ -395,7 +397,7 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>>
 	 * 
 	 * @return
 	 */
-	public Stream<TMember> stream() {
+	public Stream<M> stream() {
 		return this.members.stream();
 	}
 
@@ -404,7 +406,7 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>>
 	 * 
 	 * @return
 	 */
-	public List<TMember> getMembers() {
+	public List<M> getMembers() {
 		return this.members;
 	}
 
@@ -413,11 +415,11 @@ public abstract class Aspect<TClass, TMember extends AspectMember<TClass>>
 	 * 
 	 * @return
 	 */
-	public TClass newInstance() {
+	public T newInstance() {
 		try {
 			return constructor.newInstance();
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			throw new ShowStopper(e);
 		}
 	}
 }

@@ -2,6 +2,8 @@ package jports.adapters;
 
 import java.util.UUID;
 
+import jports.ShowStopper;
+
 public class UUIDAdapter implements Adapter<UUID> {
 
 	@Override
@@ -29,7 +31,7 @@ public class UUIDAdapter implements Adapter<UUID> {
 		else if (source instanceof String)
 			return UUID.fromString((String) source);
 		else
-			throw new RuntimeException("Can't make UUID from " + source);
+			throw new ShowStopper("Can't make UUID from " + source);
 	}
 
 	@Override

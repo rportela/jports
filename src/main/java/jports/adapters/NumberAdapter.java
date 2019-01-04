@@ -6,12 +6,14 @@ import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Date;
 
+import jports.ShowStopper;
+
 public class NumberAdapter implements Adapter<Number> {
 
-	public final NumberFormat format;
+	public final NumberFormat formatter;
 
 	public NumberAdapter(NumberFormat format) {
-		this.format = format;
+		this.formatter = format;
 	}
 
 	public NumberAdapter() {
@@ -24,25 +26,25 @@ public class NumberAdapter implements Adapter<Number> {
 
 	public Number parse(String source) {
 		try {
-			return source == null
-					|| source.isEmpty()
-							? null
-							: format.parse(source);
+			return source == null || source.isEmpty()
+					? null
+					: formatter.parse(source);
 		} catch (ParseException e) {
-			throw new RuntimeException(e);
+			throw new ShowStopper(e);
 		}
 	}
 
 	public String format(Number source) {
 		return source == null
 				? null
-				: this.format.format(source);
+				: this.formatter.format(source);
 	}
 
+	@Override
 	public String formatObject(Object source) {
 		return source == null
 				? null
-				: this.format.format(source);
+				: this.formatter.format(source);
 	}
 
 	public Number convert(Object source) {
@@ -57,10 +59,7 @@ public class NumberAdapter implements Adapter<Number> {
 		else if (source instanceof Calendar)
 			return ((Calendar) source).getTimeInMillis();
 		else
-			throw new RuntimeException("Can't convert "
-					+ source.getClass()
-					+ " to "
-					+ getDataType());
+			throw new ShowStopper("Can't convert " + source.getClass() + " to " + getDataType());
 	}
 
 	public Class<Number> getDataType() {

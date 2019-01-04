@@ -14,6 +14,7 @@ import java.net.ProtocolException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -51,7 +52,7 @@ public class HttpClient {
 	private URL url;
 	private String method = "GET";
 	private byte[] payload;
-	private Charset charset = Charset.forName("UTF-8");
+	private Charset charset = StandardCharsets.UTF_8;
 	private Map<String, List<String>> responseHeaders;
 	private int redirectCount;
 	private int redirectMax = 10;
@@ -251,12 +252,12 @@ public class HttpClient {
 	public HttpClient setPayload(Map<String, String> form) throws UnsupportedEncodingException {
 		String charsetName = charset.name();
 		StringBuilder postBuilder = new StringBuilder(1024);
-		boolean prepend_amp = false;
+		boolean prependAmp = false;
 		for (Entry<String, String> entry : form.entrySet()) {
-			if (prepend_amp) {
+			if (prependAmp) {
 				postBuilder.append('&');
 			} else {
-				prepend_amp = true;
+				prependAmp = true;
 			}
 			String name = entry.getKey();
 			String value = entry.getValue();
@@ -411,7 +412,7 @@ public class HttpClient {
 		List<HttpCookie> parsedCookies = HttpCookie.parse(cookieField);
 		for (HttpCookie hc : parsedCookies) {
 			boolean replaced = false;
-			for (int i = 0; i < cookies.size() && replaced == false; i++) {
+			for (int i = 0; i < cookies.size() && !replaced; i++) {
 				if (hc.getName().equalsIgnoreCase(cookies.get(i).getName())) {
 					cookies.set(i, hc);
 					replaced = true;
@@ -448,7 +449,6 @@ public class HttpClient {
 			try (OutputStream os = connection.getOutputStream()) {
 				os.write(this.payload);
 				os.flush();
-				os.close();
 			}
 		} else {
 			connection.connect();
@@ -469,7 +469,7 @@ public class HttpClient {
 				responseCode == HttpURLConnection.HTTP_SEE_OTHER) {
 
 			if (redirectCount > redirectMax) {
-				throw new RuntimeException("Too many redirects detected: " + redirectCount + " -> " + url);
+				throw new ShowStopper("Too many redirects detected: " + redirectCount + " -> " + url);
 			}
 			redirectCount++;
 			requestHeaders.put("Referer", url.toString());
@@ -480,7 +480,7 @@ public class HttpClient {
 
 	/**
 	 * Uses the content type header of the response to identify the character set
-	 * being used on the server;
+	 * being used on the server
 	 */
 	private void processContentType() {
 		String contentType = connection.getContentType();
@@ -492,7 +492,7 @@ public class HttpClient {
 	}
 
 	/**
-	 * Gets the response code returned by the remote object;
+	 * Gets the response code returned by the remote object
 	 * 
 	 * @return
 	 * @throws IOException
@@ -504,7 +504,7 @@ public class HttpClient {
 	}
 
 	/**
-	 * Gets the content length returned by the remote object;
+	 * Gets the content length returned by the remote object
 	 * 
 	 * @return
 	 * @throws IOException
@@ -516,7 +516,7 @@ public class HttpClient {
 	}
 
 	/**
-	 * Gets the content type returned by the remote object;
+	 * Gets the content type returned by the remote object
 	 * 
 	 * @return
 	 * @throws IOException
@@ -528,7 +528,7 @@ public class HttpClient {
 	}
 
 	/**
-	 * Gets the input stream of the connection to read bytes from it;
+	 * Gets the input stream of the connection to read bytes from it
 	 * 
 	 * @return
 	 * @throws IOException
@@ -541,7 +541,7 @@ public class HttpClient {
 		} catch (IOException e) {
 			InputStream errorStream = this.connection.getErrorStream();
 			if (errorStream != null) {
-				System.err.write(new InputStreamAdapter().toBytes(errorStream));
+				GenericLogger.error(this, new InputStreamAdapter().toString(errorStream), e);
 			}
 			throw e;
 		}
@@ -561,11 +561,7 @@ public class HttpClient {
 				while ((read = is.read(buffer)) >= 0) {
 					bos.write(buffer, 0, read);
 				}
-				byte[] output = bos.toByteArray();
-				bos.close();
-				return output;
-			} finally {
-				is.close();
+				return bos.toByteArray();
 			}
 		}
 	}
@@ -581,18 +577,10 @@ public class HttpClient {
 		InputStream is = getInputStream();
 		try (InputStreamReader reader = new InputStreamReader(is, charset)) {
 			StringBuilder builder = new StringBuilder(4096);
-			try {
-				char[] buffer = new char[4096];
-				int read;
-				while ((read = reader.read(buffer)) >= 0) {
-					builder.append(buffer, 0, read);
-				}
-			} finally {
-				try {
-					reader.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+			char[] buffer = new char[4096];
+			int read;
+			while ((read = reader.read(buffer)) >= 0) {
+				builder.append(buffer, 0, read);
 			}
 			return builder.toString();
 		} finally {
@@ -608,8 +596,7 @@ public class HttpClient {
 	 * @throws JsonSyntaxException
 	 * @throws IOException
 	 */
-	public <T> T getResponseJson(Class<T> classOfT) throws JsonSyntaxException,
-			IOException {
+	public <T> T getResponseJson(Class<T> classOfT) throws IOException {
 		return GSON.fromJson(getResponseText(), classOfT);
 	}
 
@@ -622,8 +609,7 @@ public class HttpClient {
 	 * @throws JsonSyntaxException
 	 * @throws IOException
 	 */
-	public <T> T getResponseJson(Type ofType) throws JsonSyntaxException,
-			IOException {
+	public <T> T getResponseJson(Type ofType) throws IOException {
 		return GSON.fromJson(getResponseText(), ofType);
 	}
 
@@ -636,8 +622,7 @@ public class HttpClient {
 	 * @throws IOException
 	 */
 	@SuppressWarnings("unchecked")
-	public Map<String, Object> getResponseJson() throws JsonSyntaxException,
-			IOException {
+	public Map<String, Object> getResponseJson() throws IOException {
 		return getResponseJson(Map.class);
 	}
 

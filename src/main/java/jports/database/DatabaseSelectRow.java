@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import jports.ShowStopper;
 import jports.data.Select;
 
 public class DatabaseSelectRow extends Select<Map<String, Object>> {
@@ -39,8 +40,9 @@ public class DatabaseSelectRow extends Select<Map<String, Object>> {
 
 			if (columns.isEmpty()) {
 				command.appendSql("*");
-			} else
+			} else {
 				command.appendNames(columns);
+			}
 
 			return command.appendSql(" FROM ")
 					.appendName(objectName)
@@ -49,14 +51,14 @@ public class DatabaseSelectRow extends Select<Map<String, Object>> {
 					.appendOffset(getOffset())
 					.appendLimit(getLimit())
 					.executeQuery(new ResultSetToMapList(
-							command.acceptsOffset() ?
-									0 :
-									getOffset(),
-							command.acceptsLimit() ?
-									0 :
-									getLimit()));
+							command.acceptsOffset()
+									? 0
+									: getOffset(),
+							command.acceptsLimit()
+									? 0
+									: getLimit()));
 		} catch (SQLException e) {
-			throw new RuntimeException(e);
+			throw new ShowStopper(e);
 		}
 	}
 
@@ -68,11 +70,11 @@ public class DatabaseSelectRow extends Select<Map<String, Object>> {
 					.appendName(objectName)
 					.appendWhere(getFilter())
 					.executeQuery(r -> r.getObject(1));
-			return obj == null ?
-					0L :
-					((Number) obj).longValue();
+			return obj == null
+					? 0L
+					: ((Number) obj).longValue();
 		} catch (SQLException e) {
-			throw new RuntimeException(e);
+			throw new ShowStopper(e);
 		}
 	}
 
@@ -85,11 +87,9 @@ public class DatabaseSelectRow extends Select<Map<String, Object>> {
 					.appendWhere(getFilter())
 					.appendSql(")")
 					.executeQuery(r -> r.getObject(1));
-			return obj == null ?
-					false :
-					((Number) obj).intValue() == 1;
+			return obj != null && ((Number) obj).intValue() == 1;
 		} catch (SQLException e) {
-			throw new RuntimeException(e);
+			throw new ShowStopper(e);
 		}
 
 	}
@@ -104,8 +104,9 @@ public class DatabaseSelectRow extends Select<Map<String, Object>> {
 
 			if (columns.isEmpty()) {
 				command.appendSql("*");
-			} else
+			} else {
 				command.appendNames(columns);
+			}
 
 			return command.appendSql(" FROM ")
 					.appendName(objectName)
@@ -113,14 +114,11 @@ public class DatabaseSelectRow extends Select<Map<String, Object>> {
 					.appendOrderBy(getSort())
 					.appendLimit(1)
 					.executeQuery(new ResultSetToMap(
-							command.acceptsOffset() ?
-									0 :
-									getOffset(),
-							command.acceptsLimit() ?
-									0 :
-									getLimit()));
+							command.acceptsOffset()
+									? 0
+									: getOffset()));
 		} catch (SQLException e) {
-			throw new RuntimeException(e);
+			throw new ShowStopper(e);
 		}
 	}
 

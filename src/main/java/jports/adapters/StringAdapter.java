@@ -10,6 +10,7 @@ public class StringAdapter implements Adapter<String> {
 		return source;
 	}
 
+	@Override
 	public String formatObject(Object source) {
 		return source == null
 				? ""

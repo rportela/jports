@@ -5,13 +5,13 @@ import jports.adapters.AdapterFactory;
 import jports.reflection.AspectMember;
 import jports.reflection.AspectMemberAccessor;
 
-public class CsvAspectMember<TClass> extends AspectMember<TClass> {
+public class CsvAspectMember<T> extends AspectMember<T> {
 
 	public final String columnName;
 	private int position;
 	public final Adapter<?> adapter;
 
-	public CsvAspectMember(AspectMemberAccessor<TClass> accessor, CsvColumn csv, int index) {
+	public CsvAspectMember(AspectMemberAccessor<T> accessor, CsvColumn csv, int index) {
 		super(accessor);
 		columnName = csv.name().isEmpty()
 				? accessor.getName()
@@ -30,7 +30,7 @@ public class CsvAspectMember<TClass> extends AspectMember<TClass> {
 		position = value;
 	}
 
-	public void parseAndApply(String[] source, TClass entity) {
+	public void parseAndApply(String[] source, T entity) {
 		if (position < 0 || position >= source.length)
 			return;
 		String text = source[position];
@@ -38,7 +38,7 @@ public class CsvAspectMember<TClass> extends AspectMember<TClass> {
 		super.setValue(entity, value);
 	}
 
-	public void formatAndApply(TClass source, String[] target) {
+	public void formatAndApply(T source, String[] target) {
 		if (position < 0 || position >= target.length)
 			return;
 		Object value = super.getValue(source);

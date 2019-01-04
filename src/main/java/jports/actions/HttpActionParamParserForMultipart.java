@@ -7,6 +7,8 @@ import java.nio.charset.Charset;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.Part;
 
+import jports.ShowStopper;
+
 /**
  * This class wraps the parser for enctype multipart/form-data, that may include
  * file parts to be processed by an action;
@@ -41,15 +43,17 @@ public class HttpActionParamParserForMultipart implements HttpActionParamParser 
 						field.set(target, part);
 					} else {
 						byte[] bytes = new byte[(int) part.getSize()];
-						InputStream is = part.getInputStream();
-						is.read(bytes);
-						is.close();
-						String txt = new String(bytes, charset);
-						field.set(target, txt);
+						int r = -1;
+						try (InputStream is = part.getInputStream()) {
+							r = is.read(bytes);
+						}
+						if (r > 0) {
+							field.set(target, new String(bytes, 0, r, charset));
+						}
 					}
 				}
 			} catch (Exception e) {
-				throw new RuntimeException(
+				throw new ShowStopper(
 						String.join(
 								"Unable to set value to field",
 								paramsClass.getSimpleName() + "." + field.getName(),

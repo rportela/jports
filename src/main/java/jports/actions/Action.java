@@ -4,9 +4,12 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Date;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.google.gson.GsonBuilder;
 
+import jports.GenericLogger;
 import jports.validations.ValidationAspect;
 import jports.validations.ValidationResult;
 
@@ -19,10 +22,10 @@ import jports.validations.ValidationResult;
  * 
  * @author rportela
  *
- * @param <TParams>
- * @param <TResult>
+ * @param <T>
+ * @param <R>
  */
-public abstract class Action<TParams, TResult> {
+public abstract class Action<T, R> {
 
 	/**
 	 * Gets the actual type arguments from the generic superclass of the
@@ -35,8 +38,8 @@ public abstract class Action<TParams, TResult> {
 		Class<?> claz = getClass();
 		Type superclass = claz.getGenericSuperclass();
 		ParameterizedType parameterized = (ParameterizedType) superclass;
-		Type[] typeArguments = parameterized.getActualTypeArguments();
-		return typeArguments;
+		return parameterized.getActualTypeArguments();
+
 	}
 
 	/**
@@ -56,11 +59,11 @@ public abstract class Action<TParams, TResult> {
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	public Class<TParams> getParamsClass() {
+	public Class<T> getParamsClass() {
 		Type tp = getParamsType();
 		if (tp instanceof ParameterizedType)
 			tp = ((ParameterizedType) tp).getRawType();
-		return (Class<TParams>) tp;
+		return (Class<T>) tp;
 	}
 
 	/**
@@ -80,11 +83,11 @@ public abstract class Action<TParams, TResult> {
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	public Class<TResult> getResultClass() {
+	public Class<R> getResultClass() {
 		Type tp = getResultType();
 		if (tp instanceof ParameterizedType)
 			tp = ((ParameterizedType) tp).getRawType();
-		return (Class<TResult>) tp;
+		return (Class<R>) tp;
 	}
 
 	/**
@@ -94,8 +97,8 @@ public abstract class Action<TParams, TResult> {
 	 * 
 	 * @param execution
 	 */
-	protected void postFlow(ActionExecution<TParams, TResult> execution) {
-		// override to add new functionality;
+	protected void postFlow(ActionExecution<T, R> execution) {
+		// override to add new functionality
 	}
 
 	/**
@@ -105,24 +108,26 @@ public abstract class Action<TParams, TResult> {
 	 * 
 	 * @param execution
 	 */
-	protected void validate(ActionExecution<TParams, TResult> execution) throws Exception {
-		Class<TParams> paramsClass = getParamsClass();
-		if (execution.params == null) {
+	protected void validate(ActionExecution<T, R> execution) {
+		Class<T> paramsClass = getParamsClass();
+		if (execution.getParams() == null) {
 			if (Void.class.equals(paramsClass))
 				return;
 
-			execution.validation = new ValidationResult(
+			execution.setValidation(new ValidationResult(
 					"params",
 					false,
-					"Only void parameters allow nulls. Wrap your primitives or string in a class.");
-			execution.result_type = ActionResultType.VALIDATION_FAILED;
-			return;
+					"Only void parameters allow nulls. Wrap your primitives or string in a class."))
+					.setResultType(ActionResultType.VALIDATION_FAILED);
 
 		} else {
-			ValidationAspect<TParams> validationAspect = ValidationAspect.getInstance(paramsClass);
-			execution.validation = validationAspect.validate("params", execution.params);
-			if (!execution.validation.isValid)
-				execution.result_type = ActionResultType.VALIDATION_FAILED;
+			ValidationAspect<T> validationAspect = ValidationAspect.getInstance(paramsClass);
+			ValidationResult validationResult = validationAspect.validate("params", execution.getParams());
+			if (!validationResult.isValid()) {
+				execution
+						.setValidation(validationResult)
+						.setResultType(ActionResultType.VALIDATION_FAILED);
+			}
 		}
 	}
 
@@ -133,7 +138,7 @@ public abstract class Action<TParams, TResult> {
 	 * 
 	 * @param execution
 	 */
-	protected void authenticate(ActionExecution<TParams, TResult> execution) throws Exception {
+	protected void authenticate(ActionExecution<T, R> execution) throws Exception {
 
 	}
 
@@ -144,33 +149,39 @@ public abstract class Action<TParams, TResult> {
 	 * @param execution
 	 * @throws Exception
 	 */
-	protected abstract void mainFlow(ActionExecution<TParams, TResult> execution) throws Exception;
+	protected abstract void mainFlow(ActionExecution<T, R> execution) throws Exception;
 
 	/**
 	 * Actually executes the use case using values set in que execution wrapper;
 	 * 
 	 * @param execution
 	 */
-	private synchronized final void execute(ActionExecution<TParams, TResult> execution) {
-		if (execution.name == null) {
-			execution.name = getClass().toString();
+	private final synchronized void execute(ActionExecution<T, R> execution) {
+		if (execution.getName() == null) {
+			execution.setName(getClass().toString());
 		}
 		try {
 			validate(execution);
-			if (execution.result_type == ActionResultType.NOT_EXECUTED) {
+			if (execution.getResultType() == ActionResultType.NOT_EXECUTED) {
 				authenticate(execution);
-				if (execution.result_type == ActionResultType.NOT_EXECUTED) {
+				if (execution.getResultType() == ActionResultType.NOT_EXECUTED) {
 					mainFlow(execution);
 				}
 
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
-			execution.exception = e;
-			execution.result_type = ActionResultType.EXCEPTION_RAISED;
+			Logger.getGlobal().log(Level.INFO, e, null);
+			execution
+					.setException(e)
+					.setFailMessage(e.getMessage())
+					.setResultType(ActionResultType.EXCEPTION_RAISED);
 		}
-		execution.execution_end = new Date();
-		postFlow(execution);
+		execution.setExecutionEnd(new Date());
+		try {
+			postFlow(execution);
+		} catch (Exception e) {
+			GenericLogger.warn(this, e);
+		}
 	}
 
 	/**
@@ -181,10 +192,12 @@ public abstract class Action<TParams, TResult> {
 	 * @param headers
 	 * @return
 	 */
-	public synchronized final ActionExecution<TParams, TResult> execute(TParams params, Map<String, Object> headers) {
-		ActionExecution<TParams, TResult> execution = new ActionExecution<TParams, TResult>();
-		execution.headers = headers;
-		execution.params = params;
+	public final synchronized ActionExecution<T, R> execute(T params, Map<String, Object> headers) {
+
+		ActionExecution<T, R> execution = new ActionExecution<>();
+		execution
+				.setHeaders(headers)
+				.setParams(params);
 		execute(execution);
 		return execution;
 	}
@@ -195,7 +208,7 @@ public abstract class Action<TParams, TResult> {
 	 * @param params
 	 * @return
 	 */
-	public ActionExecution<TParams, TResult> execute(TParams params) {
+	public ActionExecution<T, R> execute(T params) {
 		return execute(params, null);
 	}
 
@@ -205,7 +218,7 @@ public abstract class Action<TParams, TResult> {
 	 * 
 	 * @return
 	 */
-	public HttpActionWriter<TParams, TResult> getHttpWriter() {
+	public HttpActionWriter<T, R> getHttpWriter() {
 		return new HttpActionWriterForJson<>();
 	}
 
@@ -215,11 +228,7 @@ public abstract class Action<TParams, TResult> {
 	 * @param action
 	 */
 	public static void run(Action<Void, ?> action) {
-		ActionExecution<Void, ?> execution = action.execute((Void) null);
-		new GsonBuilder()
-				.setPrettyPrinting()
-				.create()
-				.toJson(execution, System.out);
+		run(action, (Void) null);
 	}
 
 	/**
@@ -229,10 +238,11 @@ public abstract class Action<TParams, TResult> {
 	 */
 	public static <T> void run(Action<T, ?> action, T parameters) {
 		ActionExecution<T, ?> execution = action.execute(parameters);
-		new GsonBuilder()
-				.setPrettyPrinting()
-				.create()
-				.toJson(execution, System.out);
+		GenericLogger.info(null,
+				new GsonBuilder()
+						.setPrettyPrinting()
+						.create()
+						.toJson(execution));
 	}
 
 }

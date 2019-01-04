@@ -1,8 +1,11 @@
 package jports.adapters;
 
 import java.lang.reflect.Array;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import jports.ShowStopper;
 
 public class ListAdapter<T> implements Adapter<List<T>> {
 
@@ -19,7 +22,7 @@ public class ListAdapter<T> implements Adapter<List<T>> {
 
 	public List<T> parse(String source) {
 		if (source == null || source.isEmpty())
-			return null;
+			return Collections.emptyList();
 		else {
 			String[] vals = source.split(separator);
 			List<T> list = newInstance(vals.length);
@@ -40,7 +43,7 @@ public class ListAdapter<T> implements Adapter<List<T>> {
 					this.separator,
 					source
 							.stream()
-							.map(t -> adapter.format(t))
+							.map(adapter::format)
 							.collect(Collectors.toList()));
 	}
 
@@ -57,7 +60,7 @@ public class ListAdapter<T> implements Adapter<List<T>> {
 	@Override
 	public List<T> convert(Object source) {
 		if (source == null)
-			return null;
+			return Collections.emptyList();
 		else if (listClass.isInstance(source))
 			return ((List<T>) source);
 		else if (source.getClass().isArray())
@@ -65,7 +68,7 @@ public class ListAdapter<T> implements Adapter<List<T>> {
 		else if (source instanceof String)
 			return parse((String) source);
 		else
-			throw new RuntimeException("Can't convert " + source + " to " + listClass);
+			throw new ShowStopper("Can't convert " + source + " to " + listClass);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -90,7 +93,7 @@ public class ListAdapter<T> implements Adapter<List<T>> {
 					.newInstance(size);
 
 		} catch (Exception e) {
-			throw new RuntimeException(e);
+			throw new ShowStopper(e);
 		}
 	}
 

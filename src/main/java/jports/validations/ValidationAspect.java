@@ -11,16 +11,11 @@ public class ValidationAspect<T> extends Aspect<T, ValidationAspectMember<T>> im
 		super(dataType);
 	}
 
-	private static final HashMap<Class<?>, ValidationAspect<?>> INSTANCES = new HashMap<Class<?>, ValidationAspect<?>>();
+	private static final HashMap<Class<?>, ValidationAspect<?>> INSTANCES = new HashMap<>();
 
 	@SuppressWarnings("unchecked")
-	public static synchronized final <T> ValidationAspect<T> getInstance(Class<T> claz) {
-		ValidationAspect<T> aspect = (ValidationAspect<T>) INSTANCES.get(claz);
-		if (aspect == null) {
-			aspect = new ValidationAspect<T>(claz);
-			INSTANCES.put(claz, aspect);
-		}
-		return aspect;
+	public static final synchronized <T> ValidationAspect<T> getInstance(Class<T> claz) {
+		return (ValidationAspect<T>) INSTANCES.computeIfAbsent(claz, ValidationAspect::new);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -36,8 +31,7 @@ public class ValidationAspect<T> extends Aspect<T, ValidationAspectMember<T>> im
 			} catch (Exception e) {
 				children[i] = new ValidationResult(member.getName(), false, e.getMessage());
 			}
-			if (isValid
-					&& !children[i].isValid)
+			if (isValid && !children[i].isValid())
 				isValid = false;
 		}
 		return new ValidationResult(
@@ -64,7 +58,7 @@ public class ValidationAspect<T> extends Aspect<T, ValidationAspectMember<T>> im
 
 	@Override
 	protected ValidationAspectMember<T> visit(AspectMemberAccessor<T> accessor) {
-		return new ValidationAspectMember<T>(accessor);
+		return new ValidationAspectMember<>(accessor);
 	}
 
 }
