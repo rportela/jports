@@ -66,6 +66,41 @@ public class DatabaseStorage<T> extends DataStorage<T> {
 		return aspect;
 	}
 
+	private Consumer<T> createSaveBatchConsumer(
+			Database database,
+			DataAspect<T, DataAspectMember<T>> aspect,
+			DatabaseUpsert upsert,
+			StringBuilder cmdBuilder) {
+		return new Consumer<T>() {
+			int counter = 0;
+
+			@Override
+			public void accept(T arg0) {
+				upsert.clear();
+				for (DataAspectMember<T> member : aspect) {
+					upsert.set(member.getColumnName(), member.getValue(arg0));
+				}
+				final String cmdText = upsert.createCommand().appendSql(";").toString();
+				cmdBuilder.append(cmdText);
+				counter++;
+				if (counter >= 1000) {
+					try {
+						database
+								.createCommand()
+								.appendSql(cmdBuilder.toString())
+								.execute();
+
+					} catch (Exception e) {
+						throw new ShowStopper(e);
+					}
+
+					cmdBuilder.delete(0, cmdBuilder.length());
+					counter = 0;
+				}
+			}
+		};
+	}
+
 	public synchronized void saveBatch(Stream<T> stream) {
 		final DatabaseUpsert upsert = (DatabaseUpsert) createUpsert();
 
@@ -94,36 +129,7 @@ public class DatabaseStorage<T> extends DataStorage<T> {
 		}
 
 		final StringBuilder cmdBuilder = new StringBuilder(100000);
-
-		stream.forEach(new Consumer<T>() {
-			int counter = 0;
-
-			@Override
-			public void accept(T arg0) {
-				upsert.clear();
-				for (DataAspectMember<T> member : aspect) {
-					upsert.set(member.getColumnName(), member.getValue(arg0));
-				}
-				final String cmdText = upsert.createCommand().appendSql(";").toString();
-				cmdBuilder.append(cmdText);
-				counter++;
-				if (counter >= 1000) {
-					try {
-						database
-								.createCommand()
-								.appendSql(cmdBuilder.toString())
-								.execute();
-
-					} catch (Exception e) {
-						throw new ShowStopper(e);
-					}
-
-					cmdBuilder.delete(0, cmdBuilder.length());
-					counter = 0;
-				}
-			}
-		});
-
+		stream.forEach(createSaveBatchConsumer(database, aspect, upsert, cmdBuilder));
 		if (cmdBuilder.length() > 0) {
 			try {
 				database

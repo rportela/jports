@@ -327,7 +327,7 @@ public abstract class Aspect<T, M extends AspectMember<T>>
 	 * @param map
 	 * @return
 	 */
-	public synchronized final T fromMap(final Map<String, Object> map) {
+	public final synchronized T fromMap(final Map<String, Object> map) {
 		try {
 			T entity = this.dataType.getConstructor().newInstance();
 			setValues(entity, map);
