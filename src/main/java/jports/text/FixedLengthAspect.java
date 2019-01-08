@@ -20,7 +20,8 @@ public class FixedLengthAspect<T> extends Aspect<T, FixedLengthAspectMember<T>> 
 	private Charset charset;
 	private int offset;
 
-	protected void initializeDataType(Class<T> dataType) {
+	@Override
+	protected void intializeDataType(Class<T> dataType) {
 		FixedLengthTable fixedLengthTable = dataType.getAnnotation(FixedLengthTable.class);
 		if (fixedLengthTable == null) {
 			this.charset = Charset.defaultCharset();
@@ -46,16 +47,28 @@ public class FixedLengthAspect<T> extends Aspect<T, FixedLengthAspectMember<T>> 
 				: new FixedLengthAspectMember<>(accessor, offset, annotation);
 	}
 
+	public Charset getCharset() {
+		return this.charset;
+	}
+
+	public FixedLengthAspect<T> setCharset(Charset cs) {
+		this.charset = cs;
+		return this;
+	}
+
+	public T parseLine(String line) {
+		T entity = newInstance();
+		for (FixedLengthAspectMember<T> member : this) {
+			member.parseAndApply(line, entity);
+		}
+		return entity;
+	}
+
 	public void parse(Reader in, List<T> target) throws IOException {
-		try (BufferedReader buff = new BufferedReader(in)) {
-			String line;
-			while ((line = buff.readLine()) != null) {
-				T entity = newInstance();
-				for (FixedLengthAspectMember<T> member : this) {
-					member.parseAndApply(line, entity);
-				}
-				target.add(entity);
-			}
+		BufferedReader buff = new BufferedReader(in);
+		String line;
+		while ((line = buff.readLine()) != null) {
+			target.add(parseLine(line));
 		}
 	}
 
@@ -66,20 +79,14 @@ public class FixedLengthAspect<T> extends Aspect<T, FixedLengthAspectMember<T>> 
 	}
 
 	public List<T> parse(File file) throws IOException {
-		FileInputStream fis = new FileInputStream(file);
-		try {
+		try (FileInputStream fis = new FileInputStream(file)) {
 			return parse(fis);
-		} finally {
-			fis.close();
 		}
 	}
 
 	public List<T> parse(URL url) throws IOException {
-		InputStream us = url.openStream();
-		try {
+		try (InputStream us = url.openStream()) {
 			return parse(us);
-		} finally {
-			us.close();
 		}
 	}
 
