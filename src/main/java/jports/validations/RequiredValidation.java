@@ -49,7 +49,7 @@ public class RequiredValidation extends AbstractValidation {
 		if (value == null)
 			return false;
 		else if (value instanceof String)
-			return !((String) value).isBlank();
+			return !((String) value).isEmpty();
 		else if (value instanceof UUID)
 			return ((UUID) value).getLeastSignificantBits() != 0L &&
 					((UUID) value).getMostSignificantBits() != 0L;

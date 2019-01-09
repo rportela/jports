@@ -63,7 +63,7 @@ public class CnpjValidation extends AbstractValidation {
 		else if (value instanceof Number)
 			return CnpjValidation.isValid(((Number) value).longValue());
 		else if (value instanceof String)
-			return !((String) value).isBlank() &&
+			return !((String) value).isEmpty() &&
 					CnpjValidation.isValid(Long.parseLong((String) value));
 		else
 			return false;
