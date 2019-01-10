@@ -70,7 +70,7 @@ public abstract class Aspect<T, M extends AspectMember<T>>
 	private final Class<T> dataType;
 
 	/**
-	 * The default constructor with no paramters;
+	 * The default constructor with no parameters;
 	 */
 	private final Constructor<T> constructor;
 
@@ -112,6 +112,22 @@ public abstract class Aspect<T, M extends AspectMember<T>>
 			}
 	}
 
+	protected void createPrpertyMember(List<M> target, Method[] methods, String name, Method getter) {
+		Class<?>[] parameterTypes = getter.getParameterTypes();
+		if (parameterTypes == null || parameterTypes.length == 0) {
+			name = name.substring(3);
+			Method setter = findSetter(methods, "set" + name, getter.getReturnType());
+			AspectMemberProperty<T> accessor = new AspectMemberProperty<>(
+					this,
+					name,
+					getter,
+					setter);
+			M member = this.visit(accessor);
+			if (member != null)
+				target.add(member);
+		}
+	}
+
 	/**
 	 * This method creates property members by finding the getter and setter methods
 	 * and add them to this aspect;
@@ -129,19 +145,7 @@ public abstract class Aspect<T, M extends AspectMember<T>>
 						!Modifier.isAbstract(modifiers)) {
 					String name = getter.getName();
 					if (name.startsWith("get")) {
-						Class<?>[] parameterTypes = getter.getParameterTypes();
-						if (parameterTypes == null || parameterTypes.length == 0) {
-							name = name.substring(3);
-							Method setter = findSetter(methods, "set" + name, getter.getReturnType());
-							AspectMemberProperty<T> accessor = new AspectMemberProperty<>(
-									this,
-									name,
-									getter,
-									setter);
-							M member = this.visit(accessor);
-							if (member != null)
-								target.add(member);
-						}
+						createPrpertyMember(target, methods, name, getter);
 					}
 				}
 			}

@@ -8,8 +8,6 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.NClob;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLClientInfoException;
 import java.sql.SQLException;
 import java.sql.SQLWarning;
@@ -17,44 +15,22 @@ import java.sql.SQLXML;
 import java.sql.Savepoint;
 import java.sql.Statement;
 import java.sql.Struct;
-import java.util.Date;
-import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 
-import jports.GenericLogger;
-
 public class DatabaseConnection implements Connection {
 
-	private Database database;
-	private Statement statement;
-	private Connection connection;
-	private Date createdAt;
-	private Date releasedAt;
+	private final Connection connection;
+	private final LinkedList<DatabaseConnection> pool;
 
-	protected DatabaseConnection(Database database, Connection connection) throws SQLException {
-		this.database = database;
+	protected DatabaseConnection(Connection connection, LinkedList<DatabaseConnection> pool) {
 		this.connection = connection;
-		this.createdAt = new Date();
-		this.statement = connection.createStatement();
-	}
-
-	public Date getCreatetAt() {
-		return this.createdAt;
-	}
-
-	public Date getReleasedAt() {
-		return this.releasedAt;
+		this.pool = pool;
 	}
 
 	public void terminate() throws SQLException {
-		GenericLogger.info(this, "terminating ... " + this);
-		try {
-			this.statement.close();
-		} catch (Exception e) {
-			GenericLogger.warn(this, e);
-		}
 		this.connection.close();
 	}
 
@@ -74,92 +50,10 @@ public class DatabaseConnection implements Connection {
 		terminate();
 	}
 
-	/**
-	 * Executes the command;
-	 * 
-	 * @return
-	 * @throws SQLException
-	 */
-	public boolean execute(String text) throws SQLException {
-		return statement.execute(text);
-	}
-
-	/**
-	 * Executes an INSERT, UPDATE or DELETE and returns the number of records
-	 * affected;
-	 * 
-	 * @return
-	 * @throws SQLException
-	 */
-	public int executeNonQuery(String text) throws SQLException {
-		return statement.executeUpdate(text);
-	}
-
-	/**
-	 * Executes a query and adapts the result set to a specific data type;
-	 * 
-	 * @param adapter
-	 * @return
-	 * @throws SQLException
-	 */
-	public <T> T executeQuery(String text, ResultSetAdapter<T> adapter) throws SQLException {
-		ResultSet resultSet = statement.executeQuery(text);
-		try {
-			return adapter.process(resultSet);
-		} finally {
-			resultSet.close();
-		}
-	}
-
-	/**
-	 * Executes what possibly is an INSERT statement and returns a map containing
-	 * the generated keys;
-	 * 
-	 * @return
-	 * @throws SQLException
-	 */
-	public Map<String, Object> executeWithGeneratedKeys(String text) throws SQLException {
-		statement.execute(text, Statement.RETURN_GENERATED_KEYS);
-		ResultSet rs = statement.getGeneratedKeys();
-		try {
-			if (!rs.next())
-				return null;
-			ResultSetMetaData meta = rs.getMetaData();
-			LinkedHashMap<String, Object> gks = new LinkedHashMap<>();
-			int count = meta.getColumnCount();
-			for (int i = 1; i <= count; i++) {
-				String name = meta.getColumnLabel(i);
-				Object value = rs.getObject(i);
-				gks.put(name, value);
-			}
-			return gks;
-		} finally {
-			rs.close();
-		}
-	}
-
-	/**
-	 * Executes the query and returns the first column of the first row in the
-	 * result set;
-	 * 
-	 * @return
-	 * @throws SQLException
-	 */
-	public Object executeScalar(String text) throws SQLException {
-		ResultSet rs = statement.executeQuery(text);
-		try {
-			return rs.next()
-					? rs.getObject(1)
-					: null;
-		} finally {
-			rs.close();
-		}
-	}
-
 	@Override
 	public synchronized void close() throws SQLException {
-		this.releasedAt = new Date();
-		this.database.pool.add(this);
+		if (!connection.isClosed())
+			pool.push(this);
 	}
 
 	@Override

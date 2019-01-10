@@ -1,9 +1,14 @@
 package jports.database;
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -25,7 +30,7 @@ import jports.data.SortNode;
  * @author rportela
  *
  */
-public abstract class DatabaseCommand {
+public class DatabaseCommand {
 
 	/**
 	 * The database that this command belong to;
@@ -61,13 +66,11 @@ public abstract class DatabaseCommand {
 	 * @throws SQLException
 	 */
 	public boolean execute() throws SQLException {
-		DatabaseConnection conn = database.getConnection();
-		try {
-			return conn.execute(text.toString());
-		} finally {
-			conn.close();
+		try (Connection conn = database.getConnection()) {
+			try (Statement statement = conn.createStatement()) {
+				return statement.execute(text.toString());
+			}
 		}
-
 	}
 
 	/**
@@ -78,11 +81,10 @@ public abstract class DatabaseCommand {
 	 * @throws SQLException
 	 */
 	public int executeNonQuery() throws SQLException {
-		DatabaseConnection conn = database.getConnection();
-		try {
-			return conn.executeNonQuery(text.toString());
-		} finally {
-			conn.close();
+		try (Connection conn = database.getConnection()) {
+			try (Statement statement = conn.createStatement()) {
+				return statement.executeUpdate(text.toString());
+			}
 		}
 
 	}
@@ -95,11 +97,12 @@ public abstract class DatabaseCommand {
 	 * @throws SQLException
 	 */
 	public <T> T executeQuery(ResultSetAdapter<T> adapter) throws SQLException {
-		DatabaseConnection conn = database.getConnection();
-		try {
-			return conn.executeQuery(text.toString(), adapter);
-		} finally {
-			conn.close();
+		try (Connection conn = database.getConnection()) {
+			try (Statement statement = conn.createStatement()) {
+				try (ResultSet rs = statement.executeQuery(text.toString())) {
+					return adapter.process(rs);
+				}
+			}
 		}
 	}
 
@@ -111,11 +114,23 @@ public abstract class DatabaseCommand {
 	 * @throws SQLException
 	 */
 	public Map<String, Object> executeWithGeneratedKeys() throws SQLException {
-		DatabaseConnection conn = database.getConnection();
-		try {
-			return conn.executeWithGeneratedKeys(text.toString());
-		} finally {
-			conn.close();
+		try (Connection connection = database.getConnection()) {
+			try (Statement statement = connection.createStatement()) {
+				statement.execute(text.toString(), Statement.RETURN_GENERATED_KEYS);
+				try (ResultSet rs = statement.getGeneratedKeys()) {
+					if (!rs.next())
+						return null;
+					ResultSetMetaData meta = rs.getMetaData();
+					LinkedHashMap<String, Object> gks = new LinkedHashMap<>();
+					int count = meta.getColumnCount();
+					for (int i = 1; i <= count; i++) {
+						String name = meta.getColumnLabel(i);
+						Object value = rs.getObject(i);
+						gks.put(name, value);
+					}
+					return gks;
+				}
+			}
 		}
 	}
 
@@ -127,38 +142,19 @@ public abstract class DatabaseCommand {
 	 * @throws SQLException
 	 */
 	public Object executeScalar() throws SQLException {
-		DatabaseConnection conn = database.getConnection();
+		Connection conn = database.getConnection();
 		try {
-			return conn.executeScalar(text.toString());
+			try (Statement statement = conn.createStatement()) {
+				try (ResultSet rs = statement.executeQuery(text.toString())) {
+					return rs.next()
+							? rs.getObject(1)
+							: null;
+				}
+			}
 		} finally {
 			conn.close();
 		}
 	}
-
-	/**
-	 * Validates a name for invalid chars and throws an exception if the name is not
-	 * valid.
-	 * 
-	 * @param name
-	 */
-	public void validateNameOrThrowException(String name) {
-		if (name.contains("'") || name.contains("--"))
-			throw new ShowStopper("Invalid database object name: " + name);
-	}
-
-	/**
-	 * Gets the database specific name prefix like [ or `;
-	 * 
-	 * @return
-	 */
-	public abstract String getNamePrefix();
-
-	/**
-	 * Gets the database specific name suffix like ] or �;
-	 * 
-	 * @return
-	 */
-	public abstract String getNameSuffix();
 
 	/**
 	 * Appends raw SQL to the underlying command text;
@@ -178,10 +174,10 @@ public abstract class DatabaseCommand {
 	 * @return
 	 */
 	public DatabaseCommand appendName(String name) {
-		validateNameOrThrowException(name);
-		text.append(getNamePrefix());
+		database.validateNameOrThrowException(name);
+		text.append(database.getNamePrefix());
 		text.append(name);
-		text.append(getNameSuffix());
+		text.append(database.getNameSuffix());
 		return this;
 	}
 
@@ -614,35 +610,6 @@ public abstract class DatabaseCommand {
 	}
 
 	/**
-	 * This method indicates that the underlying database accepts the TOP statement;
-	 * 
-	 * @return
-	 */
-	public boolean acceptsTop() {
-		return false;
-	}
-
-	/**
-	 * This method indicates that the underlying database accepts the OFFSET
-	 * statement;
-	 * 
-	 * @return
-	 */
-	public boolean acceptsOffset() {
-		return false;
-	}
-
-	/**
-	 * This method indicates that the underlying database accepts the LIMIT
-	 * statement;
-	 * 
-	 * @return
-	 */
-	public boolean acceptsLimit() {
-		return false;
-	}
-
-	/**
 	 * This method was added for compatibility with SQL server TOP statement. The
 	 * "acceptsTop" is checked and the statement is added to the underlying command
 	 * text;
@@ -651,7 +618,7 @@ public abstract class DatabaseCommand {
 	 * @return
 	 */
 	public DatabaseCommand appendTop(int top) {
-		if (top > 0 && acceptsTop())
+		if (top > 0 && database.acceptsTop())
 			this.text.append("TOP " + top);
 		return this;
 	}
@@ -665,7 +632,7 @@ public abstract class DatabaseCommand {
 	 * @return
 	 */
 	public DatabaseCommand appendOffset(int offset) {
-		if (offset > 0 && acceptsOffset())
+		if (offset > 0 && database.acceptsOffset())
 			this.text.append(" OFFSET " + offset);
 		return this;
 	}
@@ -679,7 +646,7 @@ public abstract class DatabaseCommand {
 	 * @return
 	 */
 	public DatabaseCommand appendLimit(int limit) {
-		if (limit > 0 && acceptsLimit())
+		if (limit > 0 && database.acceptsLimit())
 			this.text.append(" LIMIT " + limit);
 		return this;
 	}

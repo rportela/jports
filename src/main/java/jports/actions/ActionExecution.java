@@ -151,6 +151,18 @@ public class ActionExecution<T, R> {
 	}
 
 	/**
+	 * Gets a specific header from the action execution;
+	 * 
+	 * @param name
+	 * @return
+	 */
+	public final Object getHeader(String name) {
+		return headers != null
+				? headers.get(name)
+				: null;
+	}
+
+	/**
 	 * @param headers
 	 *            the headers to set
 	 */

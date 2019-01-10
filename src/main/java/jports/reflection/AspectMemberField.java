@@ -8,15 +8,15 @@ import jports.ShowStopper;
 
 public final class AspectMemberField<T> implements AspectMemberAccessor<T> {
 
-	public final Aspect<T, ?> aspect;
+	public final Aspect<T, ? extends AspectMember<T>> aspect;
 	public final Field field;
 
-	public AspectMemberField(Aspect<T, ?> aspect, Field field) {
+	public AspectMemberField(Aspect<T, ? extends AspectMember<T>> aspect, Field field) {
 		this.aspect = aspect;
 		this.field = field;
 	}
 
-	public final Aspect<T, ?> getAspect() {
+	public Aspect<T, ? extends AspectMember<T>> getAspect() {
 		return this.aspect;
 	}
 

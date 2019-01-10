@@ -10,26 +10,6 @@ public class PostgresCommand extends DatabaseCommand {
 	}
 
 	@Override
-	public String getNamePrefix() {
-		return "\"";
-	}
-
-	@Override
-	public String getNameSuffix() {
-		return "\"";
-	}
-
-	@Override
-	public boolean acceptsLimit() {
-		return true;
-	}
-
-	@Override
-	public boolean acceptsOffset() {
-		return true;
-	}
-
-	@Override
 	public DatabaseCommand appendLike(String name, Object value) {
 		appendName(name);
 		appendSql(" ILIKE ");

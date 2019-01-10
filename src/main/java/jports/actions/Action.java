@@ -7,7 +7,8 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.google.gson.GsonBuilder;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jports.GenericLogger;
 import jports.validations.ValidationAspect;
@@ -152,7 +153,7 @@ public abstract class Action<T, R> {
 	protected abstract void mainFlow(ActionExecution<T, R> execution) throws Exception;
 
 	/**
-	 * Actually executes the use case using values set in que execution wrapper;
+	 * Actually executes the use case using values set in the execution wrapper;
 	 * 
 	 * @param execution
 	 */
@@ -219,7 +220,7 @@ public abstract class Action<T, R> {
 	 * @return
 	 */
 	public HttpActionWriter<T, R> getHttpWriter() {
-		return new HttpActionWriterForJson<>();
+		return new HttpActionExecutionWriterForJson<>();
 	}
 
 	/**
@@ -238,11 +239,14 @@ public abstract class Action<T, R> {
 	 */
 	public static <T> void run(Action<T, ?> action, T parameters) {
 		ActionExecution<T, ?> execution = action.execute(parameters);
-		GenericLogger.info(null,
-				new GsonBuilder()
-						.setPrettyPrinting()
-						.create()
-						.toJson(execution));
+		try {
+			GenericLogger.info(null,
+					new ObjectMapper()
+							.writerWithDefaultPrettyPrinter()
+							.writeValueAsString(execution));
+		} catch (JsonProcessingException e) {
+			GenericLogger.error(action, e);
+		}
 	}
 
 }

@@ -41,10 +41,10 @@ public class DatabaseSelectObject<T> extends Select<T> {
 			return command.executeQuery(
 					new ResultSetToObjectList<>(
 							aspect,
-							command.acceptsOffset()
+							database.acceptsOffset()
 									? 0
 									: getOffset(),
-							command.acceptsLimit()
+							database.acceptsLimit()
 									? 0
 									: getLimit()));
 		} catch (SQLException e) {
@@ -107,7 +107,7 @@ public class DatabaseSelectObject<T> extends Select<T> {
 			return command.executeQuery(
 					new ResultSetToObject<>(
 							aspect,
-							command.acceptsOffset()
+							database.acceptsOffset()
 									? 0
 									: getOffset()));
 		} catch (SQLException e) {

@@ -3,7 +3,13 @@ package jports;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+
 public class GenericLogger {
+
+	private static final ObjectWriter JSON_WRITER = new ObjectMapper().writerWithDefaultPrettyPrinter();
 
 	private GenericLogger() {
 	}
@@ -24,6 +30,16 @@ public class GenericLogger {
 
 	public static void info(Object source, String message) {
 		getLogger(source).log(Level.INFO, message);
+	}
+
+	public static void infoJson(Object source, Object value) {
+		try {
+			if (value != null) {
+				info(source, JSON_WRITER.writeValueAsString(value));
+			}
+		} catch (JsonProcessingException e) {
+			error(source, e);
+		}
 	}
 
 	public static void error(Object source, Throwable t) {

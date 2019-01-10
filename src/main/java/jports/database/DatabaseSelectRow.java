@@ -51,10 +51,10 @@ public class DatabaseSelectRow extends Select<Map<String, Object>> {
 					.appendOffset(getOffset())
 					.appendLimit(getLimit())
 					.executeQuery(new ResultSetToMapList(
-							command.acceptsOffset()
+							database.acceptsOffset()
 									? 0
 									: getOffset(),
-							command.acceptsLimit()
+							database.acceptsLimit()
 									? 0
 									: getLimit()));
 		} catch (SQLException e) {
@@ -114,7 +114,7 @@ public class DatabaseSelectRow extends Select<Map<String, Object>> {
 					.appendOrderBy(getSort())
 					.appendLimit(1)
 					.executeQuery(new ResultSetToMap(
-							command.acceptsOffset()
+							database.acceptsOffset()
 									? 0
 									: getOffset()));
 		} catch (SQLException e) {

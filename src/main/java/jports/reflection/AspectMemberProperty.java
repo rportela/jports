@@ -19,22 +19,22 @@ public final class AspectMemberProperty<T> implements AspectMemberAccessor<T> {
 	/**
 	 * The aspect associated with this property;
 	 */
-	public final Aspect<T, ?> aspect;
+	private final Aspect<T, ? extends AspectMember<T>> aspect;
 
 	/**
 	 * The method that will be invoked for getting values from an entity;
 	 */
-	public final Method getter;
+	private final Method getter;
 
 	/**
 	 * The method that will be invoked for setting values onto an entity;
 	 */
-	public final Method setter;
+	private final Method setter;
 
 	/**
 	 * The name of the property;
 	 */
-	public final String name;
+	private final String name;
 
 	/**
 	 * Creates a new aspect property instance;
@@ -43,7 +43,8 @@ public final class AspectMemberProperty<T> implements AspectMemberAccessor<T> {
 	 * @param getter
 	 * @param setter
 	 */
-	public AspectMemberProperty(Aspect<T, ?> aspect, String name, Method getter, Method setter) {
+	public AspectMemberProperty(Aspect<T, ? extends AspectMember<T>> aspect, String name, Method getter,
+			Method setter) {
 		this.aspect = aspect;
 		this.getter = getter;
 		this.setter = setter;
@@ -53,7 +54,7 @@ public final class AspectMemberProperty<T> implements AspectMemberAccessor<T> {
 	/**
 	 * Gets the aspect associated with the getter and setter of this instance;
 	 */
-	public final Aspect<T, ?> getAspect() {
+	public Aspect<T, ? extends AspectMember<T>> getAspect() {
 		return this.aspect;
 	}
 

@@ -14,7 +14,7 @@ public class AspectMember<T> implements AspectMemberAccessor<T> {
 		return this.accessor.isReadOnly();
 	}
 
-	public Aspect<T, ?> getAspect() {
+	public Aspect<T, ? extends AspectMember<T>> getAspect() {
 		return this.accessor.getAspect();
 	}
 

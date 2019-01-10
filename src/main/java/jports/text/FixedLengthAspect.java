@@ -11,6 +11,7 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 import jports.reflection.Aspect;
 import jports.reflection.AspectMemberAccessor;
@@ -72,9 +73,24 @@ public class FixedLengthAspect<T> extends Aspect<T, FixedLengthAspectMember<T>> 
 		}
 	}
 
+	public void parse(Reader in, List<T> target, Predicate<String> filter) throws IOException {
+		BufferedReader buff = new BufferedReader(in);
+		String line;
+		while ((line = buff.readLine()) != null) {
+			if (filter.test(line))
+				target.add(parseLine(line));
+		}
+	}
+
 	public List<T> parse(InputStream is) throws IOException {
-		List<T> list = new ArrayList<>();
+		List<T> list = new ArrayList<>(100);
 		parse(new InputStreamReader(is, charset), list);
+		return list;
+	}
+
+	public List<T> parse(InputStream is, Predicate<String> filter) throws IOException {
+		List<T> list = new ArrayList<>(100);
+		parse(new InputStreamReader(is, charset), list, filter);
 		return list;
 	}
 
@@ -84,9 +100,21 @@ public class FixedLengthAspect<T> extends Aspect<T, FixedLengthAspectMember<T>> 
 		}
 	}
 
+	public List<T> parse(File file, Predicate<String> filter) throws IOException {
+		try (FileInputStream fis = new FileInputStream(file)) {
+			return parse(fis, filter);
+		}
+	}
+
 	public List<T> parse(URL url) throws IOException {
 		try (InputStream us = url.openStream()) {
 			return parse(us);
+		}
+	}
+
+	public List<T> parse(URL url, Predicate<String> filter) throws IOException {
+		try (InputStream us = url.openStream()) {
+			return parse(us, filter);
 		}
 	}
 

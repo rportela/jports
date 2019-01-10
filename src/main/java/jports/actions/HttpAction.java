@@ -172,7 +172,7 @@ public class HttpAction {
 					copyHeaders());
 			HttpActionWriter<T, R> writer = execution.getResultType() == ActionResultType.SUCCESS
 					? action.getHttpWriter()
-					: new HttpActionWriterForJson<>();
+					: new HttpActionExecutionWriterForJson<>();
 			writer.write(execution, response);
 			return execution;
 		} catch (Exception e) {
@@ -182,7 +182,7 @@ public class HttpAction {
 					.setException(e)
 					.setFailMessage(e.getMessage());
 			try {
-				new HttpActionWriterForJson<T, R>().write(errorExec, response);
+				new HttpActionExecutionWriterForJson<T, R>().write(errorExec, response);
 			} catch (IOException ignore) {
 				Logger.getLogger(getClass().getName()).log(Level.INFO, ignore, null);
 			}

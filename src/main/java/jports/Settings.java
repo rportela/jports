@@ -4,16 +4,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Type;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * This class is specialized in reading and writing settings as a JSON file in
@@ -37,10 +35,17 @@ public class Settings {
 		if (in == null) {
 			VALUES = new HashMap<>();
 		} else {
-			InputStreamReader reader = new InputStreamReader(in, StandardCharsets.UTF_8);
-			Type typeOfT = new TypeToken<HashMap<String, Object>>() {
-			}.getType();
-			VALUES = new Gson().fromJson(reader, typeOfT);
+			HashMap<String, Object> actualValues = null;
+			try (InputStreamReader reader = new InputStreamReader(in, StandardCharsets.UTF_8)) {
+				actualValues = new ObjectMapper()
+						.readValue(
+								reader,
+								new TypeReference<HashMap<String, Object>>() {
+								});
+			} catch (IOException e) {
+				GenericLogger.error(null, e);
+			}
+			VALUES = actualValues;
 		}
 	}
 
@@ -59,7 +64,9 @@ public class Settings {
 		}
 
 		try (FileOutputStream fos = new FileOutputStream(fileName)) {
-			String json = new GsonBuilder().setPrettyPrinting().create().toJson(VALUES);
+			String json = new ObjectMapper()
+					.writerWithDefaultPrettyPrinter()
+					.writeValueAsString(VALUES);
 			fos.write(json.getBytes(StandardCharsets.UTF_8));
 		} catch (IOException e) {
 			Logger.getGlobal().severe(e.toString());

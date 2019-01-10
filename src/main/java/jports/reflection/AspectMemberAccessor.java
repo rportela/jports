@@ -25,7 +25,7 @@ public interface AspectMemberAccessor<T> extends AnnotatedElement {
 	 * 
 	 * @return
 	 */
-	public Aspect<T, ?> getAspect();
+	public Aspect<T, ? extends AspectMember<T>> getAspect();
 
 	/**
 	 * Gets the value of this member from a specific source entity;

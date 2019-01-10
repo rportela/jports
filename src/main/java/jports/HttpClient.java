@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Type;
 import java.net.HttpCookie;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -29,9 +28,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonSyntaxException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jports.adapters.InputStreamAdapter;
 
@@ -44,7 +41,7 @@ import jports.adapters.InputStreamAdapter;
  */
 public class HttpClient {
 
-	private static final Gson GSON = new GsonBuilder().create();
+	private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 	private static final DocumentBuilderFactory XML_BUILDER_FACTORY = DocumentBuilderFactory.newInstance();
 	private HttpURLConnection connection;
 	private final HashMap<String, String> requestHeaders = new HashMap<>();
@@ -589,7 +586,7 @@ public class HttpClient {
 	}
 
 	/**
-	 * Uses GSON to parse the response text as JSON encoding of a specific class;
+	 * Parses the response text as JSON encoding of a specific class;
 	 * 
 	 * @param classOfT
 	 * @return
@@ -597,20 +594,7 @@ public class HttpClient {
 	 * @throws IOException
 	 */
 	public <T> T getResponseJson(Class<T> classOfT) throws IOException {
-		return GSON.fromJson(getResponseText(), classOfT);
-	}
-
-	/**
-	 * Uses GSON to parse the response text as JSON encoding of a specific java
-	 * type;
-	 * 
-	 * @param ofType
-	 * @return
-	 * @throws JsonSyntaxException
-	 * @throws IOException
-	 */
-	public <T> T getResponseJson(Type ofType) throws IOException {
-		return GSON.fromJson(getResponseText(), ofType);
+		return JSON_MAPPER.readValue(getResponseText(), classOfT);
 	}
 
 	/**
