@@ -2,6 +2,7 @@ package jports.adapters;
 
 import java.lang.reflect.Constructor;
 import java.math.BigDecimal;
+import java.sql.Time;
 import java.util.Date;
 import java.util.HashMap;
 
@@ -47,6 +48,8 @@ public final class AdapterFactory {
 		INSTANCES.put(Date.class, DateAdapter.class);
 
 		INSTANCES.put(BigDecimal.class, BigDecimalAdapter.class);
+		INSTANCES.put(Time.class, TimeAdapter.class);
+
 	}
 
 	/**

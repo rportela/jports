@@ -18,4 +18,6 @@ public @interface CsvTable {
 	public int capacity() default 100;
 
 	public boolean firstRowHasNames() default true;
+
+	public String linePrefix() default "";
 }

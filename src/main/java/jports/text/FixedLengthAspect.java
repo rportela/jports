@@ -11,7 +11,6 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Predicate;
 
 import jports.reflection.Aspect;
 import jports.reflection.AspectMemberAccessor;
@@ -20,6 +19,7 @@ public class FixedLengthAspect<T> extends Aspect<T, FixedLengthAspectMember<T>> 
 
 	private Charset charset;
 	private int offset;
+	private String linePrefix;
 
 	@Override
 	protected void intializeDataType(Class<T> dataType) {
@@ -27,11 +27,13 @@ public class FixedLengthAspect<T> extends Aspect<T, FixedLengthAspectMember<T>> 
 		if (fixedLengthTable == null) {
 			this.charset = Charset.defaultCharset();
 			this.offset = 0;
+			this.linePrefix = "";
 		} else {
 			this.charset = fixedLengthTable.charset().isEmpty()
 					? Charset.defaultCharset()
 					: Charset.forName(fixedLengthTable.charset());
 			this.offset = fixedLengthTable.offset();
+			linePrefix = fixedLengthTable.linePrefix();
 		}
 		super.intializeDataType(dataType);
 	}
@@ -69,15 +71,7 @@ public class FixedLengthAspect<T> extends Aspect<T, FixedLengthAspectMember<T>> 
 		BufferedReader buff = new BufferedReader(in);
 		String line;
 		while ((line = buff.readLine()) != null) {
-			target.add(parseLine(line));
-		}
-	}
-
-	public void parse(Reader in, List<T> target, Predicate<String> filter) throws IOException {
-		BufferedReader buff = new BufferedReader(in);
-		String line;
-		while ((line = buff.readLine()) != null) {
-			if (filter.test(line))
+			if (linePrefix.isEmpty() || line.startsWith(linePrefix))
 				target.add(parseLine(line));
 		}
 	}
@@ -88,33 +82,15 @@ public class FixedLengthAspect<T> extends Aspect<T, FixedLengthAspectMember<T>> 
 		return list;
 	}
 
-	public List<T> parse(InputStream is, Predicate<String> filter) throws IOException {
-		List<T> list = new ArrayList<>(100);
-		parse(new InputStreamReader(is, charset), list, filter);
-		return list;
-	}
-
 	public List<T> parse(File file) throws IOException {
 		try (FileInputStream fis = new FileInputStream(file)) {
 			return parse(fis);
 		}
 	}
 
-	public List<T> parse(File file, Predicate<String> filter) throws IOException {
-		try (FileInputStream fis = new FileInputStream(file)) {
-			return parse(fis, filter);
-		}
-	}
-
 	public List<T> parse(URL url) throws IOException {
 		try (InputStream us = url.openStream()) {
 			return parse(us);
-		}
-	}
-
-	public List<T> parse(URL url, Predicate<String> filter) throws IOException {
-		try (InputStream us = url.openStream()) {
-			return parse(us, filter);
 		}
 	}
 

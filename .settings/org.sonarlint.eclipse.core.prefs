@@ -2,3 +2,7 @@ autoEnabled=true
 eclipse.preferences.version=1
 extraProperties=
 fileExclusions=
+idePrefixKey=
+projectKey=jports
+serverId=sonarcloud-rportela
+sqPrefixKey=

@@ -12,4 +12,6 @@ public @interface FixedLengthTable {
 	public String charset() default "";
 
 	public int offset() default 0;
+
+	public String linePrefix() default "";
 }

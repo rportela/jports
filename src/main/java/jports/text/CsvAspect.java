@@ -31,6 +31,7 @@ public class CsvAspect<T> extends Aspect<T, CsvAspectMember<T>> {
 	private String commentQualifier;
 	private int capacity;
 	private boolean firstRowHasNames;
+	private String linePrefix;
 
 	public CsvAspect(Class<T> claz) {
 		super(claz);
@@ -42,6 +43,7 @@ public class CsvAspect<T> extends Aspect<T, CsvAspectMember<T>> {
 			this.commentQualifier = null;
 			this.capacity = 100;
 			this.firstRowHasNames = true;
+			this.linePrefix = "";
 		} else {
 			this.separator = table.separator();
 			this.commentQualifier = table.commentQualifier();
@@ -50,6 +52,7 @@ public class CsvAspect<T> extends Aspect<T, CsvAspectMember<T>> {
 					: Charset.forName(table.charset());
 			this.capacity = table.capacity();
 			this.firstRowHasNames = table.firstRowHasNames();
+			this.linePrefix = table.linePrefix();
 		}
 
 	}
@@ -131,7 +134,7 @@ public class CsvAspect<T> extends Aspect<T, CsvAspectMember<T>> {
 					String[] names = line.split(separator);
 					for (CsvAspectMember<?> member : this)
 						member.setPositionFrom(names);
-				} else {
+				} else if (linePrefix.isEmpty() || line.startsWith(linePrefix)) {
 					String[] cells = line.split(separator);
 					T entity = constructor.newInstance();
 					for (CsvAspectMember<T> member : this)
@@ -152,20 +155,14 @@ public class CsvAspect<T> extends Aspect<T, CsvAspectMember<T>> {
 	}
 
 	public List<T> parse(File file) throws IOException {
-		FileInputStream fis = new FileInputStream(file);
-		try {
+		try (FileInputStream fis = new FileInputStream(file)) {
 			return parse(fis);
-		} finally {
-			fis.close();
 		}
 	}
 
 	public List<T> parse(URL url) throws IOException {
-		InputStream fis = url.openStream();
-		try {
+		try (InputStream fis = url.openStream()) {
 			return parse(fis);
-		} finally {
-			fis.close();
 		}
 	}
 

@@ -33,7 +33,17 @@ public class CsvAspectMember<T> extends AspectMember<T> {
 	public void parseAndApply(String[] source, T entity) {
 		if (position < 0 || position >= source.length)
 			return;
+
 		String text = source[position];
+
+		// remove quotes
+		if (text != null &&
+				text.length() > 1 &&
+				text.charAt(0) == '"' &&
+				text.charAt(text.length() - 1) == '"') {
+			text = text.substring(1, text.length() - 1);
+		}
+
 		Object value = adapter.parse(text);
 		super.setValue(entity, value);
 	}
