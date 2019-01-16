@@ -538,7 +538,7 @@ public class HttpClient {
 		} catch (IOException e) {
 			InputStream errorStream = this.connection.getErrorStream();
 			if (errorStream != null) {
-				GenericLogger.error(this, new InputStreamAdapter().toString(errorStream), e);
+				GenericLogger.error(getClass(), new InputStreamAdapter().toString(errorStream), e);
 			}
 			throw e;
 		}

@@ -7,9 +7,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import jports.GenericLogger;
 import jports.validations.ValidationAspect;
 import jports.validations.ValidationResult;
@@ -181,7 +178,7 @@ public abstract class Action<T, R> {
 		try {
 			postFlow(execution);
 		} catch (Exception e) {
-			GenericLogger.warn(this, e);
+			GenericLogger.info(getClass(), e);
 		}
 	}
 
@@ -238,15 +235,9 @@ public abstract class Action<T, R> {
 	 * @param action
 	 */
 	public static <T> void run(Action<T, ?> action, T parameters) {
+
 		ActionExecution<T, ?> execution = action.execute(parameters);
-		try {
-			GenericLogger.info(null,
-					new ObjectMapper()
-							.writerWithDefaultPrettyPrinter()
-							.writeValueAsString(execution));
-		} catch (JsonProcessingException e) {
-			GenericLogger.error(action, e);
-		}
+		GenericLogger.info(action.getClass(), execution);
 	}
 
 }

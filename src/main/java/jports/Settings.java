@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -23,30 +24,40 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class Settings {
 
-	private static final String FILE_NAME = "/settings.json";
+	private static final String FILE_NAME = "settings.json";
 
 	private Settings() {
 	}
 
-	private static final Map<String, Object> VALUES;
+	private static final Map<String, Object> VALUES = new HashMap<String, Object>();
+
+	private static void pushSettings(InputStream in) {
+		try (InputStreamReader reader = new InputStreamReader(in, StandardCharsets.UTF_8)) {
+			HashMap<String, Object> fileValues = new ObjectMapper()
+					.readValue(
+							reader,
+							new TypeReference<HashMap<String, Object>>() {
+							});
+
+			VALUES.putAll(fileValues);
+		} catch (IOException e) {
+			GenericLogger.error(Settings.class, e);
+		}
+	}
 
 	static {
-		InputStream in = Settings.class.getResourceAsStream(FILE_NAME);
-		if (in == null) {
-			VALUES = new HashMap<>();
-		} else {
-			HashMap<String, Object> actualValues = null;
-			try (InputStreamReader reader = new InputStreamReader(in, StandardCharsets.UTF_8)) {
-				actualValues = new ObjectMapper()
-						.readValue(
-								reader,
-								new TypeReference<HashMap<String, Object>>() {
-								});
-			} catch (IOException e) {
-				GenericLogger.error(null, e);
+		try {
+			Enumeration<URL> resources = Settings.class.getClassLoader().getResources(FILE_NAME);
+			while (resources.hasMoreElements()) {
+				URL url = resources.nextElement();
+				try (InputStream is = url.openStream()) {
+					pushSettings(is);
+				}
 			}
-			VALUES = actualValues;
+		} catch (IOException e1) {
+			GenericLogger.error(Settings.class, e1);
 		}
+
 	}
 
 	/**

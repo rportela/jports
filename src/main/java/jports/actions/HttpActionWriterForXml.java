@@ -39,7 +39,7 @@ public class HttpActionWriterForXml<T> implements HttpActionWriter<T, Document> 
 			response.setContentType("application/xml");
 			transformer.transform(new DOMSource(execution.getResult()), new StreamResult(os));
 		} catch (TransformerException e) {
-			GenericLogger.error(this, e);
+			GenericLogger.error(getClass(), e);
 		}
 	}
 
@@ -54,7 +54,7 @@ public class HttpActionWriterForXml<T> implements HttpActionWriter<T, Document> 
 			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 			writeXml(execution, response, transformer);
 		} catch (TransformerConfigurationException e) {
-			GenericLogger.error(this, e);
+			GenericLogger.error(getClass(), e);
 		}
 
 	}

@@ -8,58 +8,45 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
 public class GenericLogger {
-
+	private static final Logger GLOBAL = Logger.getGlobal();
 	private static final ObjectWriter JSON_WRITER = new ObjectMapper().writerWithDefaultPrettyPrinter();
 
-	private GenericLogger() {
-	}
+	public static final void log(String source, Level level, Object... items) {
+		Logger logger = source == null || source.isEmpty()
+				? GLOBAL
+				: Logger.getLogger(source);
 
-	public static Logger getLogger(Object source) {
-		return source == null
-				? Logger.getGlobal()
-				: Logger.getLogger(source.getClass().getName());
-	}
-
-	public static void info(Object source, Throwable t) {
-		info(source, t.getMessage(), t);
-	}
-
-	public static void info(Object source, String message, Throwable t) {
-		getLogger(source).log(Level.INFO, message, t);
-	}
-
-	public static void info(Object source, String message) {
-		getLogger(source).log(Level.INFO, message);
-	}
-
-	public static void infoJson(Object source, Object value) {
-		try {
-			if (value != null) {
-				info(source, JSON_WRITER.writeValueAsString(value));
+		for (int i = 0; i < items.length; i++) {
+			Object item = items[i];
+			if (item != null) {
+				String className = item.getClass().getName();
+				String itemContent;
+				try {
+					itemContent = item instanceof Throwable || className.startsWith("java")
+							? item.toString()
+							: JSON_WRITER.writeValueAsString(item);
+				} catch (JsonProcessingException e) {
+					itemContent = e.toString();
+				}
+				logger.log(level, itemContent);
 			}
-		} catch (JsonProcessingException e) {
-			error(source, e);
 		}
 	}
 
-	public static void error(Object source, Throwable t) {
-		error(source, t.getMessage(), t);
+	public static final void error(String source, Object... items) {
+		log(source, Level.SEVERE, items);
 	}
 
-	public static void error(Object source, String message, Throwable t) {
-		getLogger(source).log(Level.SEVERE, message, t);
+	public static final void info(String source, Object... items) {
+		log(source, Level.INFO, items);
 	}
 
-	public static void warn(Object source, Throwable t) {
-		warn(source, t.getMessage(), t);
+	public static final void error(Class<?> source, Object... items) {
+		log(source.getName(), Level.SEVERE, items);
 	}
 
-	public static void warn(Object source, String message, Throwable t) {
-		getLogger(source).log(Level.WARNING, message, t);
-	}
-
-	public static void warn(Object source, String message) {
-		getLogger(source).log(Level.WARNING, message);
+	public static final void info(Class<?> source, Object... items) {
+		log(source.getName(), Level.INFO, items);
 	}
 
 }
