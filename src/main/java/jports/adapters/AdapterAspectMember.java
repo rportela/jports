@@ -18,4 +18,11 @@ public class AdapterAspectMember<T> extends AspectMember<T> {
 		super.setValue(target, adapterValue);
 	}
 
+	public void parseAndSet(T target, String value) {
+		Object adapterValue = this.adapter.parse(value);
+		if (adapterValue != null) {
+			super.setValue(target, adapterValue);
+		}
+	}
+
 }
