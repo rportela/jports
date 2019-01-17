@@ -14,4 +14,6 @@ public @interface DatabaseColumn {
 	public ColumnType type() default ColumnType.REGULAR;
 
 	public String name() default "";
+
+	public boolean readOnly() default false;
 }

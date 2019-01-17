@@ -48,4 +48,11 @@ public @interface DataColumn {
 	 * @return
 	 */
 	public String format() default "";
+
+	/**
+	 * Sets a column as read only;
+	 * 
+	 * @return
+	 */
+	public boolean readOnly() default false;
 }

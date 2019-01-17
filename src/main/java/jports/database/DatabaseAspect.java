@@ -24,7 +24,7 @@ public class DatabaseAspect<T> extends DataAspect<T, DataAspectMember<T>> {
 		DatabaseColumn col = accessor.getAnnotation(DatabaseColumn.class);
 		return col == null
 				? null
-				: new DataAspectMember<>(accessor, col.type(), col.name(), null, null);
+				: new DataAspectMember<>(accessor, col.type(), col.name(), null, null, col.readOnly());
 	}
 
 	public String getDatabaseObject() {

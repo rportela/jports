@@ -1,6 +1,7 @@
 package jports.data;
 
 import java.util.List;
+import java.util.Map;
 
 import jports.ShowStopper;
 
@@ -54,6 +55,51 @@ public abstract class DataStorage<T> implements Storage<T> {
 	 */
 	public abstract Upsert createUpsert();
 
+	public boolean findIdentity(final T entity) {
+
+		DataAspect<T, DataAspectMember<T>> aspect = getAspect();
+		DataAspectMember<T> identity = aspect.getIdentity();
+		if (identity == null)
+			return false;
+
+		// Checks the identity for numbers or non empty strings
+		Object identityValue = identity.getValue(entity);
+		if (identityValue != null &&
+				((identityValue instanceof Number &&
+						((Number) identityValue).longValue() != 0L) ||
+						(identityValue instanceof String &&
+								((String) identityValue).isEmpty() == false))) {
+			return true;
+		}
+
+		// Checks for the presence of unique members.
+		for (DataAspectMember<T> unique : aspect.getUniqueColumns()) {
+			Object uniqueValue = unique.getValue(entity);
+			T identityObject = select().where(unique.getColumnName(), uniqueValue).first();
+			if (identityObject != null) {
+				identityValue = identity.getValue(identityObject);
+				identity.setValue(entity, identityValue);
+				return true;
+			}
+		}
+
+		// Checks for a composite key
+		List<DataAspectMember<T>> compositeKey = aspect.getCompositeKey();
+		if (!compositeKey.isEmpty()) {
+			Select<T> select = select();
+			for (DataAspectMember<T> ck : compositeKey)
+				select.andWhere(ck.getColumnName(), ck.getValue(entity));
+			T identityObject = select().first();
+			if (identityObject != null) {
+				identityValue = identity.getValue(entity);
+				identity.setValue(entity, identityValue);
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	/**
 	 * This method attempts to update an entity if no records were affected, it
 	 * inserts the entity; This method returns the number of records affected by the
@@ -102,12 +148,21 @@ public abstract class DataStorage<T> implements Storage<T> {
 	@Override
 	public int insert(final T entity) {
 		Insert insert = createInsert();
-		for (DataAspectMember<T> member : getAspect()) {
+		DataAspect<T, DataAspectMember<T>> aspect = getAspect();
+		for (DataAspectMember<T> member : aspect) {
 			if (member.getColumnType() != ColumnType.IDENTITY) {
 				insert.add(member.getColumnName(), member.getValue(entity));
 			}
 		}
-		return insert.execute();
+		DataAspectMember<T> identity = aspect.getIdentity();
+		if (identity == null) {
+			return insert.execute();
+		} else {
+			Map<String, Object> generatedKeys = insert.executeWithGeneratedKeys();
+			aspect.setValues(entity, generatedKeys);
+			return 1;
+		}
+
 	}
 
 	/**
@@ -291,17 +346,12 @@ public abstract class DataStorage<T> implements Storage<T> {
 	 * @return
 	 */
 	public int updateByIdentity(final T entity) {
-		final DataAspectMember<T> identity = getAspect().getIdentity();
-		if (identity == null)
+		if (!findIdentity(entity))
 			return -1;
-		final Object id = identity.getValue(entity);
-		if (id == null)
-			return 0;
-		if (Number.class.isAssignableFrom(identity.getDataType()) &&
-				((Number) id).longValue() == 0L)
-			return 0;
-		else
-			return updateByMember(identity, id, entity);
+		else {
+			DataAspectMember<T> identity = getAspect().getIdentity();
+			return updateByMember(identity, identity.getValue(entity), entity);
+		}
 	}
 
 	/**

@@ -21,6 +21,7 @@ public class DataAspectMember<T> extends AspectMember<T> implements Column {
 	private ColumnType columnType;
 	private String columnName;
 	private Adapter<?> adapter;
+	private boolean readOnly;
 
 	/**
 	 * Creates a new instance of the data aspect member.
@@ -30,13 +31,15 @@ public class DataAspectMember<T> extends AspectMember<T> implements Column {
 	 * @param columnName
 	 * @param adapterClass
 	 * @param pattern
+	 * @param readOnly
 	 */
 	public DataAspectMember(
 			AspectMemberAccessor<T> accessor,
 			ColumnType columnType,
 			String columnName,
 			Class<?> adapterClass,
-			String pattern) {
+			String pattern,
+			boolean readOnly) {
 		super(accessor);
 		this.columnType = columnType == null
 				? ColumnType.REGULAR
@@ -45,10 +48,12 @@ public class DataAspectMember<T> extends AspectMember<T> implements Column {
 				? accessor.getName()
 				: columnName;
 		this.adapter = AdapterFactory.createAdapter(accessor.getDataType(), adapterClass, pattern);
+		this.readOnly = readOnly;
 	}
-	
+
 	/**
-	 * Creates a new instance of the data aspect member without adapterClass and pattern
+	 * Creates a new instance of the data aspect member without adapterClass and
+	 * pattern
 	 * 
 	 * @param accessor
 	 * @param columnType
@@ -60,7 +65,7 @@ public class DataAspectMember<T> extends AspectMember<T> implements Column {
 			AspectMemberAccessor<T> accessor,
 			ColumnType columnType,
 			String columnName) {
-		this(accessor, columnType, columnName, null, null);
+		this(accessor, columnType, columnName, null, null, false);
 	}
 
 	/**
@@ -70,7 +75,7 @@ public class DataAspectMember<T> extends AspectMember<T> implements Column {
 	 * @param column
 	 */
 	public DataAspectMember(AspectMemberAccessor<T> accessor, DataColumn column) {
-		this(accessor, column.type(), column.name(), column.adapter(), column.format());
+		this(accessor, column.type(), column.name(), column.adapter(), column.format(), column.readOnly());
 	}
 
 	/**
@@ -80,7 +85,7 @@ public class DataAspectMember<T> extends AspectMember<T> implements Column {
 	 * @param accessor
 	 */
 	public DataAspectMember(AspectMemberAccessor<T> accessor) {
-		this(accessor, null, null, null, null);
+		this(accessor, null, null, null, null, false);
 	}
 
 	/**
@@ -135,5 +140,13 @@ public class DataAspectMember<T> extends AspectMember<T> implements Column {
 				? value
 				: this.adapter.convert(value);
 		super.setValue(target, value);
+	}
+
+	public boolean isReadOnly() {
+		return this.readOnly;
+	}
+
+	public void setReadOnly(boolean value) {
+		this.readOnly = value;
 	}
 }
