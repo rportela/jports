@@ -168,7 +168,7 @@ public abstract class Action<T, R> {
 
 			}
 		} catch (Exception e) {
-			Logger.getGlobal().log(Level.INFO, e, null);
+			GenericLogger.error(getClass(), e);
 			execution
 					.setException(e)
 					.setFailMessage(e.getMessage())

@@ -1,5 +1,7 @@
 package jports;
 
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -11,6 +13,13 @@ public class GenericLogger {
 	private static final Logger GLOBAL = Logger.getGlobal();
 	private static final ObjectWriter JSON_WRITER = new ObjectMapper().writerWithDefaultPrettyPrinter();
 
+	private static final boolean shouldJson(Object item) {
+		return !(item instanceof Throwable) && (item.getClass().getName().startsWith("java") &&
+				!(item instanceof List) &&
+				!(item instanceof Map));
+
+	}
+
 	public static final void log(String source, Level level, Object... items) {
 		Logger logger = source == null || source.isEmpty()
 				? GLOBAL
@@ -19,12 +28,11 @@ public class GenericLogger {
 		for (int i = 0; i < items.length; i++) {
 			Object item = items[i];
 			if (item != null) {
-				String className = item.getClass().getName();
 				String itemContent;
 				try {
-					itemContent = item instanceof Throwable || className.startsWith("java")
-							? item.toString()
-							: JSON_WRITER.writeValueAsString(item);
+					itemContent = shouldJson(item)
+							? JSON_WRITER.writeValueAsString(item)
+							: item.toString();
 				} catch (JsonProcessingException e) {
 					itemContent = e.toString();
 				}
