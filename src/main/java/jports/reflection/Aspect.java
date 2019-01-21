@@ -333,7 +333,7 @@ public abstract class Aspect<T, M extends AspectMember<T>>
 	 */
 	public final synchronized T fromMap(final Map<String, Object> map) {
 		try {
-			T entity = this.dataType.getConstructor().newInstance();
+			T entity = newInstance();
 			setValues(entity, map);
 			return entity;
 		} catch (Exception e) {
