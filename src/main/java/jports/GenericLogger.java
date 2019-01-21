@@ -14,9 +14,14 @@ public class GenericLogger {
 	private static final ObjectWriter JSON_WRITER = new ObjectMapper().writerWithDefaultPrettyPrinter();
 
 	private static final boolean shouldJson(Object item) {
-		return !(item instanceof Throwable) && (item.getClass().getName().startsWith("java") &&
+		if (item instanceof Throwable)
+			return false;
+		else if (item.getClass().getName().startsWith("java") &&
 				!(item instanceof List) &&
-				!(item instanceof Map));
+				!(item instanceof Map))
+			return false;
+		else
+			return true;
 
 	}
 
