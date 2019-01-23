@@ -107,6 +107,28 @@ public class DatabaseCommand {
 	}
 
 	/**
+	 * Executes a query and adapts the result set to a specific data type;
+	 * 
+	 * @param adapter
+	 * @return
+	 * @throws SQLException
+	 */
+	public <T> List<T> executeQuery(Class<T> dataType) throws SQLException {
+		return executeQuery(new ResultSetToObjectList<>(DatabaseAspect.getInstance(dataType)));
+	}
+
+	/**
+	 * Executes a query and adapts the result set to a specific data type;
+	 * 
+	 * @param adapter
+	 * @return
+	 * @throws SQLException
+	 */
+	public <T> T executeSingleResult(Class<T> dataType) throws SQLException {
+		return executeQuery(new ResultSetToObject<>(DatabaseAspect.getInstance(dataType)));
+	}
+
+	/**
 	 * Executes what possibly is an INSERT statement and returns a map containing
 	 * the generated keys;
 	 * 
@@ -488,6 +510,40 @@ public class DatabaseCommand {
 		return this;
 	}
 
+	public DatabaseCommand appendNotIn(String name, Object value) {
+		appendName(name);
+		text.append(" NOT IN (");
+		if (value == null) {
+			appendNull();
+		} else {
+			Class<? extends Object> valueClass = value.getClass();
+			if (valueClass.isArray()) {
+				appendValues((Object[]) value);
+			} else {
+				appendValues((Iterable<?>) value);
+			}
+		}
+		text.append(")");
+		return this;
+	}
+
+	public DatabaseCommand appendIn(String name, Object value) {
+		appendName(name);
+		text.append(" IN (");
+		if (value == null) {
+			appendNull();
+		} else {
+			Class<? extends Object> valueClass = value.getClass();
+			if (valueClass.isArray()) {
+				appendValues((Object[]) value);
+			} else {
+				appendValues((Iterable<?>) value);
+			}
+		}
+		text.append(")");
+		return this;
+	}
+
 	/**
 	 * Appends a filter term to the underlying command text;
 	 * 
@@ -504,7 +560,7 @@ public class DatabaseCommand {
 		case EQUAL_TO:
 			return appendEqualTo(name, value);
 
-		case GRATER_OR_EQUAL:
+		case GREATER_OR_EQUAL:
 			return appendGreaterOrEqual(name, value);
 
 		case GREATER_THAN:
@@ -524,6 +580,12 @@ public class DatabaseCommand {
 
 		case NOT_LIKE:
 			return appendNotLike(name, value);
+
+		case IN:
+			return appendIn(name, value);
+
+		case NOT_IN:
+			return appendNotIn(name, value);
 
 		default:
 			throw new ShowStopper("Unexpected filter comparison: " + comparison);

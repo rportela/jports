@@ -1,7 +1,5 @@
 package jports.database;
 
-import java.io.Closeable;
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -9,6 +7,7 @@ import java.sql.Savepoint;
 import java.util.LinkedList;
 import java.util.Properties;
 
+import jports.GenericLogger;
 import jports.ShowStopper;
 
 /**
@@ -19,7 +18,7 @@ import jports.ShowStopper;
  * @author rportela
  *
  */
-public abstract class Database implements AutoCloseable, Closeable {
+public abstract class Database {
 
 	private final String jdbcUrl;
 	private final Properties properties;
@@ -221,22 +220,6 @@ public abstract class Database implements AutoCloseable, Closeable {
 	}
 
 	/**
-	 * Closes the pool's connections and clears the list.
-	 */
-	@Override
-	public synchronized void close() throws IOException {
-		for (DatabaseConnection c : this.pool) {
-			try {
-				c.terminate();
-			} catch (Exception e) {
-				// just ignore this exception
-			}
-		}
-		this.pool.clear();
-
-	}
-
-	/**
 	 * Begins a transaction on the current database;
 	 * 
 	 * @return
@@ -288,6 +271,17 @@ public abstract class Database implements AutoCloseable, Closeable {
 			}
 			this.transactionConnection = null;
 		}
+	}
+
+	public synchronized void clearPool() {
+		for (DatabaseConnection conn : this.pool) {
+			try {
+				conn.close();
+			} catch (SQLException e) {
+				GenericLogger.info(getClass(), e);
+			}
+		}
+		this.pool.clear();
 	}
 
 }

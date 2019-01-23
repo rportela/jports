@@ -19,8 +19,17 @@ public abstract class Select<T> extends Filterable<Select<T>> implements Iterabl
 		return this;
 	}
 
-	public Select<T> orderBy(String name) {
-		return orderBy(name, SortDirection.ASCENDING);
+	public Select<T> orderBy(String... names) {
+		return orderBy(SortDirection.ASCENDING, names);
+	}
+
+	public Select<T> orderBy(SortDirection direction, String... names) {
+		Sort sort = new Sort(names[0], direction);
+		this.sort = sort;
+		for (int i = 1; i < names.length; i++) {
+			sort = sort.thenOrderBy(names[i], direction);
+		}
+		return this;
 	}
 
 	public Select<T> thenOrderBy(String name, SortDirection direction) {
@@ -28,8 +37,20 @@ public abstract class Select<T> extends Filterable<Select<T>> implements Iterabl
 		return this;
 	}
 
-	public Select<T> thenOrderBy(String name) {
-		return thenOrderBy(name, SortDirection.ASCENDING);
+	public Select<T> thenOrderBy(String... names) {
+		return thenOrderBy(SortDirection.ASCENDING, names);
+	}
+
+	public Select<T> thenOrderBy(SortDirection direction, String... names) {
+		if (this.sort == null) {
+			return orderBy(direction, names);
+		} else {
+			Sort sort = this.sort;
+			for (int i = 0; i < names.length; i++) {
+				sort = sort.thenOrderBy(names[i], direction);
+			}
+			return this;
+		}
 	}
 
 	public int getOffset() {

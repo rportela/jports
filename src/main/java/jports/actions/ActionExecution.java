@@ -123,6 +123,37 @@ public class ActionExecution<T, R> {
 	}
 
 	/**
+	 * 
+	 * @param result
+	 *            the result to set
+	 */
+	public ActionExecution<T, R> setSuccess(R result) {
+		this.result = result;
+		this.resultType = ActionResultType.SUCCESS;
+		return this;
+	}
+
+	/**
+	 * 
+	 * @param result
+	 *            the result to set
+	 */
+	public ActionExecution<T, R> setValidationFailed(ValidationResult validation) {
+		this.validation = validation;
+		this.resultType = ActionResultType.VALIDATION_FAILED;
+		return this;
+	}
+
+	/**
+	 * 
+	 * @param result
+	 *            the result to set
+	 */
+	public ActionExecution<T, R> setValidationFailed(String name, String message, ValidationResult... children) {
+		return setValidationFailed(new ValidationResult(name, false, message, children));
+	}
+
+	/**
 	 * The current identified user to be used for authentication purposes;
 	 * 
 	 * @return the currentUser

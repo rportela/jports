@@ -23,7 +23,7 @@ public class RequiredValidation extends AbstractValidation {
 	}
 
 	/**
-	 * Creates a new instance of the required validation using the defautl error
+	 * Creates a new instance of the required validation using the default error
 	 * message;
 	 * 
 	 */

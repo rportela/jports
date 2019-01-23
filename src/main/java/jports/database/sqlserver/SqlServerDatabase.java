@@ -29,4 +29,9 @@ public class SqlServerDatabase extends Database {
 		return "]";
 	}
 
+	@Override
+	public boolean acceptsTop() {
+		return true;
+	}
+
 }

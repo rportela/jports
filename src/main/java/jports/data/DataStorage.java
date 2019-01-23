@@ -55,6 +55,12 @@ public abstract class DataStorage<T> implements Storage<T> {
 	 */
 	public abstract Upsert createUpsert();
 
+	/**
+	 * Finds the identity value of an entity based on it's key choices.
+	 * 
+	 * @param entity
+	 * @return
+	 */
 	public boolean findIdentity(final T entity) {
 
 		DataAspect<T, DataAspectMember<T>> aspect = getAspect();

@@ -55,7 +55,7 @@ public class FilterTerm implements Filter {
 			return o == null
 					? pValue == null
 					: o.equals(pValue);
-		case GRATER_OR_EQUAL:
+		case GREATER_OR_EQUAL:
 			return o != null && ((Comparable) o).compareTo(pValue) >= 0;
 		case GREATER_THAN:
 			return o != null && ((Comparable) o).compareTo(pValue) > 0;
