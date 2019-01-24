@@ -3,6 +3,7 @@ package jports.actions;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -21,7 +22,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class HttpActionExecutionWriterForJson<T, R> implements HttpActionWriter<T, R> {
 
-	protected static final ObjectMapper MAPPER = new ObjectMapper();
+	protected static final ObjectMapper MAPPER;
+
+	static {
+		MAPPER = new ObjectMapper();
+		MAPPER.setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ"));
+	}
 
 	/**
 	 * Actually writes the entire action execution object serialized as JSON to the

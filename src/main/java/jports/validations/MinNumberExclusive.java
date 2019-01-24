@@ -7,6 +7,7 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
+@ValidationImplementation(MinNumberExclusiveValidation.class)
 public @interface MinNumberExclusive {
 
 	public double value();

@@ -7,6 +7,7 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
+@ValidationImplementation(LengthValidation.class)
 public @interface Length {
 	public int min();
 

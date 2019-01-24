@@ -7,9 +7,10 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
+@ValidationImplementation(MinNumberInclusiveValidation.class)
 public @interface MinNumberInclusive {
 
 	public double value();
 
-	public String message() default "Value below the inclusive min.";
+	public String message() default "Value below the inclusive min of %f";
 }

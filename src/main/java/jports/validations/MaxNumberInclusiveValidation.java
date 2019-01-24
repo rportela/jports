@@ -1,8 +1,8 @@
 package jports.validations;
 
-public class MinNumberInclusiveValidation extends AbstractValidation {
+public class MaxNumberInclusiveValidation extends AbstractValidation {
 
-	private double min;
+	private double max;
 
 	/**
 	 * Creates a new instance of the required validation using a specific error
@@ -10,9 +10,9 @@ public class MinNumberInclusiveValidation extends AbstractValidation {
 	 * 
 	 * @param message
 	 */
-	public MinNumberInclusiveValidation(double min, String message) {
-		super(message);
-		this.min = min;
+	public MaxNumberInclusiveValidation(double max, String message) {
+		super(String.format(message, max));
+		this.max = max;
 	}
 
 	/**
@@ -20,8 +20,8 @@ public class MinNumberInclusiveValidation extends AbstractValidation {
 	 * message;
 	 * 
 	 */
-	public MinNumberInclusiveValidation(double min) {
-		this(min, "Valor muito pequeno, abaixo do mínimo de %f");
+	public MaxNumberInclusiveValidation(double max) {
+		this(max, "Value above the exclusive max of %f");
 	}
 
 	/**
@@ -30,7 +30,7 @@ public class MinNumberInclusiveValidation extends AbstractValidation {
 	 * 
 	 * @param annotation
 	 */
-	public MinNumberInclusiveValidation(MinNumberInclusive annotation) {
+	public MaxNumberInclusiveValidation(MaxNumberInclusive annotation) {
 		this(annotation.value(), annotation.message());
 	}
 
@@ -42,7 +42,7 @@ public class MinNumberInclusiveValidation extends AbstractValidation {
 		if (value == null)
 			return false;
 
-		return ((Number) value).doubleValue() >= min;
+		return ((Number) value).doubleValue() <= max;
 
 	}
 

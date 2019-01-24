@@ -7,10 +7,10 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-@ValidationImplementation(MaxLengthValidation.class)
-public @interface MaxLength {
+@ValidationImplementation(MaxNumberInclusiveValidation.class)
+public @interface MaxNumberInclusive {
 
-	public int value();
+	public double value();
 
-	public String message() default "Max acceptable length of %d.";
+	public String message() default "Value above the inclusive max.";
 }
