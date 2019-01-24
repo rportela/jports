@@ -1,5 +1,6 @@
 package jports.database;
 
+import java.lang.reflect.Array;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
@@ -7,6 +8,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -368,6 +370,25 @@ public class DatabaseCommand {
 	}
 
 	/**
+	 * Appends a byte array to the underlying command text;
+	 * 
+	 * @param value
+	 * @return
+	 */
+	public DatabaseCommand appendByteArray(byte[] value) {
+		text.append("0x");
+		char[] hexArray = "0123456789ABCDEF".toCharArray();
+		char[] hexChars = new char[value.length * 2];
+		for (int j = 0; j < value.length; j++) {
+			int v = value[j] & 0xFF;
+			hexChars[j * 2] = hexArray[v >>> 4];
+			hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+		}
+		text.append(hexChars);
+		return this;
+	}
+
+	/**
 	 * Appends a value to the underlying command text;
 	 * 
 	 * @param value
@@ -388,10 +409,18 @@ public class DatabaseCommand {
 			return appendTimestamp((Timestamp) value);
 		else if (value instanceof Time)
 			return appendTime((Time) value);
+		else if (value instanceof Calendar)
+			return appendDate(((Calendar) value).getTime());
 		else if (value instanceof UUID)
 			return appendUUID((UUID) value);
 		else if (value instanceof String)
 			return appendString((String) value);
+		else if (value instanceof byte[])
+			return appendByteArray((byte[]) value);
+		else if (value instanceof Iterable<?>)
+			return appendValueList((Iterable<?>) value);
+		else if (value.getClass().isArray())
+			return appendValueArray((Object[]) value);
 		else
 			throw new ShowStopper("Can't convert " + value + " to SQL.");
 	}
@@ -399,12 +428,12 @@ public class DatabaseCommand {
 	/**
 	 * Appends a list of values to the underlying command text;
 	 * 
-	 * @param values
+	 * @param value
 	 * @return
 	 */
-	public DatabaseCommand appendValues(Iterable<Object> values) {
+	public DatabaseCommand appendValueList(Iterable<?> value) {
 		boolean prependComma = false;
-		for (Object o : values) {
+		for (Object o : value) {
 			if (prependComma)
 				text.append(", ");
 			else
@@ -420,11 +449,12 @@ public class DatabaseCommand {
 	 * @param values
 	 * @return
 	 */
-	public DatabaseCommand appendValues(Object... values) {
-		appendValue(values[0]);
-		for (int i = 1; i < values.length; i++) {
+	public DatabaseCommand appendValueArray(Object array) {
+		int l = Array.getLength(array);
+		appendValue(Array.get(array, 0));
+		for (int i = 1; i < l; i++) {
 			text.append(", ");
-			appendValue(values[i]);
+			appendValue(Array.get(array, i));
 		}
 		return this;
 	}
@@ -513,16 +543,7 @@ public class DatabaseCommand {
 	public DatabaseCommand appendNotIn(String name, Object value) {
 		appendName(name);
 		text.append(" NOT IN (");
-		if (value == null) {
-			appendNull();
-		} else {
-			Class<? extends Object> valueClass = value.getClass();
-			if (valueClass.isArray()) {
-				appendValues((Object[]) value);
-			} else {
-				appendValues((Iterable<?>) value);
-			}
-		}
+		appendValue(value);
 		text.append(")");
 		return this;
 	}
@@ -530,16 +551,7 @@ public class DatabaseCommand {
 	public DatabaseCommand appendIn(String name, Object value) {
 		appendName(name);
 		text.append(" IN (");
-		if (value == null) {
-			appendNull();
-		} else {
-			Class<? extends Object> valueClass = value.getClass();
-			if (valueClass.isArray()) {
-				appendValues((Object[]) value);
-			} else {
-				appendValues((Iterable<?>) value);
-			}
-		}
+		appendValue(value);
 		text.append(")");
 		return this;
 	}
@@ -801,7 +813,7 @@ public class DatabaseCommand {
 				.appendSql(" (")
 				.appendNames(values.keySet())
 				.appendSql(") VALUES (")
-				.appendValues(values.values())
+				.appendValueList(values.values())
 				.appendSql(")");
 	}
 }

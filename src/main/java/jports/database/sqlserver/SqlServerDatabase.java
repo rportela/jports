@@ -3,6 +3,7 @@ package jports.database.sqlserver;
 import java.util.Properties;
 
 import jports.database.Database;
+import jports.database.DatabaseCommand;
 
 public class SqlServerDatabase extends Database {
 
@@ -34,4 +35,8 @@ public class SqlServerDatabase extends Database {
 		return true;
 	}
 
+	@Override
+	public DatabaseCommand createCommand() {
+		return new SqlServerCommand(this);
+	}
 }

@@ -46,7 +46,7 @@ public class DatabaseUpsert extends Upsert {
 				.appendSql(" (")
 				.appendNames(vls.keySet())
 				.appendSql(") VALUES (")
-				.appendValues(vls.values())
+				.appendValueList(vls.values())
 				.appendSql(");\r\n ELSE UPDATE ")
 				.appendName(target)
 				.appendSql(" SET ")

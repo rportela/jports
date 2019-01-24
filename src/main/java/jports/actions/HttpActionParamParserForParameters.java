@@ -25,7 +25,9 @@ public class HttpActionParamParserForParameters implements HttpActionParamParser
 		AdapterAspect<T> aspect = AdapterAspect.getInstance(paramsClass);
 		for (AdapterAspectMember<T> member : aspect) {
 			String vtext = request.getParameter(member.getName());
-			member.setValue(params, vtext);
+			if (vtext != null) {
+				member.setValue(params, vtext);
+			}
 		}
 		return params;
 	}
