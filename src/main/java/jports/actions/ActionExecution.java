@@ -277,4 +277,15 @@ public class ActionExecution<T, R> {
 		return this;
 	}
 
+	/**
+	 * Sets the result type to FAIL an also a fail message;
+	 * 
+	 * @param failMessage
+	 * @return
+	 */
+	public ActionExecution<T, R> setFail(String failMessage) {
+		this.resultType = ActionResultType.FAILED;
+		return this.setFailMessage(failMessage);
+	}
+
 }
