@@ -16,8 +16,8 @@ import jports.ShowStopper;
 public abstract class DataStorage<T> implements Storage<T> {
 
 	/**
-	 * When implemented should create a delete command capable of modifying the back
-	 * end storage;
+	 * When implemented should create a delete command capable of modifying the
+	 * back end storage;
 	 * 
 	 * @return
 	 */
@@ -49,9 +49,9 @@ public abstract class DataStorage<T> implements Storage<T> {
 
 	/**
 	 * This method attempts to delete an entity by it's identity, the by it's
-	 * annotated unique members and lastly by it's composite key. If no combination
-	 * of filters is found, an exception is throws, otherwise it returns the number
-	 * of records affected by the delete command;
+	 * annotated unique members and lastly by it's composite key. If no
+	 * combination of filters is found, an exception is throws, otherwise it
+	 * returns the number of records affected by the delete command;
 	 */
 	@Override
 	public int delete(final T entity) {
@@ -92,9 +92,9 @@ public abstract class DataStorage<T> implements Storage<T> {
 	}
 
 	/**
-	 * This method deletes an entity by it's composite key. If no composite key was
-	 * annotated, it returns -1; Otherwise it returns the number of records affected
-	 * by the delete command;
+	 * This method deletes an entity by it's composite key. If no composite key
+	 * was annotated, it returns -1; Otherwise it returns the number of records
+	 * affected by the delete command;
 	 * 
 	 * @param entity
 	 * @return
@@ -117,10 +117,10 @@ public abstract class DataStorage<T> implements Storage<T> {
 	}
 
 	/**
-	 * This method attempts to delete an entity by it's annotated identity; If no
-	 * identity was annotated or the identity value extracted from the entity is
-	 * null or equal to Zero; -1 is returned. Otherwise it returns the number of
-	 * records affected by the delete command;
+	 * This method attempts to delete an entity by it's annotated identity; If
+	 * no identity was annotated or the identity value extracted from the entity
+	 * is null or equal to Zero; -1 is returned. Otherwise it returns the number
+	 * of records affected by the delete command;
 	 * 
 	 * @param entity
 	 * @return
@@ -158,8 +158,8 @@ public abstract class DataStorage<T> implements Storage<T> {
 	}
 
 	/**
-	 * This method deletes an entity by a specific member and returns the number of
-	 * records affected by the delete command;
+	 * This method deletes an entity by a specific member and returns the number
+	 * of records affected by the delete command;
 	 * 
 	 * @param name
 	 * @param entity
@@ -171,8 +171,8 @@ public abstract class DataStorage<T> implements Storage<T> {
 
 	/**
 	 * Extracts the identity and attempts to check if an entity exists on the
-	 * storage with that identity value. It also checks that the identity value is
-	 * not null or 0L.
+	 * storage with that identity value. It also checks that the identity value
+	 * is not null or 0L.
 	 * 
 	 * @param aspect
 	 * @param entity
@@ -197,8 +197,8 @@ public abstract class DataStorage<T> implements Storage<T> {
 	}
 
 	/**
-	 * This method checks if an entity exists by the values on it's unique columns.
-	 * The values cannot be null;
+	 * This method checks if an entity exists by the values on it's unique
+	 * columns. The values cannot be null;
 	 * 
 	 * @param aspect
 	 * @param entity
@@ -246,8 +246,8 @@ public abstract class DataStorage<T> implements Storage<T> {
 	}
 
 	/**
-	 * Uses all possible key annotated key combinations to locate this object on the
-	 * storage;
+	 * Uses all possible key annotated key combinations to locate this object on
+	 * the storage;
 	 * 
 	 * @param entity
 	 * @return
@@ -322,8 +322,8 @@ public abstract class DataStorage<T> implements Storage<T> {
 	}
 
 	/**
-	 * Gets the data aspect with the annotated members of the data type stored by
-	 * this instance
+	 * Gets the data aspect with the annotated members of the data type stored
+	 * by this instance
 	 * 
 	 * @return
 	 */
@@ -345,8 +345,8 @@ public abstract class DataStorage<T> implements Storage<T> {
 	}
 
 	/**
-	 * This methods inserts an entity and returns the number of records affected by
-	 * the insert command;
+	 * This methods inserts an entity and returns the number of records affected
+	 * by the insert command;
 	 */
 	@Override
 	public int insert(final T entity) {
@@ -369,8 +369,9 @@ public abstract class DataStorage<T> implements Storage<T> {
 	}
 
 	/**
-	 * This method inserts an array of entities and returns the number of records
-	 * affected as the sum of each insert command's number of records affected;
+	 * This method inserts an array of entities and returns the number of
+	 * records affected as the sum of each insert command's number of records
+	 * affected;
 	 * 
 	 * @param entities
 	 * @return
@@ -393,9 +394,29 @@ public abstract class DataStorage<T> implements Storage<T> {
 		}
 	}
 
+	public T readByCompositeKey(Object... value) {
+		List<DataAspectMember<T>> key = getAspect().getCompositeKey();
+
+		if (key != null && !key.isEmpty()) {
+			if (key.size() == value.length) {
+				Select<T> select = select();
+
+				for (int i = 0; i < value.length; i++) {
+					select.andWhere(key.get(i).getColumnName(), value[i]);
+				}
+				return select.first();
+			} else {
+				throw new ShowStopper(getAspect().getDataType() + " has more values than you sent.");
+			}
+
+		} else {
+			throw new ShowStopper(getAspect().getDataType() + " has no composite key.");
+		}
+	}
+
 	/**
-	 * This method saves a collection of entities and returns the sum of each save
-	 * operation's number of records affected;
+	 * This method saves a collection of entities and returns the sum of each
+	 * save operation's number of records affected;
 	 * 
 	 * @param entities
 	 * @return
@@ -409,8 +430,8 @@ public abstract class DataStorage<T> implements Storage<T> {
 
 	/**
 	 * This method attempts to update an entity if no records were affected, it
-	 * inserts the entity; This method returns the number of records affected by the
-	 * update or by the insert command;
+	 * inserts the entity; This method returns the number of records affected by
+	 * the update or by the insert command;
 	 */
 	@Override
 	public int save(final T entity) {
@@ -435,9 +456,9 @@ public abstract class DataStorage<T> implements Storage<T> {
 	}
 
 	/**
-	 * This method tries to update an entity by it's identity, then by any annotated
-	 * unique member and lastly by a composite key. If no combination of filters is
-	 * found, an exception is thrown;
+	 * This method tries to update an entity by it's identity, then by any
+	 * annotated unique member and lastly by a composite key. If no combination
+	 * of filters is found, an exception is thrown;
 	 */
 	@Override
 	public int update(T entity) {
@@ -481,9 +502,9 @@ public abstract class DataStorage<T> implements Storage<T> {
 	}
 
 	/**
-	 * This method updates an entity by it's composite key. If no composite key was
-	 * annotated, -1 is returned; Otherwise the number of records affected is
-	 * returned;
+	 * This method updates an entity by it's composite key. If no composite key
+	 * was annotated, -1 is returned; Otherwise the number of records affected
+	 * is returned;
 	 * 
 	 * @param entity
 	 * @return
@@ -509,10 +530,10 @@ public abstract class DataStorage<T> implements Storage<T> {
 	}
 
 	/**
-	 * This method updates an entity by it's annotated identity; If no identity was
-	 * annotated, -1 is returned. If the identity value on the entity is null or
-	 * equal to Zero, 0 is returned; Otherwise it returns the number of records
-	 * affected by the update;
+	 * This method updates an entity by it's annotated identity; If no identity
+	 * was annotated, -1 is returned. If the identity value on the entity is
+	 * null or equal to Zero, 0 is returned; Otherwise it returns the number of
+	 * records affected by the update;
 	 * 
 	 * @param entity
 	 * @return
@@ -527,8 +548,8 @@ public abstract class DataStorage<T> implements Storage<T> {
 	}
 
 	/**
-	 * This helper method updates an entity based on a specific member and a passed
-	 * value. It returns the number of records affected by the update;
+	 * This helper method updates an entity based on a specific member and a
+	 * passed value. It returns the number of records affected by the update;
 	 * 
 	 * @param column
 	 * @param value
@@ -547,8 +568,8 @@ public abstract class DataStorage<T> implements Storage<T> {
 	}
 
 	/**
-	 * This method updates an entity by a specific member and returns the number of
-	 * records affected;
+	 * This method updates an entity by a specific member and returns the number
+	 * of records affected;
 	 * 
 	 * @param entity
 	 * @param member
