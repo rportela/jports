@@ -2,6 +2,7 @@ package jports.reflection;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 
 import jports.ShowStopper;
 
@@ -114,5 +115,10 @@ public final class AspectMemberProperty<T> implements AspectMemberAccessor<T> {
 
 	public Annotation[] getDeclaredAnnotations() {
 		return this.getter.getDeclaredAnnotations();
+	}
+
+	@Override
+	public Type getGenericType() {
+		return this.getter.getGenericReturnType();
 	}
 }

@@ -8,11 +8,14 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import jports.ShowStopper;
@@ -425,5 +428,22 @@ public abstract class Aspect<T, M extends AspectMember<T>>
 		} catch (Exception e) {
 			throw new ShowStopper(e);
 		}
+	}
+
+	/**
+	 * Checks if a given class is of a simple type, a number, a date or a string.
+	 * 
+	 * @param claz
+	 * @return
+	 */
+	public static boolean isSimpleType(Class<?> claz) {
+		return claz.isPrimitive() ||
+				CharSequence.class.isAssignableFrom(claz) ||
+				Date.class.isAssignableFrom(claz) ||
+				Number.class.isAssignableFrom(claz) ||
+				Calendar.class.isAssignableFrom(claz) ||
+				UUID.class.isAssignableFrom(claz) ||
+				byte[].class.isAssignableFrom(claz) ||
+				Boolean.class.isAssignableFrom(claz);
 	}
 }

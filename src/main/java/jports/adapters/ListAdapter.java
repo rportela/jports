@@ -10,12 +10,12 @@ import jports.ShowStopper;
 public class ListAdapter<T> implements Adapter<List<T>> {
 
 	private final Class<? extends List<T>> listClass;
-	private final Adapter<T> adapter;
+	private final Adapter<T> componentAdapter;
 	private String separator = ";";
 
-	public ListAdapter(Class<? extends List<T>> listClass, Adapter<T> adapter) {
+	public ListAdapter(Class<? extends List<T>> listClass, Adapter<T> componentAdapter) {
 		this.listClass = listClass;
-		this.adapter = adapter;
+		this.componentAdapter = componentAdapter;
 	}
 
 	@Override
@@ -27,7 +27,7 @@ public class ListAdapter<T> implements Adapter<List<T>> {
 			String[] vals = source.split(separator);
 			List<T> list = newInstance(vals.length);
 			for (int i = 0; i < vals.length; i++) {
-				T item = adapter.parse(vals[i]);
+				T item = componentAdapter.parse(vals[i]);
 				list.add(item);
 			}
 			return list;
@@ -43,7 +43,7 @@ public class ListAdapter<T> implements Adapter<List<T>> {
 					this.separator,
 					source
 							.stream()
-							.map(adapter::format)
+							.map(componentAdapter::format)
 							.collect(Collectors.toList()));
 	}
 
@@ -75,6 +75,10 @@ public class ListAdapter<T> implements Adapter<List<T>> {
 	@Override
 	public Class<List<T>> getDataType() {
 		return (Class<List<T>>) this.listClass;
+	}
+
+	public Adapter<T> getComponentAdapter() {
+		return componentAdapter;
 	}
 
 	@SuppressWarnings("unchecked")

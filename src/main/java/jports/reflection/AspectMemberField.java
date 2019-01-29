@@ -3,6 +3,7 @@ package jports.reflection;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
 
 import jports.ShowStopper;
 
@@ -58,5 +59,10 @@ public final class AspectMemberField<T> implements AspectMemberAccessor<T> {
 
 	public final Annotation[] getDeclaredAnnotations() {
 		return this.field.getDeclaredAnnotations();
+	}
+
+	@Override
+	public Type getGenericType() {
+		return this.field.getGenericType();
 	}
 }

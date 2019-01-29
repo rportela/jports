@@ -1,6 +1,7 @@
 package jports.reflection;
 
 import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Type;
 
 /**
  * This class represents an aspect member that's usually a wrapper for a Field
@@ -56,4 +57,13 @@ public interface AspectMemberAccessor<T> extends AnnotatedElement {
 	 * @return
 	 */
 	public String getName();
+
+	/**
+	 * A Type object that represents the declared type for the field represented by
+	 * this accessor object.
+	 * 
+	 * @return
+	 */
+	public Type getGenericType();
+
 }

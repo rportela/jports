@@ -5,11 +5,15 @@ import jports.reflection.AspectMemberAccessor;
 
 public class AdapterAspectMember<T> extends AspectMember<T> {
 
-	public final Adapter<?> adapter;
+	private final Adapter<?> adapter;
 
 	public AdapterAspectMember(AspectMemberAccessor<T> accessor, Adapter<?> adapter) {
 		super(accessor);
 		this.adapter = adapter;
+	}
+
+	public final Adapter<?> getAdapter() {
+		return this.adapter;
 	}
 
 	@Override

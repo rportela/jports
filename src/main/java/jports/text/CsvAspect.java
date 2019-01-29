@@ -10,7 +10,11 @@ import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import jports.ShowStopper;
 import jports.reflection.Aspect;
@@ -163,6 +167,31 @@ public class CsvAspect<T> extends Aspect<T, CsvAspectMember<T>> {
 	public List<T> parse(URL url) throws IOException {
 		try (InputStream fis = url.openStream()) {
 			return parse(fis);
+		}
+	}
+
+	public Map<String, List<T>> parseZip(InputStream source) throws IOException {
+		ZipEntry entry;
+		try (ZipInputStream zis = new ZipInputStream(source)) {
+			LinkedHashMap<String, List<T>> map = new LinkedHashMap<>(12);
+			while ((entry = zis.getNextEntry()) != null) {
+				String name = entry.getName();
+				List<T> list = parse(zis);
+				map.put(name, list);
+			}
+			return map;
+		}
+	}
+
+	public Map<String, List<T>> parseZip(File file) throws IOException {
+		try (FileInputStream fis = new FileInputStream(file)) {
+			return parseZip(fis);
+		}
+	}
+
+	public Map<String, List<T>> parseZip(URL url) throws IOException {
+		try (InputStream fis = url.openStream()) {
+			return parseZip(fis);
 		}
 	}
 

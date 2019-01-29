@@ -1,6 +1,7 @@
 package jports.reflection;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
 
 public class AspectMember<T> implements AspectMemberAccessor<T> {
 
@@ -49,5 +50,9 @@ public class AspectMember<T> implements AspectMemberAccessor<T> {
 
 	public Annotation[] getDeclaredAnnotations() {
 		return this.accessor.getDeclaredAnnotations();
+	}
+
+	public Type getGenericType() {
+		return this.accessor.getGenericType();
 	}
 }
