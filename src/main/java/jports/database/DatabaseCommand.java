@@ -420,7 +420,7 @@ public class DatabaseCommand {
 		else if (value instanceof Iterable<?>)
 			return appendValueList((Iterable<?>) value);
 		else if (value.getClass().isArray())
-			return appendValueArray((Object[]) value);
+			return appendValueArray(value);
 		else
 			throw new ShowStopper("Can't convert " + value + " to SQL.");
 	}
