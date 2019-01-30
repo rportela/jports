@@ -79,6 +79,8 @@ public class ByteArrayAdapter implements Adapter<byte[]> {
 	public byte[] convert(Object source) {
 		if (source == null) {
 			return null;
+		} else if (source instanceof byte[]) {
+			return (byte[]) source;
 		} else {
 			Class<?> sourceClass = source.getClass();
 			if (InputStream.class.isAssignableFrom(sourceClass))
