@@ -3,14 +3,12 @@ package jports.database;
 import java.lang.reflect.Array;
 import java.sql.Connection;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -131,28 +129,19 @@ public class DatabaseCommand {
 	}
 
 	/**
-	 * Executes what possibly is an INSERT statement and returns a map containing
-	 * the generated keys;
+	 * Executes what possibly is an INSERT statement and returns the generated key.
 	 * 
 	 * @return
 	 * @throws SQLException
 	 */
-	public Map<String, Object> executeWithGeneratedKeys() throws SQLException {
+	public Object executeWithGeneratedKey() throws SQLException {
 		try (Connection connection = database.getConnection()) {
 			try (Statement statement = connection.createStatement()) {
 				statement.execute(text.toString(), Statement.RETURN_GENERATED_KEYS);
 				try (ResultSet rs = statement.getGeneratedKeys()) {
-					if (!rs.next())
-						return null;
-					ResultSetMetaData meta = rs.getMetaData();
-					LinkedHashMap<String, Object> gks = new LinkedHashMap<>();
-					int count = meta.getColumnCount();
-					for (int i = 1; i <= count; i++) {
-						String name = meta.getColumnLabel(i);
-						Object value = rs.getObject(i);
-						gks.put(name, value);
-					}
-					return gks;
+					return rs.next()
+							? rs.getObject(1)
+							: null;
 				}
 			}
 		}

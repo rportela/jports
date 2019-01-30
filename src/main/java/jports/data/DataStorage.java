@@ -1,7 +1,6 @@
 package jports.data;
 
 import java.util.List;
-import java.util.Map;
 
 import jports.ShowStopper;
 
@@ -16,8 +15,8 @@ import jports.ShowStopper;
 public abstract class DataStorage<T> implements Storage<T> {
 
 	/**
-	 * When implemented should create a delete command capable of modifying the
-	 * back end storage;
+	 * When implemented should create a delete command capable of modifying the back
+	 * end storage;
 	 * 
 	 * @return
 	 */
@@ -49,9 +48,9 @@ public abstract class DataStorage<T> implements Storage<T> {
 
 	/**
 	 * This method attempts to delete an entity by it's identity, the by it's
-	 * annotated unique members and lastly by it's composite key. If no
-	 * combination of filters is found, an exception is throws, otherwise it
-	 * returns the number of records affected by the delete command;
+	 * annotated unique members and lastly by it's composite key. If no combination
+	 * of filters is found, an exception is throws, otherwise it returns the number
+	 * of records affected by the delete command;
 	 */
 	@Override
 	public int delete(final T entity) {
@@ -92,9 +91,9 @@ public abstract class DataStorage<T> implements Storage<T> {
 	}
 
 	/**
-	 * This method deletes an entity by it's composite key. If no composite key
-	 * was annotated, it returns -1; Otherwise it returns the number of records
-	 * affected by the delete command;
+	 * This method deletes an entity by it's composite key. If no composite key was
+	 * annotated, it returns -1; Otherwise it returns the number of records affected
+	 * by the delete command;
 	 * 
 	 * @param entity
 	 * @return
@@ -117,10 +116,10 @@ public abstract class DataStorage<T> implements Storage<T> {
 	}
 
 	/**
-	 * This method attempts to delete an entity by it's annotated identity; If
-	 * no identity was annotated or the identity value extracted from the entity
-	 * is null or equal to Zero; -1 is returned. Otherwise it returns the number
-	 * of records affected by the delete command;
+	 * This method attempts to delete an entity by it's annotated identity; If no
+	 * identity was annotated or the identity value extracted from the entity is
+	 * null or equal to Zero; -1 is returned. Otherwise it returns the number of
+	 * records affected by the delete command;
 	 * 
 	 * @param entity
 	 * @return
@@ -158,8 +157,8 @@ public abstract class DataStorage<T> implements Storage<T> {
 	}
 
 	/**
-	 * This method deletes an entity by a specific member and returns the number
-	 * of records affected by the delete command;
+	 * This method deletes an entity by a specific member and returns the number of
+	 * records affected by the delete command;
 	 * 
 	 * @param name
 	 * @param entity
@@ -171,8 +170,8 @@ public abstract class DataStorage<T> implements Storage<T> {
 
 	/**
 	 * Extracts the identity and attempts to check if an entity exists on the
-	 * storage with that identity value. It also checks that the identity value
-	 * is not null or 0L.
+	 * storage with that identity value. It also checks that the identity value is
+	 * not null or 0L.
 	 * 
 	 * @param aspect
 	 * @param entity
@@ -190,15 +189,17 @@ public abstract class DataStorage<T> implements Storage<T> {
 						.exists()
 								? 1
 								: 0;
-			} else
+			} else {
 				return -1;
-		} else
+			}
+		} else {
 			return -1;
+		}
 	}
 
 	/**
-	 * This method checks if an entity exists by the values on it's unique
-	 * columns. The values cannot be null;
+	 * This method checks if an entity exists by the values on it's unique columns.
+	 * The values cannot be null;
 	 * 
 	 * @param aspect
 	 * @param entity
@@ -246,8 +247,8 @@ public abstract class DataStorage<T> implements Storage<T> {
 	}
 
 	/**
-	 * Uses all possible key annotated key combinations to locate this object on
-	 * the storage;
+	 * Uses all possible key annotated key combinations to locate this object on the
+	 * storage;
 	 * 
 	 * @param entity
 	 * @return
@@ -271,59 +272,8 @@ public abstract class DataStorage<T> implements Storage<T> {
 	}
 
 	/**
-	 * Finds the identity value of an entity based on it's key choices.
-	 * 
-	 * @param entity
-	 * @return
-	 */
-	public boolean findIdentity(final T entity) {
-
-		DataAspect<T, DataAspectMember<T>> aspect = getAspect();
-		DataAspectMember<T> identity = aspect.getIdentity();
-		if (identity == null)
-			return false;
-
-		// Checks the identity for numbers or non empty strings
-		Object identityValue = identity.getValue(entity);
-		if (identityValue != null &&
-				((identityValue instanceof Number &&
-						((Number) identityValue).longValue() != 0L) ||
-						(identityValue instanceof String &&
-								((String) identityValue).isEmpty() == false))) {
-			return true;
-		}
-
-		// Checks for the presence of unique members.
-		for (DataAspectMember<T> unique : aspect.getUniqueColumns()) {
-			Object uniqueValue = unique.getValue(entity);
-			T identityObject = select().where(unique.getColumnName(), uniqueValue).first();
-			if (identityObject != null) {
-				identityValue = identity.getValue(identityObject);
-				identity.setValue(entity, identityValue);
-				return true;
-			}
-		}
-
-		// Checks for a composite key
-		List<DataAspectMember<T>> compositeKey = aspect.getCompositeKey();
-		if (!compositeKey.isEmpty()) {
-			Select<T> select = select();
-			for (DataAspectMember<T> ck : compositeKey)
-				select.andWhere(ck.getColumnName(), ck.getValue(entity));
-			T identityObject = select().first();
-			if (identityObject != null) {
-				identityValue = identity.getValue(entity);
-				identity.setValue(entity, identityValue);
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	/**
-	 * Gets the data aspect with the annotated members of the data type stored
-	 * by this instance
+	 * Gets the data aspect with the annotated members of the data type stored by
+	 * this instance
 	 * 
 	 * @return
 	 */
@@ -345,8 +295,8 @@ public abstract class DataStorage<T> implements Storage<T> {
 	}
 
 	/**
-	 * This methods inserts an entity and returns the number of records affected
-	 * by the insert command;
+	 * This methods inserts an entity and returns the number of records affected by
+	 * the insert command;
 	 */
 	@Override
 	public int insert(final T entity) {
@@ -361,17 +311,16 @@ public abstract class DataStorage<T> implements Storage<T> {
 		if (identity == null) {
 			return insert.execute();
 		} else {
-			Map<String, Object> generatedKeys = insert.executeWithGeneratedKeys();
-			aspect.setValues(entity, generatedKeys);
+			Object identityValue = insert.executeWithGeneratedKey();
+			identity.setValue(entity, identityValue);
 			return 1;
 		}
 
 	}
 
 	/**
-	 * This method inserts an array of entities and returns the number of
-	 * records affected as the sum of each insert command's number of records
-	 * affected;
+	 * This method inserts an array of entities and returns the number of records
+	 * affected as the sum of each insert command's number of records affected;
 	 * 
 	 * @param entities
 	 * @return
@@ -383,30 +332,58 @@ public abstract class DataStorage<T> implements Storage<T> {
 		return c;
 	}
 
+	/**
+	 * Reads an entity by its Identity Value.
+	 * 
+	 * @param value
+	 * @return
+	 */
 	public T readById(Object value) {
 		DataAspectMember<T> identity = getAspect().getIdentity();
-		if (identity == null) {
-			throw new ShowStopper(getAspect().getDataType() + " has no identity.");
-		} else {
+		if (identity != null) {
 			return select()
-					.where(identity.getColumnName(), value)
+					.where(identity.getName(), value)
 					.first();
+		} else {
+			throw new ShowStopper(getAspect().getDataType() + " has no identity.");
 		}
 	}
 
+	/**
+	 * Reads an entity by filtering a specific member with a specific value.
+	 * 
+	 * @param memberName
+	 * @param value
+	 * @return
+	 */
+	public T readByMember(String memberName, Object value) {
+		return select()
+				.where(memberName, value)
+				.first();
+	}
+
+	/**
+	 * Reads an entity by its Composite Key values. The order in which you pass the
+	 * values must be the same as the the order you declared the composite key
+	 * columns in your class.
+	 * 
+	 * @param value
+	 * @return
+	 */
 	public T readByCompositeKey(Object... value) {
 		List<DataAspectMember<T>> key = getAspect().getCompositeKey();
-
 		if (key != null && !key.isEmpty()) {
 			if (key.size() == value.length) {
 				Select<T> select = select();
-
 				for (int i = 0; i < value.length; i++) {
 					select.andWhere(key.get(i).getColumnName(), value[i]);
 				}
 				return select.first();
 			} else {
-				throw new ShowStopper(getAspect().getDataType() + " has more values than you sent.");
+				throw new ShowStopper(
+						getAspect().getDataType() +
+								" has more composite key columns" +
+								" than the number of values you sent.");
 			}
 
 		} else {
@@ -415,8 +392,8 @@ public abstract class DataStorage<T> implements Storage<T> {
 	}
 
 	/**
-	 * This method saves a collection of entities and returns the sum of each
-	 * save operation's number of records affected;
+	 * This method saves a collection of entities and returns the sum of each save
+	 * operation's number of records affected;
 	 * 
 	 * @param entities
 	 * @return
@@ -430,11 +407,11 @@ public abstract class DataStorage<T> implements Storage<T> {
 
 	/**
 	 * This method attempts to update an entity if no records were affected, it
-	 * inserts the entity; This method returns the number of records affected by
-	 * the update or by the insert command;
+	 * inserts the entity; This method returns the number of records affected by the
+	 * update or by the insert command;
 	 */
 	@Override
-	public int save(final T entity) {
+	public synchronized int save(final T entity) {
 		int upd = update(entity);
 		if (upd <= 0)
 			upd = insert(entity);
@@ -456,9 +433,9 @@ public abstract class DataStorage<T> implements Storage<T> {
 	}
 
 	/**
-	 * This method tries to update an entity by it's identity, then by any
-	 * annotated unique member and lastly by a composite key. If no combination
-	 * of filters is found, an exception is thrown;
+	 * This method tries to update an entity by it's identity, then by any annotated
+	 * unique member and lastly by a composite key. If no combination of filters is
+	 * found, an exception is thrown;
 	 */
 	@Override
 	public int update(T entity) {
@@ -502,9 +479,9 @@ public abstract class DataStorage<T> implements Storage<T> {
 	}
 
 	/**
-	 * This method updates an entity by it's composite key. If no composite key
-	 * was annotated, -1 is returned; Otherwise the number of records affected
-	 * is returned;
+	 * This method updates an entity by it's composite key. If no composite key was
+	 * annotated, -1 is returned; Otherwise the number of records affected is
+	 * returned;
 	 * 
 	 * @param entity
 	 * @return
@@ -513,6 +490,7 @@ public abstract class DataStorage<T> implements Storage<T> {
 		List<? extends DataAspectMember<T>> cks = getAspect().getCompositeKey();
 		if (cks.isEmpty())
 			return -1;
+
 		Update update = createUpdate();
 		for (DataAspectMember<T> member : getAspect()) {
 			ColumnType columnType = member.getColumnType();
@@ -530,26 +508,66 @@ public abstract class DataStorage<T> implements Storage<T> {
 	}
 
 	/**
-	 * This method updates an entity by it's annotated identity; If no identity
-	 * was annotated, -1 is returned. If the identity value on the entity is
-	 * null or equal to Zero, 0 is returned; Otherwise it returns the number of
-	 * records affected by the update;
+	 * This method updates an entity by it's annotated identity; If no identity was
+	 * annotated, -1 is returned. If the identity value on the entity is null or
+	 * equal to Zero, 0 is returned; Otherwise it returns the number of records
+	 * affected by the update;
 	 * 
 	 * @param entity
 	 * @return
 	 */
 	public int updateByIdentity(final T entity) {
-		if (!findIdentity(entity))
+		DataAspect<T, DataAspectMember<T>> aspect = getAspect();
+		DataAspectMember<T> identity = aspect.getIdentity();
+
+		if (identity != null) {
+			// Checks the identity for numbers or non empty strings
+			Object identityValue = identity.getValue(entity);
+			if (identityValue != null &&
+					((identityValue instanceof Number &&
+							((Number) identityValue).longValue() != 0L) ||
+							(identityValue instanceof String &&
+									!((String) identityValue).isEmpty()))) {
+				return updateByMember(identity, identityValue, entity);
+			}
+
+			// Checks for the presence of unique members.
+			for (DataAspectMember<T> unique : aspect.getUniqueColumns()) {
+				Object uniqueValue = unique.getValue(entity);
+				T identityObject = select().where(unique.getColumnName(), uniqueValue).first();
+				if (identityObject != null) {
+					identityValue = identity.getValue(identityObject);
+					identity.setValue(entity, identityValue);
+					return updateByMember(identity, identityValue, entity);
+				}
+			}
+
+			// Checks for a composite key
+			List<DataAspectMember<T>> compositeKey = aspect.getCompositeKey();
+			if (!compositeKey.isEmpty()) {
+				Select<T> select = select();
+				for (DataAspectMember<T> ck : compositeKey)
+					select.andWhere(ck.getColumnName(), ck.getValue(entity));
+				T identityObject = select().first();
+				if (identityObject != null) {
+					identityValue = identity.getValue(entity);
+					identity.setValue(entity, identityValue);
+					return updateByMember(identity, identityValue, entity);
+				}
+			}
+
+			// No update was made
+			return 0;
+		} else {
+			// No identity
 			return -1;
-		else {
-			DataAspectMember<T> identity = getAspect().getIdentity();
-			return updateByMember(identity, identity.getValue(entity), entity);
 		}
+
 	}
 
 	/**
-	 * This helper method updates an entity based on a specific member and a
-	 * passed value. It returns the number of records affected by the update;
+	 * This helper method updates an entity based on a specific member and a passed
+	 * value. It returns the number of records affected by the update;
 	 * 
 	 * @param column
 	 * @param value
@@ -565,20 +583,6 @@ public abstract class DataStorage<T> implements Storage<T> {
 		}
 		update.where(column.getColumnName(), value);
 		return update.execute();
-	}
-
-	/**
-	 * This method updates an entity by a specific member and returns the number
-	 * of records affected;
-	 * 
-	 * @param entity
-	 * @param member
-	 * @return
-	 */
-	public int updateByMember(final T entity, final String member) {
-		DataAspectMember<T> aspectMember = getAspect().get(member);
-		Object value = aspectMember.getValue(entity);
-		return updateByMember(aspectMember, value, entity);
 	}
 
 }

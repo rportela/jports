@@ -54,11 +54,11 @@ public abstract class Insert {
 	public abstract int execute();
 
 	/**
-	 * Executes the command and returns a map of the generated keys and their
-	 * values;
+	 * Executes the insert command and returns the generated key from the data
+	 * store;
 	 * 
 	 * @return
 	 * @throws Exception
 	 */
-	public abstract Map<String, Object> executeWithGeneratedKeys();
+	public abstract Object executeWithGeneratedKey();
 }

@@ -1,8 +1,5 @@
 package jports.data;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import jports.ShowStopper;
 
 public class TableInsert extends Insert {
@@ -25,15 +22,13 @@ public class TableInsert extends Insert {
 	}
 
 	@Override
-	public Map<String, Object> executeWithGeneratedKeys() {
+	public Object executeWithGeneratedKey() {
 		TableColumn identity = table.getIdentity();
 		if (identity == null)
 			throw new ShowStopper("The underlying table has no identity column: " + table);
 		else {
 			execute();
-			HashMap<String, Object> map = new HashMap<>();
-			map.put(identity.getColumnName(), table.getRowCount());
-			return map;
+			return table.getRowCount();
 		}
 	}
 

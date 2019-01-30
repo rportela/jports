@@ -1,7 +1,5 @@
 package jports.data;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Map.Entry;
 
 import jports.ShowStopper;
@@ -26,14 +24,11 @@ public class ListInsert<T> extends Insert {
 	}
 
 	@Override
-	public Map<String, Object> executeWithGeneratedKeys() {
+	public Object executeWithGeneratedKey() {
 		DataAspect<T, ?> aspect = storage.getAspect();
 		DataAspectMember<T> identity = aspect.getIdentity();
 		if (identity == null)
 			throw new ShowStopper("This aspect has no identity: " + aspect);
-
-		HashMap<String, Object> map = new HashMap<>();
-		map.put(identity.getColumnName(), storage.all().size());
-		return map;
+		return storage.all().size();
 	}
 }

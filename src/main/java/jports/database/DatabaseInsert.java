@@ -1,7 +1,6 @@
 package jports.database;
 
 import java.sql.SQLException;
-import java.util.Map;
 
 import jports.ShowStopper;
 import jports.data.Insert;
@@ -27,12 +26,12 @@ public class DatabaseInsert extends Insert {
 		}
 	}
 
-	public Map<String, Object> executeWithGeneratedKeys() {
+	public Object executeWithGeneratedKey() {
 		try {
 			return database
 					.createCommand()
 					.appendInsert(target, getValues())
-					.executeWithGeneratedKeys();
+					.executeWithGeneratedKey();
 		} catch (SQLException e) {
 			throw new ShowStopper(e);
 		}
