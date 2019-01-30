@@ -24,10 +24,10 @@ public abstract class Select<T> extends Filterable<Select<T>> implements Iterabl
 	}
 
 	public Select<T> orderBy(SortDirection direction, String... names) {
-		Sort sort = new Sort(names[0], direction);
-		this.sort = sort;
+		Sort sorter = new Sort(names[0], direction);
+		this.sort = sorter;
 		for (int i = 1; i < names.length; i++) {
-			sort = sort.thenOrderBy(names[i], direction);
+			sorter = sorter.thenOrderBy(names[i], direction);
 		}
 		return this;
 	}
@@ -45,9 +45,9 @@ public abstract class Select<T> extends Filterable<Select<T>> implements Iterabl
 		if (this.sort == null) {
 			return orderBy(direction, names);
 		} else {
-			Sort sort = this.sort;
+			Sort sorter = this.sort;
 			for (int i = 0; i < names.length; i++) {
-				sort = sort.thenOrderBy(names[i], direction);
+				sorter = sorter.thenOrderBy(names[i], direction);
 			}
 			return this;
 		}

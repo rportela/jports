@@ -2,6 +2,7 @@ package jports.adapters;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
 
 import jports.ShowStopper;
@@ -78,7 +79,7 @@ public class ByteArrayAdapter implements Adapter<byte[]> {
 	@Override
 	public byte[] convert(Object source) {
 		if (source == null) {
-			return null;
+			return (byte[]) Array.newInstance(byte[].class, 0);
 		} else if (source instanceof byte[]) {
 			return (byte[]) source;
 		} else {

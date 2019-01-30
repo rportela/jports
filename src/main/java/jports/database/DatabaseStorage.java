@@ -1,7 +1,10 @@
 package jports.database;
 
+import java.sql.SQLException;
+import java.util.Iterator;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import jports.ShowStopper;
@@ -64,6 +67,66 @@ public class DatabaseStorage<T> extends DataStorage<T> {
 	@Override
 	public DataAspect<T, DataAspectMember<T>> getAspect() {
 		return aspect;
+	}
+
+	private int insertBulk(final Iterator<T> iterator) throws SQLException {
+		DatabaseCommand command = database
+				.createCommand()
+				.appendSql("INSERT INTO ")
+				.appendName(aspect.getDatabaseObject());
+
+		List<DataAspectMember<T>> members = aspect.getMembers();
+
+		command.appendSql(" (")
+				.appendNames(members
+						.stream()
+						.map(DataAspectMember::getColumnName)
+						.collect(Collectors.toList()))
+				.appendSql(" ) VALUES ");
+
+		int itemcount = 0;
+		boolean prepComma = false;
+		while (iterator.hasNext()) {
+			if (prepComma) {
+				command.appendSql(", ");
+			} else {
+				prepComma = true;
+			}
+
+			T entity = iterator.next();
+
+			command
+					.appendSql("(")
+					.appendValueList(
+							members
+									.stream()
+									.map(m -> m.getValue(entity))
+									.collect(Collectors.toList()))
+					.appendSql(")");
+
+			itemcount++;
+			if (itemcount >= 1000) {
+				return command.executeNonQuery() + insertBulk(iterator);
+			}
+		}
+		if (itemcount > 0) {
+			return command.executeNonQuery();
+		} else {
+			return 0;
+		}
+
+	}
+
+	@Override
+	public int insert(final Iterable<T> entities) {
+		DataAspectMember<T> identity = aspect.getIdentity();
+		try {
+			return identity != null
+					? super.insert(entities)
+					: this.insertBulk(entities.iterator());
+		} catch (SQLException e) {
+			throw new ShowStopper(e);
+		}
 	}
 
 	private Consumer<T> createSaveBatchConsumer(

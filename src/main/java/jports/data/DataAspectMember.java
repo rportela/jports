@@ -142,6 +142,7 @@ public class DataAspectMember<T> extends AspectMember<T> implements Column {
 		super.setValue(target, value);
 	}
 
+	@Override
 	public boolean isReadOnly() {
 		return this.readOnly;
 	}

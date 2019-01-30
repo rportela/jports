@@ -2,7 +2,6 @@ package jports.actions;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 
 import javax.servlet.http.HttpServletResponse;
@@ -35,20 +34,11 @@ public class HttpActionExecutionWriterForJson<T, R> implements HttpActionWriter<
 	 */
 	@Override
 	public void write(ActionExecution<T, R> execution, HttpServletResponse response) throws IOException {
-
 		execution.setParams(null);
-		String json = MAPPER.writeValueAsString(execution);
-		byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
-
 		response.setContentType("application/json");
-		response.setContentLength(bytes.length);
-
 		try (OutputStream os = response.getOutputStream()) {
-			os.write(bytes);
+			MAPPER.writeValue(os, execution);
 		}
-
-		response.flushBuffer();
-
 	}
 
 }
