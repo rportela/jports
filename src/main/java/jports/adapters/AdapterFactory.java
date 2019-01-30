@@ -49,7 +49,7 @@ public final class AdapterFactory {
 
 		INSTANCES.put(BigDecimal.class, BigDecimalAdapter.class);
 		INSTANCES.put(Time.class, TimeAdapter.class);
-
+		INSTANCES.put(byte[].class, ByteArrayAdapter.class);
 	}
 
 	/**
