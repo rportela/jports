@@ -14,15 +14,17 @@ public class ValidationList extends ArrayList<Validation> implements Validation 
 			return new ValidationResult(name, true, null);
 		ValidationResult[] children = new ValidationResult[size()];
 		boolean isValid = true;
+		String message = "Some items failed to validate, check the list of children";
 		for (int i = 0; i < children.length; i++) {
 			children[i] = get(i).validate(name, value);
-			if (isValid
-					&& !children[i].isValid())
+			if (isValid && !children[i].isValid()) {
 				isValid = false;
+				message = children[i].getMessage();
+			}
 		}
 		return new ValidationResult(name, isValid, isValid
 				? null
-				: "Some items failed to validate, check the list of children");
+				: message);
 	}
 
 	public boolean isValid(Object value) {
