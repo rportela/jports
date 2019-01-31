@@ -154,7 +154,7 @@ public abstract class Action<T, R> {
 	 */
 	private final synchronized void execute(ActionExecution<T, R> execution) {
 		if (execution.getName() == null) {
-			execution.setName(getClass().toString());
+			execution.setName(getClass().getName());
 		}
 		try {
 			validate(execution);
