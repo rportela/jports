@@ -36,9 +36,13 @@ public class HttpActionExecutionWriterForJson<T, R> implements HttpActionWriter<
 	public void write(ActionExecution<T, R> execution, HttpServletResponse response) throws IOException {
 		execution.setParams(null);
 		response.setContentType("application/json");
-		try (OutputStream os = response.getOutputStream()) {
+		OutputStream os = response.getOutputStream();
+		try {
 			MAPPER.writeValue(os, execution);
+		} finally {
+			os.close();
 		}
+		response.flushBuffer();
 	}
 
 }
