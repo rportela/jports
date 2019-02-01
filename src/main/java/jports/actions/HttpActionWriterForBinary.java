@@ -3,8 +3,6 @@ package jports.actions;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import javax.servlet.http.HttpServletResponse;
-
 /**
  * This is an action execution that can write standard byte arrays of a
  * Configurable content type to the output HTTP servlet stream;
@@ -25,21 +23,18 @@ public abstract class HttpActionWriterForBinary<T, R> implements HttpActionWrite
 	 * Actually writes the byte[] execution result to the response output stream;
 	 */
 	@Override
-	public void write(ActionExecution<T, R> execution, HttpServletResponse response) throws IOException {
+	public void write(ActionExecution<T, R> execution, HttpAction action) throws IOException {
 
 		byte[] bytes = getBytes(execution);
 		String fileName = getFileName(execution);
-		response.setContentType(getContentType(execution));
-		response.setContentLength(bytes == null
-				? 0
-				: bytes.length);
+		action.setContentType(getContentType(execution));
 
 		if (fileName != null && !fileName.isEmpty()) {
-			response.setHeader("Content-Disposition", "attachment;filename=" + fileName);
+			action.setResponseHeader("Content-Disposition", "attachment;filename=" + fileName);
 		}
 
 		if (bytes != null)
-			try (OutputStream os = response.getOutputStream()) {
+			try (OutputStream os = action.getResponseStream()) {
 				os.write(bytes);
 			}
 

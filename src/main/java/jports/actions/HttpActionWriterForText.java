@@ -1,11 +1,9 @@
 package jports.actions;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * A simple text writer for HTTP servlet responses. This class receives a
@@ -51,16 +49,16 @@ public class HttpActionWriterForText<T> implements HttpActionWriter<T, String> {
 	 * stream.
 	 */
 	@Override
-	public void write(ActionExecution<T, String> execution, HttpServletResponse response) throws IOException {
+	public void write(ActionExecution<T, String> execution, HttpAction action) throws IOException {
 
 		String result = execution.getResult();
 		byte[] bytes = result == null
 				? new byte[0]
 				: result.getBytes(charset);
 
-		response.setContentType("text/plain; charset=" + charset.displayName());
-		response.setContentLength(bytes.length);
-		try (ServletOutputStream os = response.getOutputStream()) {
+		action.setContentType("text/plain; charset=" + charset.displayName());
+
+		try (OutputStream os = action.getResponseStream()) {
 			os.write(bytes);
 		}
 

@@ -1,10 +1,11 @@
 package jports.adapters;
 
-import java.lang.reflect.Constructor;
 import java.math.BigDecimal;
 import java.sql.Time;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 
 import jports.ShowStopper;
 
@@ -74,36 +75,67 @@ public final class AdapterFactory {
 	 * @param claz
 	 * @return
 	 */
-	@SuppressWarnings("unchecked")
-	public static synchronized <T> Adapter<T> getInstance(Class<T> claz) {
-		Class<?> adapterClass = INSTANCES.get(claz);
-		if (adapterClass == null)
-			return null;
-		else {
-			try {
-				Constructor<?> constructor = adapterClass.getConstructor();
-				Object newInstance = constructor.newInstance();
-				return (Adapter<T>) newInstance;
-			} catch (Exception e) {
-				throw new ShowStopper(e);
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public static synchronized <T> Adapter<T> createAdapter(Class<T> claz, String pattern) {
+		if (claz.isArray()) {
+			return new ArrayAdapter(claz, createAdapter(claz.getComponentType(), pattern));
+		} else {
+			Class<?> adapterClass = INSTANCES.get(claz);
+			if (adapterClass == null)
+				return null;
+			else {
+				try {
+					Object instance = pattern == null || pattern.isEmpty()
+							? adapterClass.getConstructor().newInstance()
+							: adapterClass.getConstructor(String.class).newInstance(pattern);
+					return (Adapter<T>) instance;
+				} catch (Exception e) {
+					throw new ShowStopper(e);
+				}
 			}
 		}
 	}
 
-	@SuppressWarnings({ "rawtypes" })
-	public static Adapter createAdapter(final Class<?> claz, Class<?> adapterClass,
+	public static synchronized <T> Adapter<T> createAdapter(Class<T> claz) {
+		return createAdapter(claz, null);
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public static Adapter createAdapter(
+			Class claz,
+			Class adapterClass,
 			final String pattern) {
-		if (VoidAdapter.class.equals(adapterClass) || adapterClass == null) {
-			adapterClass = INSTANCES.get(claz);
-		}
-		if (adapterClass == null) {
-			throw new ShowStopper("Can't find and adapter for " + claz);
-		}
 		try {
-			Object instance = pattern == null || pattern.isEmpty()
-					? adapterClass.getConstructor().newInstance()
-					: adapterClass.getConstructor(String.class).newInstance(pattern);
-			return (Adapter) instance;
+			if (claz.isArray()) {
+				if (adapterClass == null || adapterClass.equals(VoidAdapter.class)) {
+					adapterClass = INSTANCES.get(claz.getComponentType());
+				}
+				if (adapterClass == null) {
+					throw new ShowStopper("Can't find and adapter for " + claz);
+				}
+				Object instance = pattern == null || pattern.isEmpty()
+						? adapterClass.getConstructor().newInstance()
+						: adapterClass.getConstructor(String.class).newInstance(pattern);
+				return new ArrayAdapter(claz, (Adapter) instance);
+			} else if (List.class.isAssignableFrom(claz)) {
+				if (claz.isInterface()) {
+					claz = ArrayList.class;
+				}
+				return new ListAdapter<>(claz, null);
+			} else {
+				if (VoidAdapter.class.equals(adapterClass) || adapterClass == null) {
+					adapterClass = INSTANCES.get(claz);
+				}
+				if (adapterClass == null) {
+					throw new ShowStopper("Can't find and adapter for " + claz);
+				} else {
+					Object instance = pattern == null || pattern.isEmpty()
+							? adapterClass.getConstructor().newInstance()
+							: adapterClass.getConstructor(String.class).newInstance(pattern);
+					return (Adapter) instance;
+				}
+			}
+
 		} catch (Exception e) {
 			throw new ShowStopper(e);
 		}

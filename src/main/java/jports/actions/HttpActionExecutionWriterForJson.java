@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 
-import javax.servlet.http.HttpServletResponse;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -33,16 +31,20 @@ public class HttpActionExecutionWriterForJson<T, R> implements HttpActionWriter<
 	 * HTTP servlet output stream.
 	 */
 	@Override
-	public void write(ActionExecution<T, R> execution, HttpServletResponse response) throws IOException {
+	public void write(ActionExecution<T, R> execution, HttpAction action) throws IOException {
 		execution.setParams(null);
-		response.setContentType("application/json");
-		OutputStream os = response.getOutputStream();
+
+		OutputStream os = action
+				.setContentType("application/json")
+				.getResponseStream();
+
 		try {
 			MAPPER.writeValue(os, execution);
 		} finally {
 			os.close();
 		}
-		response.flushBuffer();
+
+		action.flushResponse();
 	}
 
 }

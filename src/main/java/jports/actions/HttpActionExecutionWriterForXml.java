@@ -3,8 +3,6 @@ package jports.actions;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import javax.servlet.http.HttpServletResponse;
-
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
 /**
@@ -27,17 +25,21 @@ public class HttpActionExecutionWriterForXml<T, R> implements HttpActionWriter<T
 	 * HTTP servlet output stream.
 	 */
 	@Override
-	public void write(ActionExecution<T, R> execution, HttpServletResponse response) throws IOException {
+	public void write(ActionExecution<T, R> execution, HttpAction action) throws IOException {
 
 		execution.setParams(null);
 
-		response.setContentType("application/xml");
+		OutputStream os = action
+				.setContentType("application/xml")
+				.getResponseStream();
 
-		try (OutputStream os = response.getOutputStream()) {
+		try {
 			XML_MAPPER.writeValue(os, execution);
+		} finally {
+			os.close();
 		}
 
-		response.flushBuffer();
+		action.flushResponse();
 
 	}
 

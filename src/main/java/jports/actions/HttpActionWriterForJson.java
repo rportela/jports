@@ -5,8 +5,6 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 
-import javax.servlet.http.HttpServletResponse;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -31,20 +29,19 @@ public class HttpActionWriterForJson<T, R> implements HttpActionWriter<T, R> {
 	 * to the HTTP servlet output stream.
 	 */
 	@Override
-	public void write(ActionExecution<T, R> execution, HttpServletResponse response) throws IOException {
+	public void write(ActionExecution<T, R> execution, HttpAction action) throws IOException {
 
 		execution.setParams(null);
 		String json = MAPPER.writeValueAsString(execution.getResult());
 		byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
 
-		response.setContentType("application/json");
-		response.setContentLength(bytes.length);
+		action.setContentType("application/json");
 
-		try (OutputStream os = response.getOutputStream()) {
+		try (OutputStream os = action.getResponseStream()) {
 			os.write(bytes);
 		}
 
-		response.flushBuffer();
+		action.flushResponse();
 
 	}
 

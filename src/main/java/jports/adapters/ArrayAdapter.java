@@ -45,7 +45,7 @@ public class ArrayAdapter<T> implements Adapter<T[]> {
 	 */
 	@SuppressWarnings("unchecked")
 	public ArrayAdapter(Class<T[]> dataType) {
-		this(dataType, (Adapter<T>) AdapterFactory.getInstance(dataType.getComponentType()));
+		this(dataType, (Adapter<T>) AdapterFactory.createAdapter(dataType.getComponentType()));
 	}
 
 	public Class<T> getComponentType() {

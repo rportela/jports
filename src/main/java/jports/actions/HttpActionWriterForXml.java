@@ -1,9 +1,8 @@
 package jports.actions;
 
 import java.io.IOException;
+import java.io.OutputStream;
 
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletResponse;
 import javax.xml.XMLConstants;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
@@ -12,7 +11,9 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+
 import org.w3c.dom.Document;
+
 import jports.GenericLogger;
 
 /**
@@ -33,10 +34,12 @@ public class HttpActionWriterForXml<T> implements HttpActionWriter<T, Document> 
 		FACTORY.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
 	}
 
-	private void writeXml(ActionExecution<T, Document> execution, HttpServletResponse response,
+	private void writeXml(ActionExecution<T, Document> execution, HttpAction action,
 			Transformer transformer) throws IOException {
-		try (ServletOutputStream os = response.getOutputStream()) {
-			response.setContentType("application/xml");
+		try (OutputStream os = action
+				.setContentType("application/xml")
+				.getResponseStream()) {
+
 			transformer.transform(new DOMSource(execution.getResult()), new StreamResult(os));
 		} catch (TransformerException e) {
 			GenericLogger.error(getClass(), e);
@@ -47,12 +50,12 @@ public class HttpActionWriterForXml<T> implements HttpActionWriter<T, Document> 
 	 * Actually writes indented XML to the HTTP response output stream.
 	 */
 	@Override
-	public void write(ActionExecution<T, Document> execution, HttpServletResponse response) throws IOException {
+	public void write(ActionExecution<T, Document> execution, HttpAction action) throws IOException {
 		Transformer transformer;
 		try {
 			transformer = FACTORY.newTransformer();
 			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-			writeXml(execution, response, transformer);
+			writeXml(execution, action, transformer);
 		} catch (TransformerConfigurationException e) {
 			GenericLogger.error(getClass(), e);
 		}

@@ -1,12 +1,15 @@
 package jports.actions;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.DeflaterOutputStream;
+import java.util.zip.GZIPOutputStream;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -173,7 +176,7 @@ public class HttpAction {
 			HttpActionWriter<T, R> writer = execution.getResultType() == ActionResultType.SUCCESS
 					? action.getHttpWriter()
 					: new HttpActionExecutionWriterForJson<>();
-			writer.write(execution, response);
+			writer.write(execution, this);
 			return execution;
 		} catch (Exception e) {
 			ActionExecution<T, R> errorExec = new ActionExecution<>();
@@ -182,14 +185,63 @@ public class HttpAction {
 					.setException(e)
 					.setFailMessage(e.getMessage());
 			try {
-				new HttpActionExecutionWriterForJson<T, R>().write(errorExec, response);
+				new HttpActionExecutionWriterForJson<T, R>().write(errorExec, this);
 			} catch (IOException ignore) {
 				Logger.getLogger(getClass().getName()).log(Level.INFO, ignore, null);
 			}
 			return errorExec;
 
 		}
+	}
 
+	public OutputStream getResponseStream() throws IOException {
+		String encoding = request.getHeader("Accept-encoding");
+
+		if (encoding == null || encoding.isEmpty()) {
+			return response.getOutputStream();
+		} else if (encoding.contains("gzip")) {
+			response.setHeader("Content-Encoding", "gzip");
+			return new GZIPOutputStream(response.getOutputStream());
+		} else if (encoding.contains("deflate")) {
+			response.setHeader("Content-Encoding", "deflate");
+			return new DeflaterOutputStream(response.getOutputStream());
+		} else {
+			return response.getOutputStream();
+		}
+	}
+
+	public HttpAction setResponseHeader(String name, String value) {
+		response.setHeader(name, value);
+		return this;
+	}
+
+	public String getContentType() {
+		return response.getContentType();
+	}
+
+	public HttpAction setContentType(String contentType) {
+		response.setContentType(contentType);
+		return this;
+	}
+
+	public HttpAction flushResponse() throws IOException {
+		response.flushBuffer();
+		return this;
+	}
+
+	public HttpAction setContentLength(int length) {
+		response.setContentLength(length);
+		return this;
+	}
+
+	public HttpAction sendError(int code) throws IOException {
+		response.sendError(code);
+		return this;
+	}
+
+	public HttpAction sendRedirect(String url) throws IOException {
+		response.sendRedirect(url);
+		return this;
 	}
 
 	/**
