@@ -33,6 +33,7 @@ public class XmlAspectMember<T> extends AspectMember<T> implements XmlAdapter {
 	public XmlAspectMember(AspectMemberAccessor<T> accessor, Xml annotation) {
 		super(accessor);
 		this.xmlAdapter = createXmlAdapter(
+				accessor,
 				annotation.name().isEmpty()
 						? accessor.getName()
 						: annotation.name(),
@@ -48,7 +49,8 @@ public class XmlAspectMember<T> extends AspectMember<T> implements XmlAdapter {
 	 * @param componentAdapter
 	 * @return
 	 */
-	private XmlAdapter createXmlAdapterWith(String xmlName, XmlAdapter componentAdapter) {
+	private XmlAdapter createXmlAdapterWith(AspectMemberAccessor<T> accessor, String xmlName,
+			XmlAdapter componentAdapter) {
 		Class<?> dataType = getDataType();
 		if (dataType.isArray()) {
 			return new XmlArrayAdapter(xmlName, componentAdapter);
@@ -69,28 +71,32 @@ public class XmlAspectMember<T> extends AspectMember<T> implements XmlAdapter {
 	 * @param annotation
 	 * @return
 	 */
-	private XmlAdapter createXmlAdapter(String xmlName, Xml annotation) {
+	private XmlAdapter createXmlAdapter(AspectMemberAccessor<T> accessor, String xmlName, Xml annotation) {
 		switch (annotation.type()) {
 		case ATTRIBUTE:
 			return new XmlAttributeAdapter(
 					xmlName,
 					AdapterFactory.createAdapter(
-							getDataType(),
+							accessor,
 							annotation.adapter(),
 							annotation.pattern()));
 		case CDATA:
-			return createXmlAdapterWith(xmlName,
+			return createXmlAdapterWith(
+					accessor,
+					xmlName,
 					new XmlCdataAdapter(
 							AdapterFactory.createAdapter(
-									getDataType(),
+									accessor,
 									annotation.adapter(),
 									annotation.pattern())));
 		case ELEMENT:
 		case TEXT:
-			return createXmlAdapterWith(xmlName,
+			return createXmlAdapterWith(
+					accessor,
+					xmlName,
 					new XmlTextAdapter(
 							AdapterFactory.createAdapter(
-									getDataType(),
+									accessor,
 									annotation.adapter(),
 									annotation.pattern())));
 		default:

@@ -47,7 +47,7 @@ public class DataAspectMember<T> extends AspectMember<T> implements Column {
 		this.columnName = columnName == null || columnName.isEmpty()
 				? accessor.getName()
 				: columnName;
-		this.adapter = AdapterFactory.createAdapter(accessor.getDataType(), adapterClass, pattern);
+		this.adapter = AdapterFactory.createAdapter(accessor, adapterClass, pattern);
 		this.readOnly = readOnly;
 	}
 

@@ -1,5 +1,7 @@
 package jports.adapters;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.sql.Time;
 import java.util.ArrayList;
@@ -8,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import jports.ShowStopper;
+import jports.reflection.AspectMemberAccessor;
 
 /**
  * This class has a static map of classes to adapters so it can find their
@@ -78,66 +81,73 @@ public final class AdapterFactory {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static synchronized <T> Adapter<T> createAdapter(Class<T> claz, String pattern) {
 		if (claz.isArray()) {
-			return new ArrayAdapter(claz, createAdapter(claz.getComponentType(), pattern));
+			return new ArrayAdapter(
+					claz,
+					createSimpleAdapter(
+							null,
+							claz.getComponentType(),
+							pattern));
 		} else {
-			Class<?> adapterClass = INSTANCES.get(claz);
-			if (adapterClass == null)
-				return null;
-			else {
-				try {
-					Object instance = pattern == null || pattern.isEmpty()
-							? adapterClass.getConstructor().newInstance()
-							: adapterClass.getConstructor(String.class).newInstance(pattern);
-					return (Adapter<T>) instance;
-				} catch (Exception e) {
-					throw new ShowStopper(e);
-				}
-			}
+			return createSimpleAdapter(
+					null,
+					claz,
+					pattern);
 		}
 	}
 
-	public static synchronized <T> Adapter<T> createAdapter(Class<T> claz) {
+	public static <T> Adapter<T> createAdapter(Class<T> claz) {
 		return createAdapter(claz, null);
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public static Adapter createAdapter(
-			Class claz,
-			Class adapterClass,
-			final String pattern) {
+	@SuppressWarnings("rawtypes")
+	private static Adapter createSimpleAdapter(Class<?> adapterClass, Class<?> dataType, String pattern) {
 		try {
-			if (claz.isArray()) {
-				if (adapterClass == null || adapterClass.equals(VoidAdapter.class)) {
-					adapterClass = INSTANCES.get(claz.getComponentType());
-				}
+			if (adapterClass == null || adapterClass == VoidAdapter.class) {
+				adapterClass = INSTANCES.get(dataType);
 				if (adapterClass == null) {
-					throw new ShowStopper("Can't find and adapter for " + claz);
-				}
-				Object instance = pattern == null || pattern.isEmpty()
-						? adapterClass.getConstructor().newInstance()
-						: adapterClass.getConstructor(String.class).newInstance(pattern);
-				return new ArrayAdapter(claz, (Adapter) instance);
-			} else if (List.class.isAssignableFrom(claz)) {
-				if (claz.isInterface()) {
-					claz = ArrayList.class;
-				}
-				return new ListAdapter<>(claz, null);
-			} else {
-				if (VoidAdapter.class.equals(adapterClass) || adapterClass == null) {
-					adapterClass = INSTANCES.get(claz);
-				}
-				if (adapterClass == null) {
-					throw new ShowStopper("Can't find and adapter for " + claz);
-				} else {
-					Object instance = pattern == null || pattern.isEmpty()
-							? adapterClass.getConstructor().newInstance()
-							: adapterClass.getConstructor(String.class).newInstance(pattern);
-					return (Adapter) instance;
+					throw new ShowStopper("Can't find and adapter for " + dataType);
 				}
 			}
+			Object instance = pattern == null || pattern.isEmpty()
+					? adapterClass.getConstructor().newInstance()
+					: adapterClass.getConstructor(String.class).newInstance(pattern);
 
+			return (Adapter) instance;
 		} catch (Exception e) {
 			throw new ShowStopper(e);
+		}
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public static <T> Adapter<T> createAdapter(
+			final AspectMemberAccessor<?> accessor,
+			final Class<?> adapterClass,
+			final String pattern) {
+
+		Class<?> dataType = accessor.getDataType();
+		if (dataType.isArray() && !dataType.equals(byte[].class)) {
+			return new ArrayAdapter(
+					dataType,
+					createSimpleAdapter(
+							adapterClass,
+							dataType.getComponentType(),
+							pattern));
+		} else if (List.class.isAssignableFrom(dataType)) {
+			ParameterizedType type = (ParameterizedType) accessor.getGenericType();
+			Type arg = type.getActualTypeArguments()[0];
+			return new ListAdapter(
+					dataType.isInterface()
+							? ArrayList.class
+							: dataType,
+					createSimpleAdapter(
+							adapterClass,
+							(Class<?>) arg,
+							pattern));
+		} else {
+			return createSimpleAdapter(
+					adapterClass,
+					dataType,
+					pattern);
 		}
 	}
 }

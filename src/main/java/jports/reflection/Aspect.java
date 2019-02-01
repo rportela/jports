@@ -119,15 +119,17 @@ public abstract class Aspect<T, M extends AspectMember<T>>
 		Class<?>[] parameterTypes = getter.getParameterTypes();
 		if (parameterTypes == null || parameterTypes.length == 0) {
 			name = name.substring(3);
-			Method setter = findSetter(methods, "set" + name, getter.getReturnType());
-			AspectMemberProperty<T> accessor = new AspectMemberProperty<>(
-					this,
-					name,
-					getter,
-					setter);
-			M member = this.visit(accessor);
-			if (member != null)
-				target.add(member);
+			if (!"Class".equals(name)) {
+				Method setter = findSetter(methods, "set" + name, getter.getReturnType());
+				AspectMemberProperty<T> accessor = new AspectMemberProperty<>(
+						this,
+						name,
+						getter,
+						setter);
+				M member = this.visit(accessor);
+				if (member != null)
+					target.add(member);
+			}
 		}
 	}
 

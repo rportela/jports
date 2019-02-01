@@ -19,7 +19,7 @@ public class CsvAspectMember<T> extends AspectMember<T> {
 		position = csv.position() >= 0
 				? csv.position()
 				: index;
-		adapter = AdapterFactory.createAdapter(accessor.getDataType(), csv.adapter(), csv.pattern());
+		adapter = AdapterFactory.createAdapter(accessor, csv.adapter(), csv.pattern());
 	}
 
 	public int getPosition() {

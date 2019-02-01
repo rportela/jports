@@ -28,7 +28,12 @@ public class AdapterAspect<T> extends Aspect<T, AdapterAspectMember<T>> {
 	 */
 	@Override
 	protected AdapterAspectMember<T> visit(AspectMemberAccessor<T> accessor) {
-		Adapter<?> adapter = AdapterFactory.createAdapter(accessor.getDataType());
+		AdapterInfo info = accessor.getAnnotation(AdapterInfo.class);
+
+		Adapter<?> adapter = info == null
+				? AdapterFactory.createAdapter(accessor, null, null)
+				: AdapterFactory.createAdapter(accessor, info.adapter(), info.pattern());
+
 		return adapter == null
 				? null
 				: new AdapterAspectMember<>(accessor, adapter);

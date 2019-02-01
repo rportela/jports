@@ -260,6 +260,9 @@ public class ArrayAdapter<T> implements Adapter<T[]> {
 		else if (List.class.isAssignableFrom(sourceClass))
 			return convertList((List<?>) source);
 
+		else if (source instanceof String)
+			return parse((String) source, ",");
+
 		else
 			throw new ShowStopper("Can't convert " + sourceClass + " to " + getDataType());
 	}

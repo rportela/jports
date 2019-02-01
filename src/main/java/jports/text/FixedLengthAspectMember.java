@@ -19,7 +19,7 @@ public class FixedLengthAspectMember<T> extends AspectMember<T> {
 		this.start = offset + column.start();
 		this.end = offset + column.end();
 		this.adapter = AdapterFactory.createAdapter(
-				accessor.getDataType(),
+				accessor,
 				column.adapter(),
 				column.pattern());
 	}
