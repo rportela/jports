@@ -545,6 +545,14 @@ public class DatabaseCommand {
 		return this;
 	}
 
+	public DatabaseCommand appendContains(String name, Object value) {
+		return appendSql("CONTAINS(")
+				.appendName(name)
+				.appendSql(", ")
+				.appendValue(value)
+				.appendSql(")");
+	}
+
 	/**
 	 * Appends a filter term to the underlying command text;
 	 * 
@@ -587,6 +595,9 @@ public class DatabaseCommand {
 
 		case NOT_IN:
 			return appendNotIn(name, value);
+
+		case CONTAINS:
+			return appendContains(name, value);
 
 		default:
 			throw new ShowStopper("Unexpected filter comparison: " + comparison);

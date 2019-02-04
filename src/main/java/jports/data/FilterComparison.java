@@ -10,6 +10,6 @@ public enum FilterComparison {
 	LIKE,
 	NOT_LIKE,
 	IN,
-	NOT_IN
-
+	NOT_IN,
+	CONTAINS
 }
