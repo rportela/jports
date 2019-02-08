@@ -76,7 +76,7 @@ public class DatabaseSelectObject<T> extends Select<T> {
 					.appendName(aspect.getDatabaseObject())
 					.appendWhere(getFilter())
 					.appendSql(")")
-					.executeQuery(r -> r.getObject(1));
+					.executeScalar();
 			return obj != null && ((Number) obj).intValue() == 1;
 		} catch (SQLException e) {
 			throw new ShowStopper(e);
