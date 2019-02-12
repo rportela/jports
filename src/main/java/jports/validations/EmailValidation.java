@@ -10,8 +10,8 @@ import java.util.regex.Pattern;
  */
 public class EmailValidation extends AbstractValidation {
 
-	public static final String DEFAULT_EMAIL_PATTERN = "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@"
-			+ "[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
+	public static final String DEFAULT_EMAIL_PATTERN = "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@" +
+			"[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
 
 	private final Pattern pattern;
 
@@ -35,6 +35,10 @@ public class EmailValidation extends AbstractValidation {
 	 */
 	public EmailValidation(String message) {
 		this(message, DEFAULT_EMAIL_PATTERN);
+	}
+
+	public EmailValidation(Email annotation) {
+		this(annotation.value());
 	}
 
 	/**
