@@ -170,9 +170,12 @@ public class HttpAction {
 
 		try {
 			Action<T, R> action = this.buildAction();
+
 			ActionExecution<T, R> execution = action.execute(
 					parseParams(action.getParamsClass()),
-					copyHeaders());
+					copyHeaders(),
+					request.getUserPrincipal());
+
 			HttpActionWriter<T, R> writer = execution.getResultType() == ActionResultType.SUCCESS
 					? action.getHttpWriter()
 					: new HttpActionExecutionWriterForJson<>();

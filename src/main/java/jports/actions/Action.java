@@ -2,6 +2,7 @@ package jports.actions;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.security.Principal;
 import java.util.Date;
 import java.util.Map;
 
@@ -188,10 +189,15 @@ public abstract class Action<T, R> {
 	 * @param headers
 	 * @return
 	 */
-	public final synchronized ActionExecution<T, R> execute(T params, Map<String, Object> headers) {
+	public final ActionExecution<T, R> execute(T params, Map<String, Object> headers) {
+		return execute(params, headers, null);
+	}
 
+	public final synchronized ActionExecution<T, R> execute(T params, Map<String, Object> headers,
+			Principal principal) {
 		ActionExecution<T, R> execution = new ActionExecution<>();
 		execution
+				.setCurrentUser(principal)
 				.setHeaders(headers)
 				.setParams(params);
 		execute(execution);
