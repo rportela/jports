@@ -14,6 +14,7 @@ import java.util.zip.GZIPOutputStream;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 /**
  * This class wraps methods to build an actions and an action execution based on
@@ -104,6 +105,17 @@ public class HttpAction {
 			String name = names.nextElement();
 			String value = request.getHeader(name);
 			headers.put(name, value);
+		}
+		HttpSession session = request.getSession(false);
+		if (session != null) {
+			Enumeration<String> attributeNames = session.getAttributeNames();
+			while (attributeNames.hasMoreElements()) {
+				String aName = attributeNames.nextElement();
+				if (!headers.containsKey(aName)) {
+					Object aValue = session.getAttribute(aName);
+					headers.put(aName, aValue);
+				}
+			}
 		}
 		return headers;
 	}
