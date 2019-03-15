@@ -3,6 +3,8 @@ package jports.actions;
 import java.util.Date;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jports.validations.ValidationResult;
 
 /**
@@ -22,6 +24,7 @@ public class ActionExecution<T, R> {
 	private Date executionEnd;
 	private T params;
 	private R result;
+	@JsonIgnore
 	private Object currentUser;
 	private Map<String, Object> headers;
 	private ActionResultType resultType = ActionResultType.NOT_EXECUTED;
