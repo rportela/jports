@@ -238,9 +238,14 @@ public abstract class Action<T, R> {
 	 * @param action
 	 */
 	public static <T> void run(Action<T, ?> action, T parameters) {
-
 		ActionExecution<T, ?> execution = action.execute(parameters);
-		GenericLogger.info(action.getClass(), execution);
+		if (execution.getResultType() == ActionResultType.EXCEPTION_RAISED) {
+			GenericLogger.error(action.getClass(), execution);
+			System.exit(1);
+		} else {
+			GenericLogger.info(action.getClass(), execution);
+		}
+
 	}
 
 }
