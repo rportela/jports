@@ -188,10 +188,15 @@ public abstract class Action<T, R> {
 	 * @param headers
 	 * @return
 	 */
-	public final synchronized ActionExecution<T, R> execute(T params, Map<String, Object> headers) {
+	public final ActionExecution<T, R> execute(T params, Map<String, Object> headers) {
+		return execute(params, headers, null);
+	}
 
+	public final synchronized ActionExecution<T, R> execute(T params, Map<String, Object> headers,
+			Object currentUser) {
 		ActionExecution<T, R> execution = new ActionExecution<>();
 		execution
+				.setCurrentUser(currentUser)
 				.setHeaders(headers)
 				.setParams(params);
 		execute(execution);
@@ -233,9 +238,14 @@ public abstract class Action<T, R> {
 	 * @param action
 	 */
 	public static <T> void run(Action<T, ?> action, T parameters) {
-
 		ActionExecution<T, ?> execution = action.execute(parameters);
-		GenericLogger.info(action.getClass(), execution);
+		if (execution.getResultType() == ActionResultType.EXCEPTION_RAISED) {
+			GenericLogger.error(action.getClass(), execution);
+			System.exit(1);
+		} else {
+			GenericLogger.info(action.getClass(), execution);
+		}
+
 	}
 
 }

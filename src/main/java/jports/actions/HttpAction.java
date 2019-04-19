@@ -3,6 +3,7 @@ package jports.actions;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
+import java.security.Principal;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -173,11 +174,15 @@ public class HttpAction {
 			return null;
 		}
 		try {
-			ActionExecution<T, R> execution = action.execute(parseParams(action.getParamsClass()), copyHeaders());
+			ActionExecution<T, R> execution = action.execute(parseParams(action.getParamsClass()), copyHeaders(),
+					getRequestUser());
+
 			HttpActionWriter<T, R> writer = execution.getResultType() == ActionResultType.SUCCESS
 					? action.getHttpWriter()
 					: new HttpActionExecutionWriterForJson<>();
+
 			writer.write(execution, this);
+
 			return execution;
 		} catch (Exception e) {
 			ActionExecution<T, R> errorExec = new ActionExecution<>();
@@ -190,6 +195,11 @@ public class HttpAction {
 			}
 			return errorExec;
 		}
+	}
+
+	public Object getRequestUser() {
+		Principal p = request.getUserPrincipal();
+		return p == null ? request.getRemoteUser() : p;
 	}
 
 	public OutputStream getResponseStream() throws IOException {
