@@ -120,18 +120,12 @@ public class HttpAction {
 	 * @throws ClassNotFoundException
 	 */
 	@SuppressWarnings("unchecked")
-	public <T, R> Action<T, R> buildAction() throws InstantiationException,
-			IllegalAccessException,
-			InvocationTargetException,
-			NoSuchMethodException,
-			ClassNotFoundException {
+	public <T, R> Action<T, R> buildAction() throws InstantiationException, IllegalAccessException,
+			InvocationTargetException, NoSuchMethodException, ClassNotFoundException {
 		String className = request.getPathInfo();
 		className = className.replace('/', '.');
 		className = packageName + className;
-		return (Action<T, R>) Class
-				.forName(className)
-				.getConstructor()
-				.newInstance();
+		return (Action<T, R>) Class.forName(className).getConstructor().newInstance();
 
 	}
 
@@ -167,12 +161,19 @@ public class HttpAction {
 	 * @return
 	 */
 	public <T, R> ActionExecution<T, R> execute() {
-
+		Action<T, R> action = null;
 		try {
-			Action<T, R> action = this.buildAction();
-			ActionExecution<T, R> execution = action.execute(
-					parseParams(action.getParamsClass()),
-					copyHeaders());
+			action = this.buildAction();
+		} catch (Exception e) {
+			try {
+				this.response.sendError(404, e.toString());
+			} catch (IOException e1) {
+				// just ignore this
+			}
+			return null;
+		}
+		try {
+			ActionExecution<T, R> execution = action.execute(parseParams(action.getParamsClass()), copyHeaders());
 			HttpActionWriter<T, R> writer = execution.getResultType() == ActionResultType.SUCCESS
 					? action.getHttpWriter()
 					: new HttpActionExecutionWriterForJson<>();
@@ -180,9 +181,7 @@ public class HttpAction {
 			return execution;
 		} catch (Exception e) {
 			ActionExecution<T, R> errorExec = new ActionExecution<>();
-			errorExec.setName(request.getPathInfo())
-					.setResultType(ActionResultType.EXCEPTION_RAISED)
-					.setException(e)
+			errorExec.setName(request.getPathInfo()).setResultType(ActionResultType.EXCEPTION_RAISED).setException(e)
 					.setFailMessage(e.getMessage());
 			try {
 				new HttpActionExecutionWriterForJson<T, R>().write(errorExec, this);
@@ -190,7 +189,6 @@ public class HttpAction {
 				Logger.getLogger(getClass().getName()).log(Level.INFO, ignore, null);
 			}
 			return errorExec;
-
 		}
 	}
 
@@ -287,20 +285,12 @@ public class HttpAction {
 	/**
 	 * The default known names of JSON content types;
 	 */
-	protected static final String[] JSON_contentTypeS = new String[] {
-			"application/json",
-			"application/x-javascript",
-			"text/javascript",
-			"text/x-javascript",
-			"text/x-json"
-	};
+	protected static final String[] JSON_contentTypeS = new String[] { "application/json", "application/x-javascript",
+			"text/javascript", "text/x-javascript", "text/x-json" };
 
 	/**
 	 * The default known names of XML content types;
 	 */
-	protected static final String[] XML_contentTypeS = new String[] {
-			"text/xml",
-			"application/xml"
-	};
+	protected static final String[] XML_contentTypeS = new String[] { "text/xml", "application/xml" };
 
 }
