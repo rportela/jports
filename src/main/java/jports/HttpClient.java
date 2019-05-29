@@ -265,9 +265,7 @@ public class HttpClient {
 			}
 		}
 
-		return setPayload(
-				"application/x-www-form-urlencoded",
-				postBuilder.toString().getBytes(charset));
+		return setPayload("application/x-www-form-urlencoded", postBuilder.toString().getBytes(charset));
 	}
 
 	/**
@@ -310,9 +308,7 @@ public class HttpClient {
 	 * @return
 	 */
 	public List<String> getResponseHeader(String name) {
-		return this.responseHeaders == null
-				? null
-				: this.responseHeaders.get(name);
+		return this.responseHeaders == null ? null : this.responseHeaders.get(name);
 	}
 
 	/**
@@ -322,9 +318,7 @@ public class HttpClient {
 	 * @return
 	 */
 	public Set<String> getResponseHeaderNames() {
-		return this.responseHeaders == null
-				? null
-				: this.responseHeaders.keySet();
+		return this.responseHeaders == null ? null : this.responseHeaders.keySet();
 	}
 
 	/**
@@ -461,9 +455,8 @@ public class HttpClient {
 	 */
 	private void processRedirects() throws IOException {
 		int responseCode = connection.getResponseCode();
-		if (responseCode == HttpURLConnection.HTTP_MOVED_TEMP ||
-				responseCode == HttpURLConnection.HTTP_MOVED_PERM ||
-				responseCode == HttpURLConnection.HTTP_SEE_OTHER) {
+		if (responseCode == HttpURLConnection.HTTP_MOVED_TEMP || responseCode == HttpURLConnection.HTTP_MOVED_PERM
+				|| responseCode == HttpURLConnection.HTTP_SEE_OTHER) {
 
 			if (redirectCount > redirectMax) {
 				throw new ShowStopper("Too many redirects detected: " + redirectCount + " -> " + url);
@@ -481,10 +474,12 @@ public class HttpClient {
 	 */
 	private void processContentType() {
 		String contentType = connection.getContentType();
-		int ppos = contentType.indexOf("charset=") + 8;
-		if (ppos > 7) {
-			String charsetName = contentType.substring(ppos);
-			charset = Charset.forName(charsetName);
+		if (contentType != null) {
+			int ppos = contentType.indexOf("charset=") + 8;
+			if (ppos > 7) {
+				String charsetName = contentType.substring(ppos);
+				charset = Charset.forName(charsetName);
+			}
 		}
 	}
 
@@ -619,12 +614,8 @@ public class HttpClient {
 	 * @throws IOException
 	 * @throws ParserConfigurationException
 	 */
-	public Document getResponseXml() throws SAXException,
-			IOException,
-			ParserConfigurationException {
-		return XML_BUILDER_FACTORY
-				.newDocumentBuilder()
-				.parse(getInputStream());
+	public Document getResponseXml() throws SAXException, IOException, ParserConfigurationException {
+		return XML_BUILDER_FACTORY.newDocumentBuilder().parse(getInputStream());
 	}
 
 }

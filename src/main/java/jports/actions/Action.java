@@ -167,6 +167,7 @@ public abstract class Action<T, R> {
 			}
 		} catch (Exception e) {
 			GenericLogger.error(getClass(), e);
+			e.printStackTrace();
 			execution
 					.setException(e)
 					.setFailMessage(e.getMessage())
