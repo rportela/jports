@@ -11,7 +11,7 @@ public abstract class Filterable<T> {
 	}
 
 	public T where(FilterExpression expression) {
-		this.where = expression;
+		this.where = new FilterExpression(expression);
 		return getThis();
 	}
 
@@ -29,16 +29,12 @@ public abstract class Filterable<T> {
 	}
 
 	public T andWhere(FilterExpression expression) {
-		this.where = this.where == null
-				? expression
-				: this.where.and(expression);
+		this.where = this.where == null ? new FilterExpression(expression) : this.where.and(expression);
 		return getThis();
 	}
 
 	public T andWhere(FilterTerm term) {
-		this.where = this.where == null
-				? new FilterExpression(term)
-				: this.where.and(term);
+		this.where = this.where == null ? new FilterExpression(term) : this.where.and(term);
 		return getThis();
 	}
 
@@ -51,16 +47,12 @@ public abstract class Filterable<T> {
 	}
 
 	public T orWhere(FilterExpression expression) {
-		this.where = this.where == null
-				? expression
-				: this.where.or(expression);
+		this.where = this.where == null ? new FilterExpression(expression) : this.where.or(expression);
 		return getThis();
 	}
 
 	public T orWhere(FilterTerm term) {
-		this.where = this.where == null
-				? new FilterExpression(term)
-				: this.where.or(term);
+		this.where = this.where == null ? new FilterExpression(term) : this.where.or(term);
 		return getThis();
 	}
 

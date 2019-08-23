@@ -177,9 +177,9 @@ public class HttpAction {
 			ActionExecution<T, R> execution = action.execute(parseParams(action.getParamsClass()), copyHeaders(),
 					getRequestUser());
 
-			HttpActionWriter<T, R> writer = execution.getResultType() == ActionResultType.SUCCESS
-					? action.getHttpWriter()
-					: new HttpActionExecutionWriterForJson<>();
+			HttpActionWriter<T, R> writer = execution.getResultType() == ActionResultType.SUCCESS ?
+					action.getHttpWriter() :
+					new HttpActionExecutionWriterForJson<>();
 
 			writer.write(execution, this);
 
@@ -191,7 +191,7 @@ public class HttpAction {
 			try {
 				new HttpActionExecutionWriterForJson<T, R>().write(errorExec, this);
 			} catch (IOException ignore) {
-				Logger.getLogger(getClass().getName()).log(Level.INFO, ignore, null);
+				Logger.getLogger(getClass().getName()).log(Level.INFO, ignore, ignore::getMessage);
 			}
 			return errorExec;
 		}
