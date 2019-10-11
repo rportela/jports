@@ -31,11 +31,16 @@ public class DateAdapter implements Adapter<Date> {
 	@Override
 	public Date parse(String source) {
 		try {
-			return source == null || source.isEmpty()
+			return source == null || source.isEmpty() || "00000000".equals(source)
 					? null
-					: formatter.parse(source);
+						: formatter.parse(source);
 		} catch (Exception e) {
-			throw new ShowStopper(e);
+			throw new ShowStopper(
+					"unable to parse date " +
+							source +
+							" with format " +
+							((SimpleDateFormat) this.formatter).toPattern(),
+					e);
 		}
 	}
 
@@ -43,7 +48,7 @@ public class DateAdapter implements Adapter<Date> {
 	public String format(Date source) {
 		return source == null
 				? null
-				: formatter.format(source);
+					: formatter.format(source);
 	}
 
 	@Override
