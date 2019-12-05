@@ -7,6 +7,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -139,9 +141,7 @@ public class DatabaseCommand {
 			try (Statement statement = connection.createStatement()) {
 				statement.execute(text.toString(), Statement.RETURN_GENERATED_KEYS);
 				try (ResultSet rs = statement.getGeneratedKeys()) {
-					return rs.next()
-							? rs.getObject(1)
-							: null;
+					return rs.next() ? rs.getObject(1) : null;
 				}
 			}
 		}
@@ -159,9 +159,7 @@ public class DatabaseCommand {
 		try {
 			try (Statement statement = conn.createStatement()) {
 				try (ResultSet rs = statement.executeQuery(text.toString())) {
-					return rs.next()
-							? rs.getObject(1)
-							: null;
+					return rs.next() ? rs.getObject(1) : null;
 				}
 			}
 		} finally {
@@ -329,9 +327,7 @@ public class DatabaseCommand {
 	 * @return
 	 */
 	public DatabaseCommand appendBoolean(Boolean value) {
-		text.append(value
-				? "TRUE"
-				: "FALSE");
+		text.append(value ? "TRUE" : "FALSE");
 		return this;
 	}
 
@@ -400,6 +396,10 @@ public class DatabaseCommand {
 			return appendTime((Time) value);
 		else if (value instanceof Calendar)
 			return appendDate(((Calendar) value).getTime());
+		else if (value instanceof LocalDateTime)
+			return appendString(value.toString());
+		else if (value instanceof LocalDate)
+			return appendString(value.toString());
 		else if (value instanceof UUID)
 			return appendUUID((UUID) value);
 		else if (value instanceof String)
@@ -410,6 +410,7 @@ public class DatabaseCommand {
 			return appendValueList((Iterable<?>) value);
 		else if (value.getClass().isArray())
 			return appendValueArray(value);
+
 		else
 			throw new ShowStopper("Can't convert " + value + " to SQL.");
 	}

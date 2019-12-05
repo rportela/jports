@@ -174,12 +174,14 @@ public class HttpAction {
 			return null;
 		}
 		try {
-			ActionExecution<T, R> execution = action.execute(parseParams(action.getParamsClass()), copyHeaders(),
-					getRequestUser());
+			ActionExecution<T, R> execution =
+					action.execute(parseParams(action.getParamsClass()), copyHeaders(),
+							getRequestUser());
 
-			HttpActionWriter<T, R> writer = execution.getResultType() == ActionResultType.SUCCESS ?
-					action.getHttpWriter() :
-					new HttpActionExecutionWriterForJson<>();
+			HttpActionWriter<T, R> writer =
+					execution.getResultType() == ActionResultType.SUCCESS ?
+							action.getHttpWriter() :
+							new HttpActionWriterForJson<>();
 
 			writer.write(execution, this);
 
@@ -189,7 +191,7 @@ public class HttpAction {
 			errorExec.setName(request.getPathInfo()).setResultType(ActionResultType.EXCEPTION_RAISED).setException(e)
 					.setFailMessage(e.getMessage());
 			try {
-				new HttpActionExecutionWriterForJson<T, R>().write(errorExec, this);
+				new HttpActionWriterForJson<T, R>().write(errorExec, this);
 			} catch (IOException ignore) {
 				Logger.getLogger(getClass().getName()).log(Level.INFO, ignore, ignore::getMessage);
 			}
@@ -295,8 +297,9 @@ public class HttpAction {
 	/**
 	 * The default known names of JSON content types;
 	 */
-	protected static final String[] JSON_contentTypeS = new String[] { "application/json", "application/x-javascript",
-			"text/javascript", "text/x-javascript", "text/x-json" };
+	protected static final String[] JSON_contentTypeS =
+			new String[] { "application/json", "application/x-javascript",
+					"text/javascript", "text/x-javascript", "text/x-json" };
 
 	/**
 	 * The default known names of XML content types;

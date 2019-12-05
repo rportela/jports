@@ -4,6 +4,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.sql.Time;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -54,6 +55,8 @@ public final class AdapterFactory {
 		INSTANCES.put(BigDecimal.class, BigDecimalAdapter.class);
 		INSTANCES.put(Time.class, TimeAdapter.class);
 		INSTANCES.put(byte[].class, ByteArrayAdapter.class);
+
+		INSTANCES.put(LocalDateTime.class, LocalDateTimeAdapter.class);
 	}
 
 	/**
@@ -108,9 +111,10 @@ public final class AdapterFactory {
 					throw new ShowStopper("Can't find and adapter for " + dataType);
 				}
 			}
-			Object instance = pattern == null || pattern.isEmpty()
-					? adapterClass.getConstructor().newInstance()
-					: adapterClass.getConstructor(String.class).newInstance(pattern);
+			Object instance =
+					pattern == null || pattern.isEmpty() ?
+							adapterClass.getConstructor().newInstance() :
+							adapterClass.getConstructor(String.class).newInstance(pattern);
 
 			return (Adapter) instance;
 		} catch (Exception e) {
@@ -136,9 +140,7 @@ public final class AdapterFactory {
 			ParameterizedType type = (ParameterizedType) accessor.getGenericType();
 			Type arg = type.getActualTypeArguments()[0];
 			return new ListAdapter(
-					dataType.isInterface()
-							? ArrayList.class
-							: dataType,
+					dataType.isInterface() ? ArrayList.class : dataType,
 					createSimpleAdapter(
 							adapterClass,
 							(Class<?>) arg,

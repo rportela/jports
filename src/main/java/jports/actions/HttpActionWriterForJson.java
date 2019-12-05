@@ -3,9 +3,11 @@ package jports.actions;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 /**
  * This class is responsible for serializing the execution as JSON to the
@@ -19,9 +21,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class HttpActionWriterForJson<T, R> implements HttpActionWriter<T, R> {
 
 	protected static final ObjectMapper MAPPER;
+
 	static {
+
 		MAPPER = new ObjectMapper();
-		MAPPER.setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ"));
+		MAPPER.registerModule(
+				new JavaTimeModule()
+						.addSerializer(LocalDateTime.class, new LocalDateTimeISOSerializer()));
+		MAPPER.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 	}
 
 	/**
