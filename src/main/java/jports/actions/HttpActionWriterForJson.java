@@ -39,7 +39,7 @@ public class HttpActionWriterForJson<T, R> implements HttpActionWriter<T, R> {
 	public void write(ActionExecution<T, R> execution, HttpAction action) throws IOException {
 
 		execution.setParams(null);
-		String json = MAPPER.writeValueAsString(execution.getResult());
+		String json = MAPPER.writeValueAsString(execution);
 		byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
 
 		action.setContentType("application/json");

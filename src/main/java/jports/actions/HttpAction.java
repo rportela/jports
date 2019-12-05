@@ -175,7 +175,9 @@ public class HttpAction {
 		}
 		try {
 			ActionExecution<T, R> execution =
-					action.execute(parseParams(action.getParamsClass()), copyHeaders(),
+					action.execute(
+							parseParams(action.getParamsClass()),
+							copyHeaders(),
 							getRequestUser());
 
 			HttpActionWriter<T, R> writer =
