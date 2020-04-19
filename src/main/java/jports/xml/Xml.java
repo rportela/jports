@@ -19,4 +19,5 @@ public @interface Xml {
 
 	public String pattern() default "";
 
+	public String summary() default "";
 }

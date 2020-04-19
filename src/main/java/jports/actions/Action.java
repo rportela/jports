@@ -221,7 +221,7 @@ public abstract class Action<T, R> {
 	 * @return
 	 */
 	public HttpActionWriter<T, R> getHttpWriter() {
-		return new HttpActionExecutionWriterForJson<>();
+		return new HttpActionWriterForJson<>();
 	}
 
 	/**
