@@ -60,6 +60,10 @@ public class Settings {
 
 	}
 
+	public static final synchronized Map<String, Object> all() {
+		return VALUES;
+	}
+
 	/**
 	 * Saves the contents of the settings to a file named settings.json in the root
 	 * of the class path loader.

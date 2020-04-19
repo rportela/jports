@@ -1,7 +1,10 @@
 package jports.adapters;
 
 import java.lang.reflect.Array;
+import java.sql.SQLException;
 import java.util.List;
+
+import javax.xml.crypto.dsig.keyinfo.PGPData;
 
 import jports.ShowStopper;
 
@@ -140,6 +143,15 @@ public class ArrayAdapter<T> implements Adapter<T[]> {
 		return arr;
 	}
 
+	@SuppressWarnings("unchecked")
+	public T[] convertSqlArray(java.sql.Array source) {
+		try {
+			return (T[]) source.getArray();
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	/**
 	 * Converts the source list to an array;
 	 * 
@@ -262,6 +274,9 @@ public class ArrayAdapter<T> implements Adapter<T[]> {
 
 		else if (source instanceof String)
 			return parse((String) source, ",");
+
+		else if (source instanceof java.sql.Array)
+			return convertSqlArray((java.sql.Array) source);
 
 		else
 			throw new ShowStopper("Can't convert " + sourceClass + " to " + getDataType());
