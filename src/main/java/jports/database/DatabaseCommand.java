@@ -817,4 +817,23 @@ public class DatabaseCommand {
 				.appendValueList(values.values())
 				.appendSql(")");
 	}
+
+	/**
+	 * This method append a FUNCTION call to the underlying SQL command text;
+	 * 
+	 * @param functioName
+	 * @param params
+	 * @return
+	 */
+	public DatabaseCommand appendFunctionCall(String functioName, Object... params) {
+		appendSql(functioName).appendSql("(");
+		if (params != null)
+			for (int i = 0; i < params.length; i++) {
+				if (i > 0)
+					appendSql(", ");
+				appendValue(params[i]);
+			}
+		appendSql(")");
+		return this;
+	}
 }
