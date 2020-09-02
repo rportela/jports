@@ -42,8 +42,7 @@ public class ActionExecution<T, R> {
 	}
 
 	/**
-	 * @param name
-	 *            the name to set
+	 * @param name the name to set
 	 */
 	public ActionExecution<T, R> setName(String name) {
 		this.name = name;
@@ -61,8 +60,7 @@ public class ActionExecution<T, R> {
 	}
 
 	/**
-	 * @param executionStart
-	 *            the executionStart to set
+	 * @param executionStart the executionStart to set
 	 */
 	public ActionExecution<T, R> setExecutionStart(Date executionStart) {
 		this.executionStart = executionStart;
@@ -80,8 +78,7 @@ public class ActionExecution<T, R> {
 	}
 
 	/**
-	 * @param executionEnd
-	 *            the executionEnd to set
+	 * @param executionEnd the executionEnd to set
 	 */
 	public ActionExecution<T, R> setExecutionEnd(Date executionEnd) {
 		this.executionEnd = executionEnd;
@@ -98,8 +95,7 @@ public class ActionExecution<T, R> {
 	}
 
 	/**
-	 * @param params
-	 *            the params to set
+	 * @param params the params to set
 	 */
 	public ActionExecution<T, R> setParams(T params) {
 		this.params = params;
@@ -117,8 +113,7 @@ public class ActionExecution<T, R> {
 
 	/**
 	 * 
-	 * @param result
-	 *            the result to set
+	 * @param result the result to set
 	 */
 	public ActionExecution<T, R> setResult(R result) {
 		this.result = result;
@@ -127,8 +122,7 @@ public class ActionExecution<T, R> {
 
 	/**
 	 * 
-	 * @param result
-	 *            the result to set
+	 * @param result the result to set
 	 */
 	public ActionExecution<T, R> setSuccess(R result) {
 		this.result = result;
@@ -138,8 +132,7 @@ public class ActionExecution<T, R> {
 
 	/**
 	 * 
-	 * @param result
-	 *            the result to set
+	 * @param result the result to set
 	 */
 	public ActionExecution<T, R> setValidationFailed(ValidationResult validation) {
 		this.validation = validation;
@@ -149,8 +142,7 @@ public class ActionExecution<T, R> {
 
 	/**
 	 * 
-	 * @param result
-	 *            the result to set
+	 * @param result the result to set
 	 */
 	public ActionExecution<T, R> setValidationFailed(String name, String message, ValidationResult... children) {
 		return setValidationFailed(new ValidationResult(name, false, message, children));
@@ -166,8 +158,7 @@ public class ActionExecution<T, R> {
 	}
 
 	/**
-	 * @param currentUser
-	 *            the currentUser to set
+	 * @param currentUser the currentUser to set
 	 */
 	public ActionExecution<T, R> setCurrentUser(Object currentUser) {
 		this.currentUser = currentUser;
@@ -197,8 +188,7 @@ public class ActionExecution<T, R> {
 	}
 
 	/**
-	 * @param headers
-	 *            the headers to set
+	 * @param headers the headers to set
 	 */
 	public ActionExecution<T, R> setHeaders(Map<String, Object> headers) {
 		this.headers = headers;
@@ -215,8 +205,7 @@ public class ActionExecution<T, R> {
 	}
 
 	/**
-	 * @param resultType
-	 *            the resultType to set
+	 * @param resultType the resultType to set
 	 */
 	public ActionExecution<T, R> setResultType(ActionResultType resultType) {
 		this.resultType = resultType;
@@ -233,11 +222,11 @@ public class ActionExecution<T, R> {
 	}
 
 	/**
-	 * @param exception
-	 *            the exception to set
+	 * @param exception the exception to set
 	 */
 	public ActionExecution<T, R> setException(Exception exception) {
 		this.exception = exception;
+		this.resultType = ActionResultType.EXCEPTION_RAISED;
 		return this;
 	}
 
@@ -252,8 +241,7 @@ public class ActionExecution<T, R> {
 	}
 
 	/**
-	 * @param validation
-	 *            the validation to set
+	 * @param validation the validation to set
 	 */
 	public ActionExecution<T, R> setValidation(ValidationResult validation) {
 		this.validation = validation;
@@ -272,8 +260,7 @@ public class ActionExecution<T, R> {
 	}
 
 	/**
-	 * @param failMessage
-	 *            the failMessage to set
+	 * @param failMessage the failMessage to set
 	 */
 	public ActionExecution<T, R> setFailMessage(String failMessage) {
 		this.failMessage = failMessage;
